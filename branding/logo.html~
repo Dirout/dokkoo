@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap" rel="stylesheet"> 
+    </head>
+    <style>
+    h1
+    {
+     font-family: 'Inter', sans-serif;   
+    }
+    </style>
+    <p>Dokkoo</p>
+</html>
