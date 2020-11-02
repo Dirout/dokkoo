@@ -21,7 +21,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: -Z build-std strip=symbols --release --all-features --target armv7-unknown-linux-gnueabihf
+          args: -Z build-std -Z strip=symbols --release --all-features --target armv7-unknown-linux-gnueabihf
       - name: Prepare Dokkoo build artifact for upload
         run: |
           chmod +x target/release/dokkoo

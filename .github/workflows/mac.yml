@@ -21,7 +21,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: -Z build-std strip=symbols --release --all-features --target x86_64-apple-darwin
+          args: -Z build-std -Z strip=symbols --release --all-features --target x86_64-apple-darwin
       - name: Prepare Dokkoo build artifact for upload
         run: |
           chmod +x target/release/dokkoo
