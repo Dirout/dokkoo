@@ -19,9 +19,9 @@ file.rs - Handling Mokk Files (.mokkf)
 File:
     Term for either a Document or a Page
 */
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime};
 use serde::{Deserialize, Serialize};
-use serde_yaml;
+
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -88,23 +88,23 @@ pub struct Page {
 pub fn get_permalink(permalink: &str) -> String {
     match &*permalink {
         "date" => {
-            return "/{{ page.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.title }}.html".to_owned();
+            "/{{ page.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.title }}.html".to_owned()
         }
         "pretty" => {
-            return "/{{ page.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.title }}.html".to_owned();
+            "/{{ page.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.title }}.html".to_owned()
         }
         "ordinal" => {
-            return "/{{ page.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.title }}.html"
-                .to_owned();
+            "/{{ page.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.title }}.html"
+                .to_owned()
         }
         "weekdate" => {
-            return "/{{ page.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.title }}.html".to_owned();
+            "/{{ page.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.title }}.html".to_owned()
         }
         "none" => {
-            return "/{{ page.collection }}/{{ page.title }}.html".to_owned();
+            "/{{ page.collection }}/{{ page.title }}.html".to_owned()
         }
         _ => {
-            return format!("{}", permalink);
+            permalink.to_string()
         }
     }
 }
@@ -132,7 +132,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
         }
     }
 
-    return (frontmatter, contents);
+    (frontmatter, contents)
 }
 
 pub fn get_page_object(page_path: String) -> Page {
@@ -146,15 +146,15 @@ pub fn get_page_object(page_path: String) -> Page {
     let document = Document {
         frontmatter: serde_yaml::from_str(&split_page.0).unwrap(),
         content: split_page.1,
-        permalink: format!("{}", permalink.unwrap().1),
-        date: format!("{}", date.unwrap().1),
+        permalink: permalink.unwrap().1.to_string(),
+        date: date.unwrap().1.to_string(),
     };
 
     let page_path_IO = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 
     let page = Page {
-        document: document,
+        document,
         dir: page_path_IO.parent().unwrap().to_str().unwrap().to_owned(),
         name: page_path_IO
             .file_stem()
@@ -184,5 +184,5 @@ pub fn get_page_object(page_path: String) -> Page {
 
     // Render page content, set page.content as rendered version
 
-    return page;
+    page
 }
