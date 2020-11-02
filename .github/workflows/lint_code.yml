@@ -1,10 +1,10 @@
 on: [push]
 
-name: Format codebase
+name: Lint codebase
 
 jobs:
-  code_format:
-    name: Format codebase
+  code_lint:
+    name: Lint codebase
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codebase
@@ -16,13 +16,14 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src, clippy, rustfmt
-      - name: Format code files
+      - name: Correct code files
         uses: actions-rs/cargo@v1
         with:
-          command: fmt
+          command: clippy
+          args: --fix -Z unstable-options
       - name: Commit changes to code, if any
         run: |
           git config --global user.name 'Dokkoo'
           git config --global user.email 'MadeByEmil@users.noreply.github.com'
-          git diff --quiet && git diff --staged --quiet || git commit -am "Automatic Rust styleguide enforcement"
+          git diff --quiet && git diff --staged --quiet || git commit -am "Automatically approved suggested code corrections by linter"
           git push
