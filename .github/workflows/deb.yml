@@ -23,7 +23,6 @@ jobs:
           args: cargo-deb
       - name: Prepare building & packaging environment
         run: |
-          mkdir -p ./target/x86_64-unknown-linux-gnu/release
           ln -s ./target/x86_64-unknown-linux-gnu/release ./target/release
       - name: Build & package Dokkoo
         uses: actions-rs/cargo@v1
