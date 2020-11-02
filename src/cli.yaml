@@ -16,11 +16,6 @@ name: dokkoo
 version: "0.1.0"
 author: Emil Sayahi
 about: Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.
-args:
-    - verbose:
-        short: v
-        multiple: true
-        about: Sets the level of output verbosity
 subcommands:
     - show:
         about: Shows information regarding the usage and handling of this software
@@ -38,6 +33,10 @@ subcommands:
                 about: Path to a Mokk
                 required: true
                 index: 1
+            - verbose:
+                short: v
+                multiple: true
+                about: Sets the level of output verbosity
     - serve:
         about: Serves a Mokk using an HTTP server
         args:
@@ -45,6 +44,10 @@ subcommands:
                 about: Path to a Mokk
                 required: true
                 index: 1
+            - verbose:
+                short: v
+                multiple: true
+                about: Sets the level of output verbosity
     - clean:
         about: Deletes an outputted Mokk
         args:
@@ -52,3 +55,7 @@ subcommands:
                 about: Path to a Mokk
                 required: true
                 index: 1
+            - verbose:
+                short: v
+                multiple: true
+                about: Sets the level of output verbosity
