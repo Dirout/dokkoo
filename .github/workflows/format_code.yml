@@ -25,4 +25,4 @@ jobs:
           git config --global user.name 'Dokkoo'
           git config --global user.email 'MadeByEmil@users.noreply.github.com'
           git commit -am "Automatic Rust styleguide enforcement"
-          git push
+          git push || echo "Codebase already conforms to Rust styleguide"
