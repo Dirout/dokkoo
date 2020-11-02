@@ -8,6 +8,7 @@ on: push
 
 jobs:
   Scan-Build:
+    name: Scan
     # Scan runs on ubuntu, mac and windows
     runs-on: ubuntu-latest
     steps:
