@@ -19,7 +19,7 @@ file.rs - Handling Mokk Files (.mokkf)
 File:
     Term for either a Document or a Page
 */
-use chrono::{DateTime};
+use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
