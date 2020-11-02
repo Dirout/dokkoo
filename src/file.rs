@@ -20,11 +20,11 @@ File:
     Term for either a Document or a Page
 */
 use chrono::DateTime;
+use liquid::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use liquid::*;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 /// Document:
@@ -198,20 +198,23 @@ pub fn get_page_object(page_path: String) -> Page {
 /// # Arguments
 ///
 /// * `page_path` - The `.mokkf` file's path as a `String`
-pub fn get_contexts(page_path: String) -> Object
-{
-    let global: HashMap<String, String> = serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined on own line as it requires a type annotation
+pub fn get_contexts(page_path: String) -> Object {
+    let global: HashMap<String, String> =
+        serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined on own line as it requires a type annotation
     let page = get_page_object(page_path);
     let collection_name = page.document.frontmatter.get_key_value("collection");
     let collection: HashMap<String, String>;
     // Import collection context if page is in a collection
-    match collection_name
-    {
+    match collection_name {
         None => {
             collection = HashMap::new();
-        },
+        }
         Some(_) => {
-            collection = serde_yaml::from_str(&fs::read_to_string(format!("./_{}/_collection.yml", collection_name.unwrap().1)).unwrap()).unwrap();
+            collection = serde_yaml::from_str(
+                &fs::read_to_string(format!("./_{}/_collection.yml", collection_name.unwrap().1))
+                    .unwrap(),
+            )
+            .unwrap();
         }
     }
 
@@ -228,13 +231,14 @@ pub fn get_contexts(page_path: String) -> Object
 /// # Arguments
 ///
 /// * `page_path` - The `.mokkf` file's path as a `String`
-/// 
+///
 /// * `text_to_render` - The text with the Liquid templating to be rendered
-pub fn render(page_path: String, text_to_render: &str) -> String
-{
+pub fn render(page_path: String, text_to_render: &str) -> String {
     let template = liquid::ParserBuilder::with_stdlib()
-    .build().unwrap()
-    .parse(text_to_render).unwrap();
+        .build()
+        .unwrap()
+        .parse(text_to_render)
+        .unwrap();
 
     return template.render(&get_contexts(page_path)).unwrap();
 }
