@@ -26,7 +26,7 @@ panic = 'abort'
 section = "utility"
 priority = "optional"
 assets = [
-    ["target/release/dokkoo", "usr/bin/", "755"],
+    ["target/x86_64-unknown-linux-gnu/release/dokkoo", "usr/bin/", "755"],
     ["README", "usr/share/doc/dokkoo/README", "644"],
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]
