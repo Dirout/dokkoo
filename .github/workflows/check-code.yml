@@ -14,13 +14,13 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src, clippy, rustfmt
-      - name: Check codebase using linter
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features -- -D warnings
       - name: Check codebase is properly formatted
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args:  -- --check
+      - name: Check codebase using linter
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D warnings
