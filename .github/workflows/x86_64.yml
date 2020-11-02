@@ -24,11 +24,10 @@ jobs:
           args: --release --all-features --target x86_64-unknown-linux-gnu
       - name: Prepare Dokkoo build artifact for upload
         run: |
-          ls
           ls ./target/release
-          strip -v --strip-all target/release/dokkoo
-          chmod +x target/release/dokkoo
-          tar -cvf x86_64-dokkoo.gnu+linux.tar target/release/dokkoo
+          strip -v --strip-all ./target/release/dokkoo
+          chmod +x ./target/release/dokkoo
+          tar -cvf x86_64-dokkoo.gnu+linux.tar ./target/release/dokkoo
       - name: Upload Dokkoo build artifact to GitHub
         uses: actions/upload-artifact@v2
         with:
