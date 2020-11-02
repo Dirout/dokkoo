@@ -7,14 +7,28 @@ jobs:
     name: GNU + Linux (ARMv7)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: armv7-unknown-linux-gnueabihf
           override: true
-      - uses: actions-rs/cargo@v1
+          components: rust-src
+      - name: Build Dokkoo
+        uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --release --all-features --target armv7-unknown-linux-gnueabihf
+          args: -Z build-std strip=symbols --release --all-features --target armv7-unknown-linux-gnueabihf
+      - name: Prepare Dokkoo build artifact for upload
+        run: |
+          chmod +x target/release/dokkoo
+          strip -v target/release/dokkoo
+          tar -cvf armv7-dokkoo.gnu+linux.tar target/release/dokkoo
+      - name: Upload Dokkoo build artifact to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: armv7-dokkoo.gnu+linux
+          path: armv7-dokkoo.gnu+linux.tar
