@@ -21,11 +21,11 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: -Z build-std -Z strip=symbols --release --all-features --target armv7-unknown-linux-gnueabihf
+          args: -Z build-std --release --all-features --target armv7-unknown-linux-gnueabihf
       - name: Prepare Dokkoo build artifact for upload
         run: |
+          strip -v --strip-all target/release/dokkoo
           chmod +x target/release/dokkoo
-          strip -v target/release/dokkoo
           tar -cvf armv7-dokkoo.gnu+linux.tar target/release/dokkoo
       - name: Upload Dokkoo build artifact to GitHub
         uses: actions/upload-artifact@v2
