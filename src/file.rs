@@ -160,7 +160,7 @@ pub fn get_page_object(page_path: String) -> Page {
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 
     let page = Page {
-        document: document,
+        document,
         dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
         name: page_path_io
             .file_stem()
@@ -240,5 +240,5 @@ pub fn render(page_path: String, text_to_render: &str) -> String {
         .parse(text_to_render)
         .unwrap();
 
-    return template.render(&get_contexts(page_path)).unwrap();
+    template.render(&get_contexts(page_path)).unwrap()
 }
