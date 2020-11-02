@@ -1,9 +1,9 @@
-name: Security audit (scheduled)
+name: Dependency security audit (scheduled)
 on:
   schedule:
     - cron: '0 0 * * *'
 jobs:
-  audit:
+  scheduled_security_audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
