@@ -3,7 +3,7 @@ on: [push]
 name: 'Build: Windows (x86_64)'
 
 jobs:
-  linux_arm7:
+  windows_x86-64:
     name: Windows (x86_64)
     runs-on: windows-latest
     steps:

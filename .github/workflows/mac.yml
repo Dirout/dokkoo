@@ -3,7 +3,7 @@ on: [push]
 name: 'Build: macOS (x86_64)'
 
 jobs:
-  linux_arm7:
+  mac_x86-64:
     name: macOS (x86_64)
     runs-on: macos-latest
     steps:

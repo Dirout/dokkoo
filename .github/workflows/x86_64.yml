@@ -3,7 +3,7 @@ on: [push]
 name: 'Build: GNU + Linux (x86_64)'
 
 jobs:
-  linux_arm7:
+  linux_x86-64:
     name: GNU + Linux (x86_64)
     runs-on: ubuntu-latest
     steps:
