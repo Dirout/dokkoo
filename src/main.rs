@@ -16,24 +16,27 @@
 */
 mod file;
 
-use clap::{App, load_yaml};
+use clap::{load_yaml, App};
 
 fn main() {
-    println!("
+    println!(
+        "
     Dokkoo  Copyright (C) 2020  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
-    ");
+    "
+    );
 
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from(yaml).get_matches();
-    
+
     if let Some(ref matches) = matches.subcommand_matches("show") {
         // "dokkoo show" was run
         if matches.is_present("warranty") {
             // "dokkoo show -w" was run
-            println!("
+            println!(
+                "
             15. Disclaimer of Warranty.
 
             THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
@@ -65,10 +68,12 @@ fn main() {
           an absolute waiver of all civil liability in connection with the
           Program, unless a warranty or assumption of liability accompanies a
           copy of the Program in return for a fee.
-          ");
+          "
+            );
         } else if matches.is_present("conditions") {
             // "dokkoo show -c" was run
-            println!("
+            println!(
+                "
             TERMS AND CONDITIONS
 
             0. Definitions.
@@ -630,7 +635,8 @@ fn main() {
           copy of the Program in return for a fee.
           
                                END OF TERMS AND CONDITIONS
-          ");
+          "
+            );
         }
     }
 }
