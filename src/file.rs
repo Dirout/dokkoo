@@ -21,10 +21,10 @@ File:
 */
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
-
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use liquid::*;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 /// Document:
@@ -42,6 +42,7 @@ pub struct Document {
     date: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 /// Page:
 ///     Generated data regarding a Mokk File
 pub struct Page {
@@ -135,6 +136,11 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
     (frontmatter, contents)
 }
 
+/// Returns an object with a Page's context.
+///
+/// # Arguments
+///
+/// * `page_path` - The `.mokkf` file's path as a `String`
 pub fn get_page_object(page_path: String) -> Page {
     // Define variables which we'll use to create our Document, which we'll use to generate the Page context
     let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
@@ -150,19 +156,19 @@ pub fn get_page_object(page_path: String) -> Page {
         date: date.unwrap().1.to_string(),
     };
 
-    let page_path_IO = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
+    let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 
     let page = Page {
-        document,
-        dir: page_path_IO.parent().unwrap().to_str().unwrap().to_owned(),
-        name: page_path_IO
+        document: document,
+        dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+        name: page_path_io
             .file_stem()
             .unwrap()
             .to_str()
             .unwrap()
             .to_owned(),
-        url: "TODO:IMPLEMENT".to_owned(),
+        url: render(page_path, &get_permalink(permalink.unwrap().1)),
         year: format!("{}", datetime.unwrap().format("%Y")),
         short_year: format!("{}", datetime.unwrap().format("%y")),
         month: format!("{}", datetime.unwrap().format("%m")),
@@ -185,4 +191,50 @@ pub fn get_page_object(page_path: String) -> Page {
     // Render page content, set page.content as rendered version
 
     page
+}
+
+/// Returns a Liquid object with a Page's Liquid contexts.
+///
+/// # Arguments
+///
+/// * `page_path` - The `.mokkf` file's path as a `String`
+pub fn get_contexts(page_path: String) -> Object
+{
+    let global: HashMap<String, String> = serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined on own line as it requires a type annotation
+    let page = get_page_object(page_path);
+    let collection_name = page.document.frontmatter.get_key_value("collection");
+    let collection: HashMap<String, String>;
+    // Import collection context if page is in a collection
+    match collection_name
+    {
+        None => {
+            collection = HashMap::new();
+        },
+        Some(_) => {
+            collection = serde_yaml::from_str(&fs::read_to_string(format!("./_{}/_collection.yml", collection_name.unwrap().1)).unwrap()).unwrap();
+        }
+    }
+
+    let contexts = object!({
+        "global": global,
+        "page": page,
+        "collection": collection
+    });
+    contexts
+}
+
+/// Returns a String with a &str's Liquid rendered.
+///
+/// # Arguments
+///
+/// * `page_path` - The `.mokkf` file's path as a `String`
+/// 
+/// * `text_to_render` - The text with the Liquid templating to be rendered
+pub fn render(page_path: String, text_to_render: &str) -> String
+{
+    let template = liquid::ParserBuilder::with_stdlib()
+    .build().unwrap()
+    .parse(text_to_render).unwrap();
+
+    return template.render(&get_contexts(page_path)).unwrap();
 }
