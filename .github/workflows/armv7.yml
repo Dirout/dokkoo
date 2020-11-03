@@ -31,3 +31,4 @@ jobs:
         with:
           name: armv7-dokkoo.gnu+linux
           path: armv7-dokkoo.gnu+linux.tar
+          if-no-files-found: error

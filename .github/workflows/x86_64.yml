@@ -32,3 +32,4 @@ jobs:
         with:
           name: x86_64-dokkoo.gnu+linux
           path: x86_64-dokkoo.gnu+linux.tar
+          if-no-files-found: error

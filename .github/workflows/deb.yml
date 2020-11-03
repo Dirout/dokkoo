@@ -31,3 +31,4 @@ jobs:
         with:
           name: x86_64-dokkoo.deb.gnu+linux
           path: ./target/debian/dokkoo_*_amd64.deb
+          if-no-files-found: error
