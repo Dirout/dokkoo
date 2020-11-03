@@ -26,4 +26,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.win32
-          path: ./target/x86_64-pc-windows-msvc/release/dokkoo
+          path: ./target/x86_64-pc-windows-msvc/release/dokkoo.exe
+          if-no-files-found: error

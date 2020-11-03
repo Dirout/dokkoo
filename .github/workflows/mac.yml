@@ -32,3 +32,4 @@ jobs:
         with:
           name: x86_64-dokkoo.osx
           path: x86_64-dokkoo.osx.tar
+          if-no-files-found: error
