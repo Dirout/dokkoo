@@ -27,9 +27,3 @@ jobs:
 #        uses: actions-rs/cargo@v1
 #        with:
 #          command: publish
-      - name: Upload Dokkoo crate to GitHub as build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: x86_64-dokkoo.deb.gnu+linux
-          path: ./target/package/.dokkoo-*.crate
-          if-no-files-found: error
