@@ -65,4 +65,5 @@ We learn about critical software updates and security threats from these sources
 2. [WhiteSource Bolt](https://www.whitesourcesoftware.com/free-developer-tools/bolt)
   - [WhiteSource Vulnerability Database](https://www.whitesourcesoftware.com/vulnerability-database/)
 3. [ShiftLeft Scan](https://www.shiftleft.io/scan/) (codebase scanning)
-4. [RustSec Advisory Database](https://rustsec.org/) (monitoring for vulnerable dependencies using [`cargo-audit`](https://github.com/RustSec/cargo-audit))
+4. [Micro Focus Fortify on Demand Scan](https://www.microfocus.com/en-us/products/application-security-testing/overview) (codebase scanning)
+5. [RustSec Advisory Database](https://rustsec.org/) (monitoring for vulnerable dependencies using [`cargo-audit`](https://github.com/RustSec/cargo-audit))
