@@ -20,6 +20,7 @@ File:
     Term for either a Document or a Page
 */
 use chrono::DateTime;
+use comrak::{markdown_to_html, ComrakOptions};
 use liquid::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -226,18 +227,32 @@ pub fn get_contexts(page_path: String) -> Object {
     contexts
 }
 
-/// Returns a String with a &str's Liquid rendered.
+/// Returns a String with a &str's File rendered.
 ///
 /// # Arguments
 ///
 /// * `page_path` - The `.mokkf` file's path as a `String`
 ///
-/// * `text_to_render` - The text with the Liquid templating to be rendered
+/// * `text_to_render` - The text to be rendered
 pub fn render(page_path: String, text_to_render: &str) -> String {
+    let mut markdown_options: ComrakOptions = ComrakOptions::default();
+    markdown_options.extension.strikethrough = true;
+    markdown_options.extension.tagfilter = true;
+    markdown_options.render.unsafe_ = true;
+    markdown_options.extension.table = true;
+    //markdown_options.extension.autolink = true;
+    markdown_options.extension.tasklist = true;
+    markdown_options.extension.superscript = true;
+    markdown_options.extension.header_ids = Some("".to_string());
+    markdown_options.extension.footnotes = true;
+    markdown_options.extension.description_lists = true;
+    markdown_options.parse.smart = true;
+    markdown_options.render.github_pre_lang = true;
+
     let template = liquid::ParserBuilder::with_stdlib()
         .build()
         .unwrap()
-        .parse(text_to_render)
+        .parse(&markdown_to_html(text_to_render, &markdown_options))
         .unwrap();
 
     template.render(&get_contexts(page_path)).unwrap()
