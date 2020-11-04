@@ -27,7 +27,10 @@ readme = "README"
 [dependencies]
 chrono = "*"
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
+comrak = "0.9"
 liquid = "*"
+liquid-core = "*"
+liquid-lib = { version = "*", features = ["jekyll", "shopify", "extra"] }
 serde = "*"
 serde_yaml = "*"
 
