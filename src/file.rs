@@ -268,8 +268,7 @@ pub fn render(page: &Page, text_to_render: &str) -> String {
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-pub fn compile(page: &Page)
-{
+pub fn compile(page: &Page) {
     // If Page has a layout, render with layout
     // Otherwise, render with Document's contents
     // If within a collection, append to list of collection's entries
