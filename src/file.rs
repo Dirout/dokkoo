@@ -160,7 +160,8 @@ pub fn get_page_object(page_path: String) -> Page {
     let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 
-    let page = Page {
+    // Define our Page
+    let mut page = Page {
         document,
         dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
         name: page_path_io
@@ -169,7 +170,7 @@ pub fn get_page_object(page_path: String) -> Page {
             .to_str()
             .unwrap()
             .to_owned(),
-        url: render(page_path, &get_permalink(permalink.unwrap().1)),
+        url: "".to_owned(),
         year: format!("{}", datetime.unwrap().format("%Y")),
         short_year: format!("{}", datetime.unwrap().format("%y")),
         month: format!("{}", datetime.unwrap().format("%m")),
@@ -189,7 +190,11 @@ pub fn get_page_object(page_path: String) -> Page {
         second: format!("{}", datetime.unwrap().format("%S")),
     };
 
-    // Render page content, set page.content as rendered version
+    // Render the URL once the Page metadata has been generated
+    page.url = render(&page, &get_permalink(permalink.unwrap().1));
+
+    // Render Page content, set page.document.content as rendered version
+    page.document.content = render(&page, &page.document.content);
 
     page
 }
@@ -198,14 +203,14 @@ pub fn get_page_object(page_path: String) -> Page {
 ///
 /// # Arguments
 ///
-/// * `page_path` - The `.mokkf` file's path as a `String`
-pub fn get_contexts(page_path: String) -> Object {
+/// * `page` - The `.mokkf` file's context as a Page
+pub fn get_contexts(page: &Page) -> Object {
     let global: HashMap<String, String> =
-        serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined on own line as it requires a type annotation
-    let page = get_page_object(page_path);
+        serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
     let collection_name = page.document.frontmatter.get_key_value("collection");
     let collection: HashMap<String, String>;
-    // Import collection context if page is in a collection
+
+    // Import collection context if Page is in a collection
     match collection_name {
         None => {
             collection = HashMap::new();
@@ -231,10 +236,10 @@ pub fn get_contexts(page_path: String) -> Object {
 ///
 /// # Arguments
 ///
-/// * `page_path` - The `.mokkf` file's path as a `String`
+/// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `text_to_render` - The text to be rendered
-pub fn render(page_path: String, text_to_render: &str) -> String {
+pub fn render(page: &Page, text_to_render: &str) -> String {
     let mut markdown_options: ComrakOptions = ComrakOptions::default();
     markdown_options.extension.strikethrough = true;
     markdown_options.extension.tagfilter = true;
@@ -255,5 +260,17 @@ pub fn render(page_path: String, text_to_render: &str) -> String {
         .parse(&markdown_to_html(text_to_render, &markdown_options))
         .unwrap();
 
-    template.render(&get_contexts(page_path)).unwrap()
+    template.render(&get_contexts(page)).unwrap()
+}
+
+/// Compiles a Mokk File; renders, makes note of the File, returns compiled HTML
+///
+/// # Arguments
+///
+/// * `page` - The `.mokkf` file's context as a Page
+pub fn compile(page: &Page)
+{
+    // If Page has a layout, render with layout
+    // Otherwise, render with Document's contents
+    // If within a collection, append to list of collection's entries
 }
