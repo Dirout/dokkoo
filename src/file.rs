@@ -194,7 +194,7 @@ pub fn get_page_object(page_path: String) -> Page {
     page.url = render(&page, &get_permalink(permalink.unwrap().1));
 
     // Render Page content, set page.document.content as rendered version
-    page.document.content = render(&page, &page.document.content);
+    //page.document.content = render(&page, &page.document.content);
 
     page
 }
@@ -207,6 +207,7 @@ pub fn get_page_object(page_path: String) -> Page {
 pub fn get_contexts(page: &Page) -> Object {
     let global: HashMap<String, String> =
         serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
+
     let collection_name = page.document.frontmatter.get_key_value("collection");
     let collection: HashMap<String, String>;
 
@@ -224,11 +225,26 @@ pub fn get_contexts(page: &Page) -> Object {
         }
     }
 
+    let layout_name = page.document.frontmatter.get_key_value("layout");
+    let layout: HashMap<String, String>;
+
+    // Import layout context if Page has a layout
+    match layout_name {
+        None => {
+            layout = HashMap::new();
+        }
+        Some(_) => {
+            layout = serde_yaml::from_str(&split_frontmatter(fs::read_to_string(format!("./layouts/{}.html", layout_name.unwrap().1)).unwrap()).1).unwrap();
+        }
+    }
+
     let contexts = object!({
         "global": global,
         "page": page,
-        "collection": collection
+        "collection": collection,
+        "layout": layout
     });
+
     contexts
 }
 
@@ -263,13 +279,27 @@ pub fn render(page: &Page, text_to_render: &str) -> String {
     template.render(&get_contexts(page)).unwrap()
 }
 
-/// Compiles a Mokk File; renders, makes note of the File, returns compiled HTML
+/// Compiles a Mokk File; renders, makes note of the File (if needed), returns compiled HTML
 ///
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-pub fn compile(_page: &Page) {
+pub fn compile(page: &Page) -> String {
+    let compiled_page;
+    let layout_name = page.document.frontmatter.get_key_value("layout");
+
     // If Page has a layout, render with layout
     // Otherwise, render with Document's contents
+    match layout_name {
+        None => {
+            compiled_page = render(&page, &page.document.content);
+        }
+        Some(_) => {
+            compiled_page = render(&page, &compile(&get_page_object(format!("./layouts/{}.mokkf", layout_name.unwrap().1))));
+        }
+    }
+
     // If within a collection, append to list of collection's entries
+
+    compiled_page
 }
