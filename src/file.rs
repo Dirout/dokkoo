@@ -234,7 +234,14 @@ pub fn get_contexts(page: &Page) -> Object {
             layout = HashMap::new();
         }
         Some(_) => {
-            layout = serde_yaml::from_str(&split_frontmatter(fs::read_to_string(format!("./layouts/{}.html", layout_name.unwrap().1)).unwrap()).1).unwrap();
+            layout = serde_yaml::from_str(
+                &split_frontmatter(
+                    fs::read_to_string(format!("./layouts/{}.html", layout_name.unwrap().1))
+                        .unwrap(),
+                )
+                .1,
+            )
+            .unwrap();
         }
     }
 
@@ -295,7 +302,13 @@ pub fn compile(page: &Page) -> String {
             compiled_page = render(&page, &page.document.content);
         }
         Some(_) => {
-            compiled_page = render(&page, &compile(&get_page_object(format!("./layouts/{}.mokkf", layout_name.unwrap().1))));
+            compiled_page = render(
+                &page,
+                &compile(&get_page_object(format!(
+                    "./layouts/{}.mokkf",
+                    layout_name.unwrap().1
+                ))),
+            );
         }
     }
 
