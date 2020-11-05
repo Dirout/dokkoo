@@ -239,7 +239,7 @@ pub fn get_contexts(page: &Page) -> Object {
                     fs::read_to_string(format!("./layouts/{}.html", layout_name.unwrap().1))
                         .unwrap(),
                 )
-                .1,
+                .0,
             )
             .unwrap();
         }
