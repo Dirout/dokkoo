@@ -36,15 +36,15 @@ fn main() {
             // Now we have a reference to clone's matches
             show(show_matches);
         }
-        Some(("build", build_matches)) => {
+        Some(("build", _build_matches)) => {
             // Now we have a reference to clone's matches
             //build(build_matches)
         }
-        Some(("clean", clean_matches)) => {
+        Some(("clean", _clean_matches)) => {
             // Now we have a reference to clone's matches
             //clean(clean_matches)
         }
-        Some(("serve", serve_matches)) => {
+        Some(("serve", _serve_matches)) => {
             // Now we have a reference to clone's matches
             //serve(serve_matches)
         }
