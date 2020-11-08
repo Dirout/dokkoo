@@ -32,33 +32,32 @@ fn main() {
     let matches = App::from(yaml).version(crate_version!()).get_matches();
 
     match matches.subcommand() {
-      Some(("show", show_matches)) => {
-          // Now we have a reference to clone's matches
-          show(show_matches);
-      }
-      Some(("build", build_matches)) => {
-          // Now we have a reference to clone's matches
-          //build(build_matches)
-      }
-      Some(("clean", clean_matches)) => {
-          // Now we have a reference to clone's matches
-          //clean(clean_matches)
-      }
-      Some(("serve", serve_matches)) => {
-          // Now we have a reference to clone's matches
-          //serve(serve_matches)
-      }
-      None => println!("Dokkoo {}", crate_version!()),
-      _ => unreachable!(), // If all subcommands are defined above, anything else is unreachabe!()
-  }
+        Some(("show", show_matches)) => {
+            // Now we have a reference to clone's matches
+            show(show_matches);
+        }
+        Some(("build", build_matches)) => {
+            // Now we have a reference to clone's matches
+            //build(build_matches)
+        }
+        Some(("clean", clean_matches)) => {
+            // Now we have a reference to clone's matches
+            //clean(clean_matches)
+        }
+        Some(("serve", serve_matches)) => {
+            // Now we have a reference to clone's matches
+            //serve(serve_matches)
+        }
+        None => println!("Dokkoo {}", crate_version!()),
+        _ => unreachable!(), // If all subcommands are defined above, anything else is unreachabe!()
+    }
 }
 
-fn show(matches: &clap::ArgMatches)
-{
-  if matches.is_present("warranty") {
-    // "dokkoo show -w" was run
-    println!(
-        "
+fn show(matches: &clap::ArgMatches) {
+    if matches.is_present("warranty") {
+        // "dokkoo show -w" was run
+        println!(
+            "
     15. Disclaimer of Warranty.
 
     THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
@@ -91,11 +90,11 @@ fn show(matches: &clap::ArgMatches)
   Program, unless a warranty or assumption of liability accompanies a
   copy of the Program in return for a fee.
   "
-    );
-} else if matches.is_present("conditions") {
-    // "dokkoo show -c" was run
-    println!(
-        "
+        );
+    } else if matches.is_present("conditions") {
+        // "dokkoo show -c" was run
+        println!(
+            "
         TERMS AND CONDITIONS
 
         0. Definitions.
