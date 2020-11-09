@@ -33,6 +33,7 @@ liquid-core = "*"
 liquid-lib = { version = "*", features = ["jekyll", "shopify", "extra"] }
 serde = "*"
 serde_yaml = "*"
+spinners = "*"
 
 [profile.release]
 codegen-units = 1
