@@ -24,9 +24,9 @@ use comrak::{markdown_to_html, ComrakOptions};
 use liquid::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
-use std::convert::TryFrom;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 /// Document:
@@ -162,7 +162,8 @@ pub fn get_page_object(page_path: String) -> Page {
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
     let global: HashMap<String, String> =
         serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory
-    let locale: chrono::Locale = chrono::Locale::try_from(&(global.get_key_value("locale").unwrap().1)[..]).unwrap(); // Get locale from Global context
+    let locale: chrono::Locale =
+        chrono::Locale::try_from(&(global.get_key_value("locale").unwrap().1)[..]).unwrap(); // Get locale from Global context
 
     // Define our Page
     let mut page = Page {
