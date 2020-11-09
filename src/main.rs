@@ -57,7 +57,7 @@ fn main() {
 fn clean(matches: &clap::ArgMatches) {
     let spinner = Spinner::new(
         Spinners::Point,
-        format!("Cleaning {} … ", matches.value_of("PATH").unwrap()).into(),
+        format!("Cleaning {} … ", matches.value_of("PATH").unwrap()),
     );
     fs::remove_dir_all(format!("{}/output", matches.value_of("PATH").unwrap())).unwrap();
     spinner.stop();
