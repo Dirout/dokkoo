@@ -40,9 +40,7 @@ fn main() {
         Some(("build", _build_matches)) => {
             //build(build_matches)
         }
-        Some(("clean", clean_matches)) => {
-            clean(clean_matches)
-        }
+        Some(("clean", clean_matches)) => clean(clean_matches),
         Some(("serve", _serve_matches)) => {
             //serve(serve_matches)
         }
@@ -56,11 +54,13 @@ fn main() {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-fn clean(matches: &clap::ArgMatches)
-{
-  let spinner = Spinner::new(Spinners::Point, format!("Cleaning {} … ", matches.value_of("PATH").unwrap()).into());
-  fs::remove_dir_all(format!("{}/output", matches.value_of("PATH").unwrap())).unwrap();
-  spinner.stop();
+fn clean(matches: &clap::ArgMatches) {
+    let spinner = Spinner::new(
+        Spinners::Point,
+        format!("Cleaning {} … ", matches.value_of("PATH").unwrap()).into(),
+    );
+    fs::remove_dir_all(format!("{}/output", matches.value_of("PATH").unwrap())).unwrap();
+    spinner.stop();
 }
 
 /// Shows information regarding the usage and handling of this software
@@ -68,7 +68,7 @@ fn clean(matches: &clap::ArgMatches)
 /// # Arguments
 ///
 /// * `warranty` - Prints warranty information
-/// 
+///
 /// * `conditions` - Prints conditions information
 fn show(matches: &clap::ArgMatches) {
     if matches.is_present("warranty") {
