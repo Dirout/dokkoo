@@ -26,6 +26,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use std::convert::TryFrom;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 /// Document:
@@ -159,6 +160,9 @@ pub fn get_page_object(page_path: String) -> Page {
 
     let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
     let datetime = DateTime::parse_from_rfc3339(date.unwrap().1); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
+    let global: HashMap<String, String> =
+        serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory
+    let locale: chrono::Locale = chrono::Locale::try_from(&(global.get_key_value("locale").unwrap().1)[..]).unwrap(); // Get locale from Global context
 
     // Define our Page
     let mut page = Page {
@@ -171,30 +175,30 @@ pub fn get_page_object(page_path: String) -> Page {
             .unwrap()
             .to_owned(),
         url: "".to_owned(),
-        year: format!("{}", datetime.unwrap().format("%Y")),
-        short_year: format!("{}", datetime.unwrap().format("%y")),
-        month: format!("{}", datetime.unwrap().format("%m")),
-        i_month: format!("{}", datetime.unwrap().format("%-m")),
-        short_month: format!("{}", datetime.unwrap().format("%b")),
-        long_month: format!("{}", datetime.unwrap().format("%B")),
-        day: format!("{}", datetime.unwrap().format("%d")),
-        i_day: format!("{}", datetime.unwrap().format("%-d")),
-        y_day: format!("{}", datetime.unwrap().format("%j")),
-        w_year: format!("{}", datetime.unwrap().format("%G")),
-        week: format!("{}", datetime.unwrap().format("%U")),
-        w_day: format!("{}", datetime.unwrap().format("%u")),
-        short_day: format!("{}", datetime.unwrap().format("%a")),
-        long_day: format!("{}", datetime.unwrap().format("%A")),
-        hour: format!("{}", datetime.unwrap().format("%H")),
-        minute: format!("{}", datetime.unwrap().format("%M")),
-        second: format!("{}", datetime.unwrap().format("%S")),
+        year: format!("{}", datetime.unwrap().format_localized("%Y", locale)),
+        short_year: format!("{}", datetime.unwrap().format_localized("%y", locale)),
+        month: format!("{}", datetime.unwrap().format_localized("%m", locale)),
+        i_month: format!("{}", datetime.unwrap().format_localized("%-m", locale)),
+        short_month: format!("{}", datetime.unwrap().format_localized("%b", locale)),
+        long_month: format!("{}", datetime.unwrap().format_localized("%B", locale)),
+        day: format!("{}", datetime.unwrap().format_localized("%d", locale)),
+        i_day: format!("{}", datetime.unwrap().format_localized("%-d", locale)),
+        y_day: format!("{}", datetime.unwrap().format_localized("%j", locale)),
+        w_year: format!("{}", datetime.unwrap().format_localized("%G", locale)),
+        week: format!("{}", datetime.unwrap().format_localized("%U", locale)),
+        w_day: format!("{}", datetime.unwrap().format_localized("%u", locale)),
+        short_day: format!("{}", datetime.unwrap().format_localized("%a", locale)),
+        long_day: format!("{}", datetime.unwrap().format_localized("%A", locale)),
+        hour: format!("{}", datetime.unwrap().format_localized("%H", locale)),
+        minute: format!("{}", datetime.unwrap().format_localized("%M", locale)),
+        second: format!("{}", datetime.unwrap().format_localized("%S", locale)),
     };
 
     // Render the URL once the Page metadata has been generated
     page.url = render(&page, &get_permalink(permalink.unwrap().1));
 
     // Render Page content, set page.document.content as rendered version
-    //page.document.content = render(&page, &page.document.content);
+    page.document.content = render(&page, &page.document.content);
 
     page
 }
@@ -208,9 +212,11 @@ pub fn get_contexts(page: &Page) -> Object {
     let global: HashMap<String, String> =
         serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
 
+    /*
+    Collections
+    */
     let collection_name = page.document.frontmatter.get_key_value("collection");
     let collection: HashMap<String, String>;
-
     // Import collection context if Page is in a collection
     match collection_name {
         None => {
@@ -225,9 +231,11 @@ pub fn get_contexts(page: &Page) -> Object {
         }
     }
 
+    /*
+    Layouts
+    */
     let layout_name = page.document.frontmatter.get_key_value("layout");
     let layout: HashMap<String, String>;
-
     // Import layout context if Page has a layout
     match layout_name {
         None => {
@@ -236,7 +244,7 @@ pub fn get_contexts(page: &Page) -> Object {
         Some(_) => {
             layout = serde_yaml::from_str(
                 &split_frontmatter(
-                    fs::read_to_string(format!("./layouts/{}.html", layout_name.unwrap().1))
+                    fs::read_to_string(format!("./layouts/{}.mokkf", layout_name.unwrap().1))
                         .unwrap(),
                 )
                 .0,
@@ -259,7 +267,7 @@ pub fn get_contexts(page: &Page) -> Object {
 ///
 /// # Arguments
 ///
-/// * `page` - The `.mokkf` file's context as a Page
+/// * `page` - A `.mokkf` file's context as a Page
 ///
 /// * `text_to_render` - The text to be rendered
 pub fn render(page: &Page, text_to_render: &str) -> String {
@@ -299,7 +307,7 @@ pub fn compile(page: &Page) -> String {
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = render(&page, &page.document.content);
+            compiled_page = page.document.content.to_owned();
         }
         Some(_) => {
             compiled_page = render(
@@ -312,7 +320,7 @@ pub fn compile(page: &Page) -> String {
         }
     }
 
-    // If within a collection, append to list of collection's entries
+    // If within a collection, append page.document.content to list of collection's entries
 
     compiled_page
 }
