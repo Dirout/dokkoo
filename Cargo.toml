@@ -28,6 +28,7 @@ readme = "README"
 chrono = { version = "*", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
 comrak = "*"
+glob = "*"
 liquid = "*"
 liquid-core = "*"
 liquid-lib = { version = "*", features = ["jekyll", "shopify", "extra"] }
