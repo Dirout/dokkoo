@@ -192,7 +192,7 @@ pub fn get_page_object(page_path: String) -> Page {
         "" => {
             // Define our Page
             page = Page {
-                document: document,
+                document,
                 dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
                 name: page_path_io
                     .file_stem()
@@ -229,7 +229,7 @@ pub fn get_page_object(page_path: String) -> Page {
                     .unwrap(); // Get locale from Global context
                                // Define our Page
             page = Page {
-                document: document,
+                document,
                 dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
                 name: page_path_io
                     .file_stem()
