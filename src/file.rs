@@ -137,8 +137,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
         }
     }
 
-    if frontmatter.trim().is_empty()
-    {
+    if frontmatter.trim().is_empty() {
         frontmatter = "empty: true".to_owned();
     }
 
@@ -153,15 +152,15 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 pub fn get_page_object(page_path: String) -> Page {
     // Define variables which we'll use to create our Document, which we'll use to generate the Page context
     let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
-    let frontmatter: HashMap<String, serde_yaml::Value> = serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as HashMap (collection of key-value pairs)
+    let frontmatter: HashMap<String, serde_yaml::Value> =
+        serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as HashMap (collection of key-value pairs)
     let permalink = frontmatter.get("permalink"); // Get the key-value pair of the 'permalink' key from the frontmatter
     let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
 
     let permalink_string: String;
     let date_string: String;
 
-    match permalink
-    {
+    match permalink {
         Some(_) => {
             permalink_string = permalink.unwrap().as_str().unwrap().to_string();
         }
@@ -169,9 +168,8 @@ pub fn get_page_object(page_path: String) -> Page {
             permalink_string = "".to_owned();
         }
     }
-    
-    match date
-    {
+
+    match date {
         Some(_) => {
             date_string = date.unwrap().as_str().unwrap().to_string();
         }
@@ -190,8 +188,7 @@ pub fn get_page_object(page_path: String) -> Page {
 
     let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
     let mut page: Page;
-    match &document.date[..]
-    {
+    match &document.date[..] {
         "" => {
             // Define our Page
             page = Page {
@@ -228,8 +225,9 @@ pub fn get_page_object(page_path: String) -> Page {
             let global: HashMap<String, serde_yaml::Value> =
                 serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory
             let locale: chrono::Locale =
-                chrono::Locale::try_from(&(global.get("locale").unwrap().as_str().unwrap()[..])).unwrap(); // Get locale from Global context
-            // Define our Page
+                chrono::Locale::try_from(&(global.get("locale").unwrap().as_str().unwrap()[..]))
+                    .unwrap(); // Get locale from Global context
+                               // Define our Page
             page = Page {
                 document: document,
                 dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
@@ -258,20 +256,16 @@ pub fn get_page_object(page_path: String) -> Page {
                 minute: format!("{}", datetime.unwrap().format_localized("%M", locale)),
                 second: format!("{}", datetime.unwrap().format_localized("%S", locale)),
             };
-        },
+        }
     }
 
-    match &page.document.permalink[..]
-    {
-        "" => {
-
-        }
+    match &page.document.permalink[..] {
+        "" => {}
         _ => {
             // Render the URL once the Page metadata has been generated
             page.url = render(&page, &get_permalink(permalink.unwrap().as_str().unwrap()));
         }
     }
-
 
     // Render Page content, set page.document.content as rendered version
     //page.document.content = render(&page, &page.document.content);
@@ -300,8 +294,11 @@ pub fn get_contexts(page: &Page) -> Object {
         }
         Some(_) => {
             collection = serde_yaml::from_str(
-                &fs::read_to_string(format!("./_{}/_collection.yml", collection_name.unwrap().as_str().unwrap()))
-                    .unwrap(),
+                &fs::read_to_string(format!(
+                    "./_{}/_collection.yml",
+                    collection_name.unwrap().as_str().unwrap()
+                ))
+                .unwrap(),
             )
             .unwrap();
         }
@@ -320,8 +317,11 @@ pub fn get_contexts(page: &Page) -> Object {
         Some(_) => {
             layout = serde_yaml::from_str(
                 &split_frontmatter(
-                    fs::read_to_string(format!("./layouts/{}.mokkf", layout_name.unwrap().as_str().unwrap().to_string()))
-                        .unwrap(),
+                    fs::read_to_string(format!(
+                        "./layouts/{}.mokkf",
+                        layout_name.unwrap().as_str().unwrap().to_string()
+                    ))
+                    .unwrap(),
                 )
                 .0,
             )
@@ -419,14 +419,12 @@ pub fn compile(page: &Page) -> String {
 }
 
 // TODO: Documentation for 'render_layouts'
-pub fn render_layouts(sub: &Page, layout: Page) -> String
-{
+pub fn render_layouts(sub: &Page, layout: Page) -> String {
     // Take layout's text, render it with sub's context
     let rendered: String;
 
     let super_layout = layout.document.frontmatter.get("layout");
-    match super_layout
-    {
+    match super_layout {
         Some(_) => {
             let super_layout_object = get_page_object(format!(
                 "./layouts/{}.mokkf",
@@ -438,6 +436,6 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String
             rendered = render(&sub, &layout.document.content);
         }
     }
-    
+
     rendered
 }
