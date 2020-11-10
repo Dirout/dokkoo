@@ -19,7 +19,12 @@ mod file;
 use clap::{crate_version, load_yaml, App};
 use spinners::{Spinner, Spinners};
 use std::fs;
+use std::fs::{File};
+use glob::glob;
+use std::io::{Write};
+use std::env;
 
+// TODO: Add timers to subcommands
 fn main() {
     println!(
         "
@@ -37,8 +42,8 @@ fn main() {
         Some(("show", show_matches)) => {
             show(show_matches);
         }
-        Some(("build", _build_matches)) => {
-            //build(build_matches)
+        Some(("build", build_matches)) => {
+            build(build_matches)
         }
         Some(("clean", clean_matches)) => clean(clean_matches),
         Some(("serve", _serve_matches)) => {
@@ -49,17 +54,50 @@ fn main() {
     }
 }
 
+/// Outputs a Mokk
+///
+/// # Arguments
+///
+/// * `PATH` - Path to a Mokk (required)
+// Avoid '.mokkf' files in layouts folder
+fn build(matches: &clap::ArgMatches)
+{
+  let path = matches.value_of("PATH").unwrap();
+  env::set_current_dir(path).unwrap();
+  for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap()
+  {
+    let file = entry.unwrap();
+    if !&file.is_dir()
+    {
+        let page = file::get_page_object(format!("{}", file.display()));
+        let output_path = format!("{}/output/{}", path, page.url);
+
+        let spinner = Spinner::new(
+            Spinners::Dots,
+            format!("Compiling {} to {} … ", file.display(), output_path),
+        );
+
+        let compiled_page = file::compile(&page);
+        let write_file = File::create(&output_path).unwrap();
+        write!(&write_file, "{}", compiled_page).unwrap();
+
+        spinner.stop();
+    }
+  }
+}
+
 /// Deletes an outputted Mokk
 ///
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
 fn clean(matches: &clap::ArgMatches) {
+    let path = matches.value_of("PATH").unwrap();
     let spinner = Spinner::new(
         Spinners::Point,
-        format!("Cleaning {} … ", matches.value_of("PATH").unwrap()),
+        format!("Cleaning {} … ", path),
     );
-    fs::remove_dir_all(format!("{}/output", matches.value_of("PATH").unwrap())).unwrap();
+    fs::remove_dir_all(format!("{}/output", path)).unwrap();
     spinner.stop();
 }
 
