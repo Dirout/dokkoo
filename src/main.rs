@@ -75,7 +75,7 @@ fn build(matches: &clap::ArgMatches) {
             );
 
             let compiled_page = file::compile(&page); // Compile the current Page
-            
+
             // Create output path, write to file
             fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
             let write_file = File::create(&output_path).unwrap();
