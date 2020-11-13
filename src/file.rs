@@ -262,7 +262,11 @@ pub fn get_page_object(page_path: String) -> Page {
         "" => {}
         _ => {
             // Render the URL once the Page metadata has been generated
-            page.url = render(&page, &get_permalink(permalink.unwrap().as_str().unwrap()), true);
+            page.url = render(
+                &page,
+                &get_permalink(permalink.unwrap().as_str().unwrap()),
+                true,
+            );
         }
     }
 
@@ -345,7 +349,7 @@ pub fn get_contexts(page: &Page) -> Object {
 /// * `page` - A `.mokkf` file's context as a Page
 ///
 /// * `text_to_render` - The text to be rendered
-/// 
+///
 /// * `only_context` - Whether or not to only render the contexts of a File
 pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
     match only_context {
@@ -355,7 +359,7 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
                 .unwrap()
                 .parse(text_to_render)
                 .unwrap();
-        
+
             template.render(&get_contexts(page)).unwrap()
         }
         false => {
@@ -373,14 +377,14 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
             markdown_options.extension.description_lists = true;
             markdown_options.parse.smart = true;
             markdown_options.render.github_pre_lang = true;
-        
+
             let template = liquid::ParserBuilder::with_stdlib()
                 .build()
                 .unwrap()
                 .parse(&markdown_to_html(text_to_render, &markdown_options))
                 .unwrap();
-        
-            template.render(&get_contexts(page)).unwrap()        
+
+            template.render(&get_contexts(page)).unwrap()
         }
     }
 }
