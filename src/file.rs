@@ -89,7 +89,6 @@ pub struct Page {
 /// * `weekdate` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.document.frontmatter.title }}.html`
 ///
 /// * `none` → `/{{ page.document.frontmatter.collection }}/{{ page.document.frontmatter.title }}.html`
-// TODO: Don't render permalink → url with Markdown
 pub fn get_permalink(permalink: &str) -> String {
     match &*permalink {
         "date" => {
@@ -263,12 +262,12 @@ pub fn get_page_object(page_path: String) -> Page {
         "" => {}
         _ => {
             // Render the URL once the Page metadata has been generated
-            page.url = render(&page, &get_permalink(permalink.unwrap().as_str().unwrap()));
+            page.url = render(&page, &get_permalink(permalink.unwrap().as_str().unwrap()), true);
         }
     }
 
     // Render Page content, set page.document.content as rendered version
-    //page.document.content = render(&page, &page.document.content);
+    //page.document.content = render(&page, &page.document.content, false);
 
     page
 }
@@ -346,28 +345,44 @@ pub fn get_contexts(page: &Page) -> Object {
 /// * `page` - A `.mokkf` file's context as a Page
 ///
 /// * `text_to_render` - The text to be rendered
-pub fn render(page: &Page, text_to_render: &str) -> String {
-    let mut markdown_options: ComrakOptions = ComrakOptions::default();
-    markdown_options.extension.strikethrough = true;
-    //markdown_options.extension.tagfilter = true;
-    markdown_options.render.unsafe_ = true;
-    markdown_options.extension.table = true;
-    //markdown_options.extension.autolink = true;
-    markdown_options.extension.tasklist = true;
-    markdown_options.extension.superscript = true;
-    markdown_options.extension.header_ids = Some("".to_string());
-    markdown_options.extension.footnotes = true;
-    markdown_options.extension.description_lists = true;
-    markdown_options.parse.smart = true;
-    markdown_options.render.github_pre_lang = true;
-
-    let template = liquid::ParserBuilder::with_stdlib()
-        .build()
-        .unwrap()
-        .parse(&markdown_to_html(text_to_render, &markdown_options))
-        .unwrap();
-
-    template.render(&get_contexts(page)).unwrap()
+/// 
+/// * `only_context` - Whether or not to only render the contexts of a File
+pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
+    match only_context {
+        true => {
+            let template = liquid::ParserBuilder::with_stdlib()
+                .build()
+                .unwrap()
+                .parse(text_to_render)
+                .unwrap();
+        
+            template.render(&get_contexts(page)).unwrap()
+        }
+        false => {
+            let mut markdown_options: ComrakOptions = ComrakOptions::default();
+            markdown_options.extension.strikethrough = true;
+            markdown_options.extension.tagfilter = false;
+            markdown_options.render.unsafe_ = true;
+            markdown_options.render.escape = false;
+            markdown_options.extension.table = true;
+            //markdown_options.extension.autolink = true;
+            markdown_options.extension.tasklist = true;
+            markdown_options.extension.superscript = true;
+            markdown_options.extension.header_ids = Some("".to_string());
+            markdown_options.extension.footnotes = true;
+            markdown_options.extension.description_lists = true;
+            markdown_options.parse.smart = true;
+            markdown_options.render.github_pre_lang = true;
+        
+            let template = liquid::ParserBuilder::with_stdlib()
+                .build()
+                .unwrap()
+                .parse(&markdown_to_html(text_to_render, &markdown_options))
+                .unwrap();
+        
+            template.render(&get_contexts(page)).unwrap()        
+        }
+    }
 }
 
 /// Compiles a Mokk File; renders, makes note of the File (if needed), returns compiled HTML
@@ -383,14 +398,14 @@ pub fn compile(page: &Page) -> String {
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = render(page, &page.document.content);
+            compiled_page = render(page, &page.document.content, false);
         }
         Some(_) => {
             let layout_object = get_page_object(format!(
                 "./layouts/{}.mokkf",
                 layout_name.unwrap().as_str().unwrap().to_string()
             ));
-            compiled_page = render_layouts(page, layout_object);
+            compiled_page = render(page, &render_layouts(page, layout_object), false);
             // let super_layout = layout_object.document.frontmatter.get("layout");
             // match super_layout
             // {
@@ -433,7 +448,7 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
             rendered = render_layouts(&layout, super_layout_object);
         }
         None => {
-            rendered = render(&sub, &layout.document.content);
+            rendered = render(&sub, &layout.document.content, true);
         }
     }
 

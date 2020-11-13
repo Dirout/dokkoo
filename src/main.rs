@@ -23,6 +23,7 @@ use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 
 // TODO: Add timers to subcommands
 fn main() {
@@ -67,16 +68,20 @@ fn build(matches: &clap::ArgMatches) {
             let page = file::get_page_object(format!("{}", file.display()));
             let output_path = format!("{}/output/{}", path, page.url);
 
+            // Define the progress indicator
             let spinner = Spinner::new(
                 Spinners::Dots,
                 format!("Compiling {} to {} … ", file.display(), output_path),
             );
 
-            let compiled_page = file::compile(&page);
+            let compiled_page = file::compile(&page); // Compile the current Page
+            
+            // Create output path, write to file
+            fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
             let write_file = File::create(&output_path).unwrap();
             write!(&write_file, "{}", compiled_page).unwrap();
 
-            spinner.stop();
+            spinner.stop(); // Indicate to the user that the Page is compiled & written
         }
     }
 }
