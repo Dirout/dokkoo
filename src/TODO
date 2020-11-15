@@ -1,0 +1,29 @@
+Chores:
+* Keep documentation up to date & complete
+* Maintain secure codebase
+* Conform to Rust styleguide
+* Complete all TODOs in codebase
+
+WIP:
+* Fully implement collections
+* Implement Sass preprocessor language
+* Do not render '.mokkf' files if they're in '/snippets' or '/layouts'
+* Copy files in Mokk that do not end in '.mokkf'
+
+1.0:
+* Iterate on branding
+* Publish Dokkoo
+    * Windows
+        * Binary
+        * Chocolatey (possibly)
+        * Scoop (possibly)
+    * macOS
+        * Homebrew (possibly)
+    * Linux-based operating systems
+        * Binary
+        * Debian package
+        * RPM package
+        * Snapcraft
+        * Flatpak
+        * Arch User Repository package ('dokkoo-git')
+    * crates.io
