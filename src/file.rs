@@ -529,7 +529,7 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
         }
     }
 
-    parsed_str.to_owned()
+    parsed_str
 }
 
 pub fn render_snippet(
@@ -618,7 +618,7 @@ pub fn get_snippet_values(call_arguments: &Vec<String>, keys: &Vec<String>) -> V
         current_value = format!("{}{}", current_value, call_arguments[i + 3]); // Append this bit of the arguments to the current_value
         current_value = current_value.replace(&format!("{}=", &keys[i]), ""); // Get value by removing key
 
-        let start_of_current_value = current_value.chars().nth(0).unwrap();
+        let start_of_current_value = current_value.chars().next().unwrap();
 
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
