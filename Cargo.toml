@@ -31,7 +31,7 @@ comrak = "*"
 glob = "*"
 liquid = "*"
 liquid-core = "*"
-liquid-lib = { version = "*", features = ["jekyll", "shopify", "extra"] }
+liquid-lib = { version = "*", features = ["stdlib", "jekyll", "shopify", "extra"] }
 serde = "*"
 serde_yaml = "*"
 spinners = "*"

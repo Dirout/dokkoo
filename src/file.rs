@@ -281,7 +281,7 @@ pub fn get_page_object(page_path: String) -> Page {
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-pub fn get_contexts(page: &Page) -> Object {
+pub fn get_contexts(page: &Page, snippet_context: Option<&HashMap<&str, serde_yaml::Value>>) -> Object {
     let global: HashMap<String, serde_yaml::Value> =
         serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
 
@@ -332,12 +332,27 @@ pub fn get_contexts(page: &Page) -> Object {
         }
     }
 
-    let contexts = object!({
-        "global": global,
-        "page": page,
-        "collection": collection,
-        "layout": layout
-    });
+    let contexts;
+    match snippet_context
+    {
+        Some(_) => {
+            contexts = object!({
+                "global": global,
+                "page": page,
+                "collection": collection,
+                "layout": layout,
+                "snippet": snippet_context.unwrap()
+            });
+        }
+        None => {
+            contexts = object!({
+                "global": global,
+                "page": page,
+                "collection": collection,
+                "layout": layout
+            });
+        }
+    }
 
     contexts
 }
@@ -355,12 +370,21 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
     match only_context {
         true => {
             let template = liquid::ParserBuilder::with_stdlib()
+                .tag(liquid_lib::jekyll::IncludeTag)
+                .filter(liquid_lib::jekyll::ArrayToSentenceString)
+                .filter(liquid_lib::jekyll::Pop)
+                .filter(liquid_lib::jekyll::Push)
+                .filter(liquid_lib::jekyll::Shift)
+                .filter(liquid_lib::jekyll::Slugify)
+                .filter(liquid_lib::jekyll::Unshift)
+                .filter(liquid_lib::shopify::Pluralize)
+                .filter(liquid_lib::extra::DateInTz)
                 .build()
                 .unwrap()
                 .parse(text_to_render)
                 .unwrap();
 
-            template.render(&get_contexts(page)).unwrap()
+            render_snippets(page, &template.render(&get_contexts(page, None)).unwrap())
         }
         false => {
             let mut markdown_options: ComrakOptions = ComrakOptions::default();
@@ -379,12 +403,21 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
             markdown_options.render.github_pre_lang = true;
 
             let template = liquid::ParserBuilder::with_stdlib()
+                .tag(liquid_lib::jekyll::IncludeTag)
+                .filter(liquid_lib::jekyll::ArrayToSentenceString)
+                .filter(liquid_lib::jekyll::Pop)
+                .filter(liquid_lib::jekyll::Push)
+                .filter(liquid_lib::jekyll::Shift)
+                .filter(liquid_lib::jekyll::Slugify)
+                .filter(liquid_lib::jekyll::Unshift)
+                .filter(liquid_lib::shopify::Pluralize)
+                .filter(liquid_lib::extra::DateInTz)
                 .build()
                 .unwrap()
                 .parse(&markdown_to_html(text_to_render, &markdown_options))
                 .unwrap();
 
-            template.render(&get_contexts(page)).unwrap()
+            render_snippets(page, &template.render(&get_contexts(page, None)).unwrap())
         }
     }
 }
@@ -410,25 +443,6 @@ pub fn compile(page: &Page) -> String {
                 layout_name.unwrap().as_str().unwrap().to_string()
             ));
             compiled_page = render(page, &render_layouts(page, layout_object), false);
-            // let super_layout = layout_object.document.frontmatter.get("layout");
-            // match super_layout
-            // {
-            //     Some(_) => {
-            //         compiled_page = render(
-            //             &page,
-            //             &compile(&get_page_object(format!(
-            //                 "./layouts/{}.mokkf",
-            //                 layout_name.unwrap().as_str().unwrap().to_string()
-            //             ))),
-            //         );
-            //     }
-            //     None => {
-            //         compiled_page = render(
-            //             &page,
-            //             &compile(page),
-            //         );
-            //     }
-            // }
         }
     }
 
@@ -457,4 +471,190 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
     }
 
     rendered
+}
+
+// TODO: Documentation for 'render_snippets'
+// Parse all snippets throughout a '.mokkf' file together
+pub fn render_snippets(page: &Page, text_to_parse: &str) -> String
+{
+    let mut snippet_calls: Vec<String> = vec![];
+    let mut brace_count = 0;
+    let mut parsing_str: String = "".to_owned();
+    let mut parsed_str = text_to_parse.to_owned();
+    
+    for character in text_to_parse.chars()
+    {
+        match character
+        {
+            '{' => {
+                if brace_count == 0
+                {
+                    brace_count += 1;
+                    parsing_str.push(character);
+                    continue;
+                }
+            }
+            '}' => {
+                if brace_count == 1
+                {
+                    brace_count = 0;
+                    parsing_str.push(character);
+                    if parsing_str.contains("{! snippet ") || parsing_str.contains("{!snippet ")
+                    {
+                        snippet_calls.push(parsing_str);
+                    }
+                    parsing_str = String::new();
+                    continue;
+                }
+            }
+            _ => {
+                if brace_count == 1
+                {
+                    parsing_str.push(character);
+                    continue;
+                }
+            }
+        }
+        for snippet_call in &snippet_calls
+        {
+            let call_arguments = get_snippet_arguments(snippet_call.to_owned());
+            let snippet_path = format!("./snippets/{}", call_arguments[2]);
+            
+            let keys = get_snippet_keys(&call_arguments);
+            let values = get_snippet_values(&call_arguments, &keys);
+            let mut snippet_context: HashMap<&str, serde_yaml::Value> = HashMap::new();
+            
+            for i in 0..keys.len()
+            {
+                snippet_context.insert(&keys[i], serde_yaml::from_str(&values[i]).unwrap());
+            }
+
+            parsed_str = text_to_parse.replace(snippet_call, &render_snippet(page, snippet_path, &snippet_context));
+        }
+    }
+
+    parsed_str.to_owned()
+}
+
+pub fn render_snippet(page: &Page, snippet_path: String, snippet_context: &HashMap<&str, serde_yaml::Value>) -> String
+{
+    let template = liquid::ParserBuilder::with_stdlib()
+    .tag(liquid_lib::jekyll::IncludeTag)
+    .filter(liquid_lib::jekyll::ArrayToSentenceString)
+    .filter(liquid_lib::jekyll::Pop)
+    .filter(liquid_lib::jekyll::Push)
+    .filter(liquid_lib::jekyll::Shift)
+    .filter(liquid_lib::jekyll::Slugify)
+    .filter(liquid_lib::jekyll::Unshift)
+    .filter(liquid_lib::shopify::Pluralize)
+    .filter(liquid_lib::extra::DateInTz)
+    .build()
+    .unwrap()
+    .parse(&fs::read_to_string(snippet_path).unwrap())
+    .unwrap();
+
+    template.render(&get_contexts(page, Some(snippet_context))).unwrap()
+}
+
+// TODO: Documentation for 'get_snippet_arguments'
+pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
+    let mut call_arguments: Vec<String> = vec![];
+    let mut current_argument: String = "".to_owned();
+    
+    for character in snippet_call.chars(){
+        match character
+        {
+            ' ' => {
+                call_arguments.push(current_argument);
+                current_argument = String::new();
+                continue;
+            }
+            _ => {
+                current_argument.push(character);
+                continue;
+            }
+        }
+    }
+
+    call_arguments
+}
+
+// TODO: Documentation for 'get_snippet_keys'
+pub fn get_snippet_keys(call_arguments: &Vec<String>) -> Vec<String>
+{
+    let mut keys: Vec<String> = vec![];
+    let mut current_key: String = "".to_owned();
+    
+    for i in 3..call_arguments.len()
+    {
+        for character in call_arguments[i].chars()
+        {
+            match character
+            {
+                '=' => {
+                    keys.push(current_key);
+                    current_key = String::new();
+                    break;
+                }
+                _ => {
+                    current_key.push(character);
+                    continue;
+                }
+            }
+        }
+    }
+
+    keys
+}
+
+// TODO: Documentation for 'get_snippet_values'
+pub fn get_snippet_values(call_arguments: &Vec<String>, keys: &Vec<String>) -> Vec<String>
+{
+    let mut values: Vec<String> = vec![];
+    let mut current_value: String = "".to_owned();
+    let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
+    
+    for i in 0..keys.len()
+    {
+        // Skip if this bit of the arguments has been processed as a part of a quoted value
+        if portions_by_space.contains(&(i+3))
+        {
+            continue;
+        }
+
+        current_value = format!("{}{}", current_value, call_arguments[i+3]); // Append this bit of the arguments to the current_value
+        current_value = current_value.replace(&format!("{}=", &keys[i]), ""); // Get value by removing key
+
+        let start_of_current_value = current_value.chars().nth(0).unwrap();
+        
+        // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
+        if start_of_current_value == '"'
+        {
+            for j in i+4..call_arguments.len()
+            {
+                if call_arguments[j].contains('=')
+                {
+                    portions_by_space.push(j);
+                    break;
+                }
+                else {
+                    current_value = format!("{} {}", current_value, call_arguments[j]);
+                    continue;
+                }
+            }
+        }
+
+        let end_of_current_value = current_value.chars().nth(current_value.len() - 1).unwrap(); // Define here, as above can modify current_value
+        // Remove quotes around current_value
+        if start_of_current_value == '"' && end_of_current_value == '"'
+        {
+            current_value.remove(0);
+            current_value.remove(current_value.len() - 1);
+        }
+
+        values.push(current_value);
+        current_value = String::new();
+    }
+
+    values
 }
