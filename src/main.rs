@@ -24,6 +24,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use pathdiff;
 
 // TODO: Add timers to subcommands
 fn main() {
@@ -64,25 +65,31 @@ fn build(matches: &clap::ArgMatches) {
     env::set_current_dir(path).unwrap();
     for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap() {
         let file = entry.unwrap();
-        if !&file.is_dir() {
-            let page = file::get_page_object(format!("{}", file.display()));
-            let output_path = format!("{}/output/{}", path, page.url);
-
-            // Define the progress indicator
-            let spinner = Spinner::new(
-                Spinners::Dots,
-                format!("Compiling {} to {} … ", file.display(), output_path),
-            );
-
-            let compiled_page = file::compile(&page); // Compile the current Page
-
-            // Create output path, write to file
-            fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
-            let write_file = File::create(&output_path).unwrap();
-            write!(&write_file, "{}", compiled_page).unwrap();
-
-            spinner.stop(); // Indicate to the user that the Page is compiled & written
+        let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
+        let file_root_str = file_root.to_str().unwrap();
+        let file_root_str_length = file_root_str.len();
+        if file.is_dir() || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts") || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
+        {
+          continue;
         }
+
+        let page = file::get_page_object(format!("{}", file.display()));
+        let output_path = format!("{}/output/{}", path, page.url);
+
+        // Define the progress indicator
+        let spinner = Spinner::new(
+            Spinners::Dots,
+            format!("Compiling {} to {} … ", file.display(), output_path),
+        );
+
+        let compiled_page = file::compile(&page); // Compile the current Page
+
+        // Create output path, write to file
+        fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
+        let write_file = File::create(&output_path).unwrap();
+        write!(&write_file, "{}", compiled_page).unwrap();
+
+        spinner.stop(); // Indicate to the user that the Page is compiled & written
     }
 }
 
