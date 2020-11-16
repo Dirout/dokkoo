@@ -18,7 +18,7 @@ mod file;
 
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
-use pathdiff;
+
 use spinners::{Spinner, Spinners};
 use std::env;
 use std::fs;
