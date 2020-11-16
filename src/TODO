@@ -6,11 +6,8 @@ Chores:
 
 WIP:
 * Fully implement collections
-* Implement Sass preprocessor language
-* Do not render '.mokkf' files if they're in '/snippets' or '/layouts'
-* Copy files in Mokk that do not end in '.mokkf'
 
-1.0:
+First release:
 * Iterate on branding
 * Publish Dokkoo
     * Windows
@@ -18,12 +15,18 @@ WIP:
         * Chocolatey (possibly)
         * Scoop (possibly)
     * macOS
+        * Binary
         * Homebrew (possibly)
+        * Fink (possibly)
+        * MacPorts (possibly)
     * Linux-based operating systems
         * Binary
         * Debian package
-        * RPM package
+        * RPM package (possibly)
         * Snapcraft
-        * Flatpak
-        * Arch User Repository package ('dokkoo-git')
-    * crates.io
+        * Flatpak (possibly)
+        * Arch User Repository packages ('dokkoo' & 'dokkoo-git')
+    * Cross-platform
+        * crates.io (both CLI and library)
+        * Nix (possibly)
+        * pkgsrc (possibly)
