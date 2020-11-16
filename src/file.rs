@@ -289,9 +289,6 @@ pub fn get_page_object(page_path: String) -> Page {
         }
     }
 
-    // Render Page content, set page.document.content as rendered version
-    //page.document.content = render(&page, &page.document.content, false);
-
     page
 }
 
@@ -443,20 +440,21 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
     }
 }
 
-/// Compiles a Mokk File; renders, makes note of the File (if needed), returns compiled HTML
+/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises), returns compiled HTML
 ///
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
 pub fn compile(page: &Page) -> String {
     let compiled_page;
+    let embeddable_page = render(page, &page.document.content, false);
     let layout_name = page.document.frontmatter.get("layout");
 
     // If Page has a layout, render with layout(s)
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = render(page, &page.document.content, false);
+            compiled_page = embeddable_page;
         }
         Some(_) => {
             let layout_object = get_page_object(format!(
@@ -467,12 +465,18 @@ pub fn compile(page: &Page) -> String {
         }
     }
 
-    // If within a collection, append page.document.content to list of collection's entries
+    // When within a collection, append embeddable_page to list of collection's entries
 
     compiled_page
 }
 
-// TODO: Documentation for 'render_layouts'
+/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
+/// 
+/// # Arguments
+/// 
+/// * `page` - The `.mokkf` file's context as a Page
+/// 
+/// * `layout` - The File's layout's context as a Page
 pub fn render_layouts(sub: &Page, layout: Page) -> String {
     // Take layout's text, render it with sub's context
     let rendered: String;
@@ -494,8 +498,13 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
     rendered
 }
 
-// TODO: Documentation for 'render_snippets'
-// Parse all snippets throughout a '.mokkf' file together
+/// Render all snippets throughout a '.mokkf' file together
+/// 
+/// # Arguments
+///
+/// * `page` - The `.mokkf` file's context as a Page
+/// 
+/// * `text_to_parse` - The text to be parsed
 pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
     let mut snippet_calls: Vec<String> = vec![];
     let mut brace_count = 0;
@@ -530,7 +539,7 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
             }
         }
         for snippet_call in &snippet_calls {
-            let call_portions = get_snippet_arguments(snippet_call.to_owned());
+            let call_portions = get_snippet_call_portions(snippet_call.to_owned());
             let snippet_path = format!("./snippets/{}", call_portions[2]);
 
             let keys = get_snippet_keys(&call_portions);
@@ -551,6 +560,15 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
     parsed_str
 }
 
+/// Render an individual snippet call
+/// 
+/// # Arguments
+/// 
+/// * `page` - The `.mokkf` file's context as a Page
+/// 
+/// * `snippet_path` - The path to the snippet being called
+/// 
+/// * `snippet_context` - The context passed within the snippet call
 pub fn render_snippet(
     page: &Page,
     snippet_path: String,
@@ -576,8 +594,12 @@ pub fn render_snippet(
         .unwrap()
 }
 
-// TODO: Documentation for 'get_snippet_arguments'
-pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
+/// Get the portions of a snippet call; seperate the call by spaces
+/// 
+/// # Arguments
+/// 
+/// * `snippet_call` - The snippet call to be cut up
+pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
     let mut call_portions: Vec<String> = vec![];
     let mut current_argument: String = "".to_owned();
 
@@ -598,7 +620,11 @@ pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
     call_portions
 }
 
-// TODO: Documentation for 'get_snippet_keys'
+/// Get the keys of a snippet call's arguments, should they exist
+/// 
+/// # Arguments
+/// 
+/// * `call_portions` - A snippet call, seperated into multiple portions by spaces
 pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
@@ -623,7 +649,13 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     keys
 }
 
-// TODO: Documentation for 'get_snippet_values'
+/// Get the values of a snippet call's arguments, should they exist
+/// 
+/// # Arguments
+/// 
+/// * `call_portions` - A snippet call, seperated into multiple portions by spaces
+/// 
+/// * `keys` - The keys of a snippet call's arguments
 pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
     let mut current_value: String = "".to_owned();
