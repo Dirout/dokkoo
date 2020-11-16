@@ -584,7 +584,8 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
 
-    for call_argument in call_portions.iter().skip(3) { // Skip three places, so as to just look at the actual argument portions
+    for call_argument in call_portions.iter().skip(3) {
+        // Skip three places, so as to just look at the actual argument portions
         for character in call_argument.chars() {
             match character {
                 '=' => {
@@ -622,7 +623,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
-            for (j, _) in call_portions.iter().enumerate().skip(i + 4) { 
+            for (j, _) in call_portions.iter().enumerate().skip(i + 4) {
                 // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call, allowing us to reach the call arugments
                 if call_portions[j].contains('=') {
                     portions_by_space.push(j);
