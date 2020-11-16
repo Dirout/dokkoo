@@ -447,11 +447,11 @@ pub fn compile(page: &Page) -> String {
 }
 
 /// Render the layout(s) of a post recursively (should a layout have a layout of its own)
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `page` - The `.mokkf` file's context as a Page
-/// 
+///
 /// * `layout` - The File's layout's context as a Page
 pub fn render_layouts(sub: &Page, layout: Page) -> String {
     // Take layout's text, render it with sub's context
@@ -475,11 +475,11 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
 }
 
 /// Render all snippets throughout a '.mokkf' file together
-/// 
+///
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-/// 
+///
 /// * `text_to_parse` - The text to be parsed
 pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
     let mut snippet_calls: Vec<String> = vec![];
@@ -537,13 +537,13 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
 }
 
 /// Render an individual snippet call
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `page` - The `.mokkf` file's context as a Page
-/// 
+///
 /// * `snippet_path` - The path to the snippet being called
-/// 
+///
 /// * `snippet_context` - The context passed within the snippet call
 pub fn render_snippet(
     page: &Page,
@@ -571,9 +571,9 @@ pub fn render_snippet(
 }
 
 /// Get the portions of a snippet call; seperate the call by spaces
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `snippet_call` - The snippet call to be cut up
 pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
     let mut call_portions: Vec<String> = vec![];
@@ -597,9 +597,9 @@ pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
 }
 
 /// Get the keys of a snippet call's arguments, should they exist
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `call_portions` - A snippet call, seperated into multiple portions by spaces
 pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
@@ -626,11 +626,11 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
 }
 
 /// Get the values of a snippet call's arguments, should they exist
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `call_portions` - A snippet call, seperated into multiple portions by spaces
-/// 
+///
 /// * `keys` - The keys of a snippet call's arguments
 pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
