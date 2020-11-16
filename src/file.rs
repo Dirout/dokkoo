@@ -603,7 +603,8 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
 
-    for call_argument in call_portions.iter().skip(3) { // Skip three places, so as to just look at the actual argument portions
+    for call_argument in call_portions.iter().skip(3) {
+        // Skip three places, so as to just look at the actual argument portions
         for character in call_argument.chars() {
             match character {
                 '=' => {
