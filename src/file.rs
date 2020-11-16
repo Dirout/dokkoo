@@ -47,28 +47,47 @@ pub struct Document {
 #[derive(Debug, Deserialize, Serialize)]
 /// Page:
 ///     Generated data regarding a Mokk File
-// TODO: Documentation for Page
 pub struct Page {
+    /// A Page's Document
     pub document: Document,
-    pub dir: String,
+    /// Path to the File, not including the File itself
+    pub directory: String,
+    /// The File's base filename
     pub name: String,
     pub url: String, // Rendered permalink
+    /// Year with four digits
     pub year: String,
+    /// Year without the century (00..99)
     pub short_year: String,
+    /// Month (01..12)
     pub month: String,
+    /// Month without leading zeros
     pub i_month: String,
+    /// Three-letter month abbreviation, e.g. “Jan”
     pub short_month: String,
+    /// Full month name, e.g. “January”
     pub long_month: String,
+    /// Day of the month (01..31)
     pub day: String,
+    /// Day of the month without leading zeros
     pub i_day: String,
+    /// Ordinal day of the year, with leading zeros. (001..366)
     pub y_day: String,
+    /// Week year which may differ from the month year for up to three days at the start of January and end of December
     pub w_year: String,
+    /// Week number of the current year, starting with the first week having a majority of its days in January (01..53)
     pub week: String,
+    /// Day of the week, starting with Monday (1..7)
     pub w_day: String,
+    /// Three-letter weekday abbreviation, e.g. “Sun”
     pub short_day: String,
+    /// Weekday name, e.g. “Sunday”
     pub long_day: String,
+    /// Hour of the day, 24-hour clock, zero-padded (00..23)
     pub hour: String,
+    /// Minute of the hour (00..59)
     pub minute: String,
+    /// Second of the minute (00..59)
     pub second: String,
 }
 
@@ -185,14 +204,14 @@ pub fn get_page_object(page_path: String) -> Page {
         date: date_string,
     };
 
-    let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.dir and page.name)
+    let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
     let mut page: Page;
     match &document.date[..] {
         "" => {
             // Define our Page
             page = Page {
                 document,
-                dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+                directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
                 name: page_path_io
                     .file_stem()
                     .unwrap()
@@ -229,7 +248,7 @@ pub fn get_page_object(page_path: String) -> Page {
                                // Define our Page
             page = Page {
                 document,
-                dir: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+                directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
                 name: page_path_io
                     .file_stem()
                     .unwrap()
@@ -623,7 +642,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
             for (j, _) in call_portions.iter().enumerate().skip(i + 4) { 
-                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call, allowing us to reach the call arugments
+                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call, allowing us to reach the call arguments
                 if call_portions[j].contains('=') {
                     portions_by_space.push(j);
                     break;
