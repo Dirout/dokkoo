@@ -622,7 +622,8 @@ pub fn get_snippet_values(call_arguments: &[String], keys: &[String]) -> Vec<Str
 
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
-            for (j, _) in call_arguments.iter().enumerate().skip(i + 4) { // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call
+            for (j, _) in call_arguments.iter().enumerate().skip(i + 4) {
+                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call
                 if call_arguments[j].contains('=') {
                     portions_by_space.push(j);
                     break;
