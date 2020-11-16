@@ -511,11 +511,11 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
             }
         }
         for snippet_call in &snippet_calls {
-            let call_arguments = get_snippet_arguments(snippet_call.to_owned());
-            let snippet_path = format!("./snippets/{}", call_arguments[2]);
+            let call_portions = get_snippet_arguments(snippet_call.to_owned());
+            let snippet_path = format!("./snippets/{}", call_portions[2]);
 
-            let keys = get_snippet_keys(&call_arguments);
-            let values = get_snippet_values(&call_arguments, &keys);
+            let keys = get_snippet_keys(&call_portions);
+            let values = get_snippet_values(&call_portions, &keys);
             let mut snippet_context: HashMap<&str, serde_yaml::Value> = HashMap::new();
 
             for i in 0..keys.len() {
@@ -559,13 +559,13 @@ pub fn render_snippet(
 
 // TODO: Documentation for 'get_snippet_arguments'
 pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
-    let mut call_arguments: Vec<String> = vec![];
+    let mut call_portions: Vec<String> = vec![];
     let mut current_argument: String = "".to_owned();
 
     for character in snippet_call.chars() {
         match character {
             ' ' => {
-                call_arguments.push(current_argument);
+                call_portions.push(current_argument);
                 current_argument = String::new();
                 continue;
             }
@@ -576,15 +576,15 @@ pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
         }
     }
 
-    call_arguments
+    call_portions
 }
 
 // TODO: Documentation for 'get_snippet_keys'
-pub fn get_snippet_keys(call_arguments: &[String]) -> Vec<String> {
+pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
 
-    for call_argument in call_arguments.iter().skip(3) {
+    for call_argument in call_portions.iter().skip(3) { // Skip three places, so as to just look at the actual argument portions
         for character in call_argument.chars() {
             match character {
                 '=' => {
@@ -604,7 +604,7 @@ pub fn get_snippet_keys(call_arguments: &[String]) -> Vec<String> {
 }
 
 // TODO: Documentation for 'get_snippet_values'
-pub fn get_snippet_values(call_arguments: &[String], keys: &[String]) -> Vec<String> {
+pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
     let mut current_value: String = "".to_owned();
     let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
@@ -615,19 +615,20 @@ pub fn get_snippet_values(call_arguments: &[String], keys: &[String]) -> Vec<Str
             continue;
         }
 
-        current_value = format!("{}{}", current_value, call_arguments[i + 3]); // Append this bit of the arguments to the current_value
+        current_value = format!("{}{}", current_value, call_portions[i + 3]); // Append this bit of the arguments to the current_value
         current_value = current_value.replace(&format!("{}=", &keys[i]), ""); // Get value by removing key
 
         let start_of_current_value = current_value.chars().next().unwrap();
 
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
-            for (j, _) in call_arguments.iter().enumerate().skip(i + 4) { // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call
-                if call_arguments[j].contains('=') {
+            for (j, _) in call_portions.iter().enumerate().skip(i + 4) { 
+                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call, allowing us to reach the call arugments
+                if call_portions[j].contains('=') {
                     portions_by_space.push(j);
                     break;
                 } else {
-                    current_value = format!("{} {}", current_value, call_arguments[j]);
+                    current_value = format!("{} {}", current_value, call_portions[j]);
                     continue;
                 }
             }
