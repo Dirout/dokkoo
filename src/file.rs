@@ -305,28 +305,6 @@ pub fn get_contexts(
         serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
 
     /*
-    Collections
-    */
-    let collection_name = page.document.frontmatter.get("locale");
-    let collection: HashMap<String, serde_yaml::Value>;
-    // Import collection context if Page is in a collection
-    match collection_name {
-        None => {
-            collection = HashMap::new();
-        }
-        Some(_) => {
-            collection = serde_yaml::from_str(
-                &fs::read_to_string(format!(
-                    "./_{}/_collection.yml",
-                    collection_name.unwrap().as_str().unwrap()
-                ))
-                .unwrap(),
-            )
-            .unwrap();
-        }
-    }
-
-    /*
     Layouts
     */
     let layout_name = page.document.frontmatter.get("layout");
@@ -357,7 +335,6 @@ pub fn get_contexts(
             contexts = object!({
                 "global": global,
                 "page": page,
-                "collection": collection,
                 "layout": layout,
                 "snippet": snippet_context.unwrap()
             });
@@ -366,7 +343,6 @@ pub fn get_contexts(
             contexts = object!({
                 "global": global,
                 "page": page,
-                "collection": collection,
                 "layout": layout
             });
         }
