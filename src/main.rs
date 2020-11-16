@@ -18,13 +18,13 @@ mod file;
 
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
+use pathdiff;
 use spinners::{Spinner, Spinners};
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use pathdiff;
 
 // TODO: Add timers to subcommands
 fn main() {
@@ -68,9 +68,11 @@ fn build(matches: &clap::ArgMatches) {
         let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
         let file_root_str = file_root.to_str().unwrap();
         let file_root_str_length = file_root_str.len();
-        if file.is_dir() || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts") || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
+        if file.is_dir()
+            || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts")
+            || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
         {
-          continue;
+            continue;
         }
 
         let page = file::get_page_object(format!("{}", file.display()));
