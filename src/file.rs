@@ -580,12 +580,12 @@ pub fn get_snippet_arguments(snippet_call: String) -> Vec<String> {
 }
 
 // TODO: Documentation for 'get_snippet_keys'
-pub fn get_snippet_keys(call_arguments: &Vec<String>) -> Vec<String> {
+pub fn get_snippet_keys(call_arguments: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
 
-    for i in 3..call_arguments.len() {
-        for character in call_arguments[i].chars() {
+    for call_argument in call_arguments.iter().skip(3) {
+        for character in call_argument.chars() {
             match character {
                 '=' => {
                     keys.push(current_key);
@@ -604,7 +604,7 @@ pub fn get_snippet_keys(call_arguments: &Vec<String>) -> Vec<String> {
 }
 
 // TODO: Documentation for 'get_snippet_values'
-pub fn get_snippet_values(call_arguments: &Vec<String>, keys: &Vec<String>) -> Vec<String> {
+pub fn get_snippet_values(call_arguments: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
     let mut current_value: String = "".to_owned();
     let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
@@ -622,7 +622,7 @@ pub fn get_snippet_values(call_arguments: &Vec<String>, keys: &Vec<String>) -> V
 
         // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
         if start_of_current_value == '"' {
-            for j in i + 4..call_arguments.len() {
+            for (j, _) in call_arguments.iter().enumerate().skip(i + 4) {
                 if call_arguments[j].contains('=') {
                     portions_by_space.push(j);
                     break;
