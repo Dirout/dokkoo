@@ -6,27 +6,36 @@ Chores:
 
 WIP:
 * Fully implement collections
+    i.      As compiling, append to HashMap<collection: String, page: Page>
+    ii.     Incorporate into contexts as 'collections' context
+    iii.    Compile files at root last
 
-First release:
-* Iterate on branding
+Distribution plans:
+* Iterate on branding prior to major releases
 * Publish Dokkoo
-    * Windows
-        * Binary
-        * Chocolatey (possibly)
-        * Scoop (possibly)
-    * macOS
-        * Binary
-        * Homebrew (possibly)
-        * Fink (possibly)
-        * MacPorts (possibly)
-    * Linux-based operating systems
+    * Linux-based operating systems (primary CLI release target)
         * Binary
         * Debian package
-        * RPM package (possibly)
+        * RPM package
+        * COPR (planned)
+        * Gentoo (planned)
         * Snapcraft
-        * Flatpak (possibly)
+        * Flatpak (planned)
         * Arch User Repository packages ('dokkoo' & 'dokkoo-git')
-    * Cross-platform
-        * crates.io (both CLI and library)
-        * Nix (possibly)
-        * pkgsrc (possibly)
+    * Rust Crate (primary library release target)
+        * crates.io
+    * Unix-like operating systems
+        * pkgsrc (planned; technically intended for NetBSD)
+        * Nix (planned)
+    * Opensource BSD-based operating systems
+        * FreeBSD Ports (planned)
+        * OpenBSD Ports (planned)
+    * macOS & PureDarwin
+        * Binary
+        * Homebrew (planned; technically available for Linux as well)
+        * Fink (planned; technically available for Linux as well)
+        * MacPorts (planned)
+    * Windows
+        * Binary
+        * Chocolatey (planned)
+        * Scoop (planned)
