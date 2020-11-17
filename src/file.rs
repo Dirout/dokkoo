@@ -478,7 +478,6 @@ pub fn compile(
     match collection_name {
         None => {}
         Some(_) => {
-            //unsafe { // TODO: Figure out a way to implement 'collections' context without 'unsafe' keyword
             page.document.content = embeddable_page;
             match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
             {
@@ -497,7 +496,6 @@ pub fn compile(
                     );
                 }
             }
-            //}
         }
     }
 

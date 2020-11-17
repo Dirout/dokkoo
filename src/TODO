@@ -9,6 +9,11 @@ WIP:
     i.      As compiling, append to HashMap<collection: String, Vec<page: Page>> - DONE
     ii.     Incorporate into contexts as 'collections' context - DONE
     iii.    Compile files at root last - DONE
+    * Test current implementation
+* Look into replacing current Markdown processor
+    * Very sensitive with whitespace
+* Look into replacing Liquid crate(s)
+    * Basic logic blocks, like 'if' statements and 'for' loops are not properly implemented
 
 Distribution plans:
 * Iterate on branding prior to major releases
