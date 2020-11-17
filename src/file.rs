@@ -285,7 +285,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                 &page,
                 &get_permalink(permalink.unwrap().as_str().unwrap()),
                 true,
-                collections
+                collections,
             );
         }
     }
@@ -364,7 +364,12 @@ pub fn get_contexts(
 /// * `text_to_render` - The text to be rendered
 ///
 /// * `only_context` - Whether or not to only render the contexts of a File
-pub fn render(page: &Page, text_to_render: &str, only_context: bool, collections: &HashMap<String, Vec<Page>>) -> String {
+pub fn render(
+    page: &Page,
+    text_to_render: &str,
+    only_context: bool,
+    collections: &HashMap<String, Vec<Page>>,
+) -> String {
     match only_context {
         true => {
             let template = liquid::ParserBuilder::with_stdlib()
@@ -382,7 +387,13 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool, collections
                 .parse(text_to_render)
                 .unwrap();
 
-            render_snippets(page, &template.render(&get_contexts(page, collections, None)).unwrap(), collections)
+            render_snippets(
+                page,
+                &template
+                    .render(&get_contexts(page, collections, None))
+                    .unwrap(),
+                collections,
+            )
         }
         false => {
             let mut markdown_options: ComrakOptions = ComrakOptions::default();
@@ -415,7 +426,13 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool, collections
                 .parse(&markdown_to_html(text_to_render, &markdown_options))
                 .unwrap();
             println!("\n{}", page.name);
-            render_snippets(page, &template.render(&get_contexts(page, collections, None)).unwrap(), collections)
+            render_snippets(
+                page,
+                &template
+                    .render(&get_contexts(page, collections, None))
+                    .unwrap(),
+                collections,
+            )
         }
     }
 }
@@ -425,7 +442,10 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool, collections
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-pub fn compile(mut page: Page, mut collections: HashMap<String, Vec<Page>>) -> (String, HashMap<String, Vec<Page>>) {
+pub fn compile(
+    mut page: Page,
+    mut collections: HashMap<String, Vec<Page>>,
+) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
     let embeddable_page = render(&page, &page.document.content, false, &collections);
     let layout_name = &page.document.frontmatter.get("layout");
@@ -438,32 +458,45 @@ pub fn compile(mut page: Page, mut collections: HashMap<String, Vec<Page>>) -> (
             compiled_page = format!("{}", embeddable_page);
         }
         Some(_) => {
-            let layout_object = get_page_object(format!(
-                "./layouts/{}.mokkf",
-                layout_name.unwrap().as_str().unwrap().to_string()
-            ), &collections);
-            compiled_page = render(&page, &render_layouts(&page, layout_object, &collections), false, &collections);
+            let layout_object = get_page_object(
+                format!(
+                    "./layouts/{}.mokkf",
+                    layout_name.unwrap().as_str().unwrap().to_string()
+                ),
+                &collections,
+            );
+            compiled_page = render(
+                &page,
+                &render_layouts(&page, layout_object, &collections),
+                false,
+                &collections,
+            );
         }
     }
 
     // When within a collection, append embeddable_page to list of collection's entries
     match collection_name {
-        None => {
-            
-        }
+        None => {}
         Some(_) => {
             //unsafe { // TODO: Figure out a way to implement 'collections' context without 'unsafe' keyword
-                page.document.content = format!("{}", embeddable_page);
-                match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
-                {
-                    true => {
-                        let mut current_collection_entries = collections.get_key_value(collection_name.unwrap().as_str().unwrap()).unwrap().1.to_vec();
-                        current_collection_entries.push(page);
-                    }
-                    false => {
-                        collections.insert(collection_name.unwrap().as_str().unwrap().to_string(), vec!(page));
-                    }
+            page.document.content = format!("{}", embeddable_page);
+            match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
+            {
+                true => {
+                    let mut current_collection_entries = collections
+                        .get_key_value(collection_name.unwrap().as_str().unwrap())
+                        .unwrap()
+                        .1
+                        .to_vec();
+                    current_collection_entries.push(page);
                 }
+                false => {
+                    collections.insert(
+                        collection_name.unwrap().as_str().unwrap().to_string(),
+                        vec![page],
+                    );
+                }
+            }
             //}
         }
     }
@@ -478,17 +511,24 @@ pub fn compile(mut page: Page, mut collections: HashMap<String, Vec<Page>>) -> (
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `layout` - The File's layout's context as a Page
-pub fn render_layouts(sub: &Page, layout: Page, collections: &HashMap<String, Vec<Page>>) -> String {
+pub fn render_layouts(
+    sub: &Page,
+    layout: Page,
+    collections: &HashMap<String, Vec<Page>>,
+) -> String {
     // Take layout's text, render it with sub's context
     let rendered: String;
 
     let super_layout = layout.document.frontmatter.get("layout");
     match super_layout {
         Some(_) => {
-            let super_layout_object = get_page_object(format!(
-                "./layouts/{}.mokkf",
-                super_layout.unwrap().as_str().unwrap().to_string()
-            ), collections);
+            let super_layout_object = get_page_object(
+                format!(
+                    "./layouts/{}.mokkf",
+                    super_layout.unwrap().as_str().unwrap().to_string()
+                ),
+                collections,
+            );
             rendered = render_layouts(&layout, super_layout_object, collections);
         }
         None => {
@@ -506,7 +546,11 @@ pub fn render_layouts(sub: &Page, layout: Page, collections: &HashMap<String, Ve
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `text_to_parse` - The text to be parsed
-pub fn render_snippets(page: &Page, text_to_parse: &str, collections: &HashMap<String, Vec<Page>>) -> String {
+pub fn render_snippets(
+    page: &Page,
+    text_to_parse: &str,
+    collections: &HashMap<String, Vec<Page>>,
+) -> String {
     let mut snippet_calls: Vec<String> = vec![];
     let mut brace_count = 0;
     let mut parsing_str: String = "".to_owned();
@@ -574,7 +618,7 @@ pub fn render_snippet(
     page: &Page,
     snippet_path: String,
     snippet_context: &HashMap<&str, serde_yaml::Value>,
-    collections: &HashMap<String, Vec<Page>>
+    collections: &HashMap<String, Vec<Page>>,
 ) -> String {
     let template = liquid::ParserBuilder::with_stdlib()
         .tag(liquid_lib::jekyll::IncludeTag)
@@ -688,8 +732,11 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
             }
         }
 
-        let end_of_current_value = current_value.chars().nth(current_value.chars().count() - 1).unwrap(); // Define here, as above can modify current_value
-                                                                                                // Remove quotes around current_value
+        let end_of_current_value = current_value
+            .chars()
+            .nth(current_value.chars().count() - 1)
+            .unwrap(); // Define here, as above can modify current_value
+                       // Remove quotes around current_value
         if start_of_current_value == '"' && end_of_current_value == '"' {
             current_value.remove(0);
             current_value.remove(current_value.len() - 1);
