@@ -20,12 +20,12 @@ use clap::{crate_version, load_yaml, App};
 use glob::glob;
 
 use spinners::{Spinner, Spinners};
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use std::collections::HashMap;
 
 // TODO: Add timers to subcommands
 fn main() {
