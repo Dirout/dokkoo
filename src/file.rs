@@ -455,7 +455,7 @@ pub fn compile(
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = format!("{}", embeddable_page);
+            compiled_page = embeddable_page.to_string();
         }
         Some(_) => {
             let layout_object = get_page_object(
@@ -479,7 +479,7 @@ pub fn compile(
         None => {}
         Some(_) => {
             //unsafe { // TODO: Figure out a way to implement 'collections' context without 'unsafe' keyword
-            page.document.content = format!("{}", embeddable_page);
+            page.document.content = embeddable_page;
             match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
             {
                 true => {
