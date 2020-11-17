@@ -425,7 +425,7 @@ pub fn render(
                 .unwrap()
                 .parse(&markdown_to_html(text_to_render, &markdown_options))
                 .unwrap();
-            println!("\n{}", page.name);
+
             render_snippets(
                 page,
                 &template

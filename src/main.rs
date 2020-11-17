@@ -16,6 +16,7 @@
 */
 mod file;
 
+use std::path::PathBuf;
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
 
@@ -63,38 +64,61 @@ fn main() {
 // Avoid '.mokkf' files in layouts folder
 fn build(matches: &clap::ArgMatches) {
     let path = matches.value_of("PATH").unwrap();
-    let mut collections: HashMap<String, Vec<file::Page>> = HashMap::new();
-    env::set_current_dir(path).unwrap();
-    for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap() {
-        let file = entry.unwrap();
-        let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
-        let file_root_str = file_root.to_str().unwrap();
-        let file_root_str_length = file_root_str.len();
-        if file.is_dir()
-            || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts")
-            || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
-        {
-            continue;
-        }
+    let collections: HashMap<String, Vec<file::Page>> = HashMap::new(); // Collections store
 
-        let page = file::get_page_object(format!("{}", file.display()), &collections);
-        let output_path = format!("{}/output/{}", path, page.url);
+    // Sort files into vectors of path buffers; for when we compile root files last
+    let mut root_files: Vec<PathBuf> = vec![];
+    let mut other_files: Vec<PathBuf> = vec![];
 
-        // Define the progress indicator
-        let spinner = Spinner::new(
-            Spinners::Dots,
-            format!("Compiling {} to {} … ", file.display(), output_path),
-        );
+    env::set_current_dir(path).unwrap(); // Set working directory to one passed to subcommand
 
-        let compile_page = file::compile(page, collections); // Compile the current Page
-        collections = compile_page.1;
+    for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap()
+    {
+      let file = entry.unwrap();
+      other_files.push(file);
+    }
 
-        // Create output path, write to file
-        fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
-        let write_file = File::create(&output_path).unwrap();
-        write!(&write_file, "{}", compile_page.0).unwrap();
+    for entry in glob(&format!("{}/*.mokkf", path)).unwrap()
+    {
+      let file = entry.unwrap();
+      root_files.push(file);
+    }
 
-        spinner.stop(); // Indicate to the user that the Page is compiled & written
+    build_loop(other_files, path, collections.clone());
+    build_loop(root_files, path, collections);
+}
+
+fn build_loop(file_list: Vec<PathBuf>, path: &str, mut collections: HashMap<String, Vec<file::Page>>)
+{
+    for file in file_list {
+      let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
+      let file_root_str = file_root.to_str().unwrap();
+      let file_root_str_length = file_root_str.len();
+      if file.is_dir()
+          || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts")
+          || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
+      {
+          continue;
+      }
+
+      let page = file::get_page_object(format!("{}", file.display()), &collections);
+      let output_path = format!("{}/output/{}", path, page.url);
+
+      // Define the progress indicator
+      let spinner = Spinner::new(
+          Spinners::Dots,
+          format!("Compiling {} to {} … ", file.display(), output_path),
+      );
+
+      let compile_page = file::compile(page, collections); // Compile the current Page
+      collections = compile_page.1; // Get updated collections store as result of compilation
+
+      // Create output path, write to file
+      fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap(); // Create path to file which we will write to
+      let write_file = File::create(&output_path).unwrap(); // Create file which we will write to
+      write!(&write_file, "{}", compile_page.0).unwrap(); // Write compiled Page contents to file
+
+      spinner.stop(); // Indicate to the user that the Page is compiled & written
     }
 }
 

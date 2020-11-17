@@ -6,9 +6,9 @@ Chores:
 
 WIP:
 * Fully implement collections
-    i.      As compiling, append to HashMap<collection: String, Vec<page: Page>>
-    ii.     Incorporate into contexts as 'collections' context
-    iii.    Compile files at root last
+    i.      As compiling, append to HashMap<collection: String, Vec<page: Page>> - DONE
+    ii.     Incorporate into contexts as 'collections' context - DONE
+    iii.    Compile files at root last - DONE
 
 Distribution plans:
 * Iterate on branding prior to major releases
