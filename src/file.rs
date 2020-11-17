@@ -28,7 +28,7 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// Document:
 ///     User-specified data regarding a Mokk File
 pub struct Document {
@@ -44,7 +44,7 @@ pub struct Document {
     pub date: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 /// Page:
 ///     Generated data regarding a Mokk File
 pub struct Page {
@@ -167,7 +167,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 /// # Arguments
 ///
 /// * `page_path` - The `.mokkf` file's path as a `String`
-pub fn get_page_object(page_path: String) -> Page {
+pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page>>) -> Page {
     // Define variables which we'll use to create our Document, which we'll use to generate the Page context
     let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
     let frontmatter: HashMap<String, serde_yaml::Value> =
@@ -285,6 +285,7 @@ pub fn get_page_object(page_path: String) -> Page {
                 &page,
                 &get_permalink(permalink.unwrap().as_str().unwrap()),
                 true,
+                collections
             );
         }
     }
@@ -299,6 +300,7 @@ pub fn get_page_object(page_path: String) -> Page {
 /// * `page` - The `.mokkf` file's context as a Page
 pub fn get_contexts(
     page: &Page,
+    collections: &HashMap<String, Vec<Page>>,
     snippet_context: Option<&HashMap<&str, serde_yaml::Value>>,
 ) -> Object {
     let global: HashMap<String, serde_yaml::Value> =
@@ -336,6 +338,7 @@ pub fn get_contexts(
                 "global": global,
                 "page": page,
                 "layout": layout,
+                "collections": collections,
                 "snippet": snippet_context.unwrap()
             });
         }
@@ -343,7 +346,8 @@ pub fn get_contexts(
             contexts = object!({
                 "global": global,
                 "page": page,
-                "layout": layout
+                "layout": layout,
+                "collections": collections,
             });
         }
     }
@@ -360,7 +364,7 @@ pub fn get_contexts(
 /// * `text_to_render` - The text to be rendered
 ///
 /// * `only_context` - Whether or not to only render the contexts of a File
-pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
+pub fn render(page: &Page, text_to_render: &str, only_context: bool, collections: &HashMap<String, Vec<Page>>) -> String {
     match only_context {
         true => {
             let template = liquid::ParserBuilder::with_stdlib()
@@ -378,7 +382,7 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
                 .parse(text_to_render)
                 .unwrap();
 
-            render_snippets(page, &template.render(&get_contexts(page, None)).unwrap())
+            render_snippets(page, &template.render(&get_contexts(page, collections, None)).unwrap(), collections)
         }
         false => {
             let mut markdown_options: ComrakOptions = ComrakOptions::default();
@@ -410,8 +414,8 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
                 .unwrap()
                 .parse(&markdown_to_html(text_to_render, &markdown_options))
                 .unwrap();
-
-            render_snippets(page, &template.render(&get_contexts(page, None)).unwrap())
+            println!("\n{}", page.name);
+            render_snippets(page, &template.render(&get_contexts(page, collections, None)).unwrap(), collections)
         }
     }
 }
@@ -421,29 +425,50 @@ pub fn render(page: &Page, text_to_render: &str, only_context: bool) -> String {
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
-pub fn compile(page: &Page) -> String {
+pub fn compile(mut page: Page, mut collections: HashMap<String, Vec<Page>>) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
-    let embeddable_page = render(page, &page.document.content, false);
-    let layout_name = page.document.frontmatter.get("layout");
+    let embeddable_page = render(&page, &page.document.content, false, &collections);
+    let layout_name = &page.document.frontmatter.get("layout");
+    let collection_name = &page.document.frontmatter.get("collection");
 
     // If Page has a layout, render with layout(s)
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = embeddable_page;
+            compiled_page = format!("{}", embeddable_page);
         }
         Some(_) => {
             let layout_object = get_page_object(format!(
                 "./layouts/{}.mokkf",
                 layout_name.unwrap().as_str().unwrap().to_string()
-            ));
-            compiled_page = render(page, &render_layouts(page, layout_object), false);
+            ), &collections);
+            compiled_page = render(&page, &render_layouts(&page, layout_object, &collections), false, &collections);
         }
     }
 
     // When within a collection, append embeddable_page to list of collection's entries
+    match collection_name {
+        None => {
+            
+        }
+        Some(_) => {
+            //unsafe { // TODO: Figure out a way to implement 'collections' context without 'unsafe' keyword
+                page.document.content = format!("{}", embeddable_page);
+                match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
+                {
+                    true => {
+                        let mut current_collection_entries = collections.get_key_value(collection_name.unwrap().as_str().unwrap()).unwrap().1.to_vec();
+                        current_collection_entries.push(page);
+                    }
+                    false => {
+                        collections.insert(collection_name.unwrap().as_str().unwrap().to_string(), vec!(page));
+                    }
+                }
+            //}
+        }
+    }
 
-    compiled_page
+    (compiled_page, collections)
 }
 
 /// Render the layout(s) of a post recursively (should a layout have a layout of its own)
@@ -453,7 +478,7 @@ pub fn compile(page: &Page) -> String {
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `layout` - The File's layout's context as a Page
-pub fn render_layouts(sub: &Page, layout: Page) -> String {
+pub fn render_layouts(sub: &Page, layout: Page, collections: &HashMap<String, Vec<Page>>) -> String {
     // Take layout's text, render it with sub's context
     let rendered: String;
 
@@ -463,11 +488,11 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
             let super_layout_object = get_page_object(format!(
                 "./layouts/{}.mokkf",
                 super_layout.unwrap().as_str().unwrap().to_string()
-            ));
-            rendered = render_layouts(&layout, super_layout_object);
+            ), collections);
+            rendered = render_layouts(&layout, super_layout_object, collections);
         }
         None => {
-            rendered = render(&sub, &layout.document.content, true);
+            rendered = render(&sub, &layout.document.content, true, collections);
         }
     }
 
@@ -481,7 +506,7 @@ pub fn render_layouts(sub: &Page, layout: Page) -> String {
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `text_to_parse` - The text to be parsed
-pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
+pub fn render_snippets(page: &Page, text_to_parse: &str, collections: &HashMap<String, Vec<Page>>) -> String {
     let mut snippet_calls: Vec<String> = vec![];
     let mut brace_count = 0;
     let mut parsing_str: String = "".to_owned();
@@ -528,7 +553,7 @@ pub fn render_snippets(page: &Page, text_to_parse: &str) -> String {
 
             parsed_str = text_to_parse.replace(
                 snippet_call,
-                &render_snippet(page, snippet_path, &snippet_context),
+                &render_snippet(page, snippet_path, &snippet_context, collections),
             );
         }
     }
@@ -549,6 +574,7 @@ pub fn render_snippet(
     page: &Page,
     snippet_path: String,
     snippet_context: &HashMap<&str, serde_yaml::Value>,
+    collections: &HashMap<String, Vec<Page>>
 ) -> String {
     let template = liquid::ParserBuilder::with_stdlib()
         .tag(liquid_lib::jekyll::IncludeTag)
@@ -566,7 +592,7 @@ pub fn render_snippet(
         .unwrap();
 
     template
-        .render(&get_contexts(page, Some(snippet_context)))
+        .render(&get_contexts(page, collections, Some(snippet_context)))
         .unwrap()
 }
 
@@ -638,20 +664,20 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
     let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
 
     for i in 0..keys.len() {
-        // Skip if this bit of the arguments has been processed as a part of a quoted value
+        // Skip if this portion of the arguments has been processed as a part of a quoted value
         if portions_by_space.contains(&(i + 3)) {
             continue;
         }
 
-        current_value = format!("{}{}", current_value, call_portions[i + 3]); // Append this bit of the arguments to the current_value
+        current_value = format!("{}{}", current_value, call_portions[i + 3]); // Append this portion of the arguments to the current_value
         current_value = current_value.replace(&format!("{}=", &keys[i]), ""); // Get value by removing key
 
         let start_of_current_value = current_value.chars().next().unwrap();
 
-        // If value is in quotes, get all pieces of argument it's in, regardless of space-character seperators
+        // If value is in quotes, get all pieces of argument it's in, regardless of space-character separators
         if start_of_current_value == '"' {
             for (j, _) in call_portions.iter().enumerate().skip(i + 4) {
-                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial components of the call, allowing us to reach the call arguments
+                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial portions of the call, allowing us to reach the call arguments
                 if call_portions[j].contains('=') {
                     portions_by_space.push(j);
                     break;
@@ -662,7 +688,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
             }
         }
 
-        let end_of_current_value = current_value.chars().nth(current_value.len() - 1).unwrap(); // Define here, as above can modify current_value
+        let end_of_current_value = current_value.chars().nth(current_value.chars().count() - 1).unwrap(); // Define here, as above can modify current_value
                                                                                                 // Remove quotes around current_value
         if start_of_current_value == '"' && end_of_current_value == '"' {
             current_value.remove(0);

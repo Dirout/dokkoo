@@ -25,6 +25,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::collections::HashMap;
 
 // TODO: Add timers to subcommands
 fn main() {
@@ -62,6 +63,7 @@ fn main() {
 // Avoid '.mokkf' files in layouts folder
 fn build(matches: &clap::ArgMatches) {
     let path = matches.value_of("PATH").unwrap();
+    let mut collections: HashMap<String, Vec<file::Page>> = HashMap::new();
     env::set_current_dir(path).unwrap();
     for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap() {
         let file = entry.unwrap();
@@ -75,7 +77,7 @@ fn build(matches: &clap::ArgMatches) {
             continue;
         }
 
-        let page = file::get_page_object(format!("{}", file.display()));
+        let page = file::get_page_object(format!("{}", file.display()), &collections);
         let output_path = format!("{}/output/{}", path, page.url);
 
         // Define the progress indicator
@@ -84,12 +86,13 @@ fn build(matches: &clap::ArgMatches) {
             format!("Compiling {} to {} … ", file.display(), output_path),
         );
 
-        let compiled_page = file::compile(&page); // Compile the current Page
+        let compile_page = file::compile(page, collections); // Compile the current Page
+        collections = compile_page.1;
 
         // Create output path, write to file
         fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap();
         let write_file = File::create(&output_path).unwrap();
-        write!(&write_file, "{}", compiled_page).unwrap();
+        write!(&write_file, "{}", compile_page.0).unwrap();
 
         spinner.stop(); // Indicate to the user that the Page is compiled & written
     }
