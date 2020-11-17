@@ -87,13 +87,13 @@ fn build(matches: &clap::ArgMatches) {
 }
 
 /// The primary logic loop of the build process
-/// 
+///
 /// # Arguments
-/// 
+///
 /// `file_list` - List of files to build
-/// 
+///
 /// `path` - Path given to the build subcommand
-/// 
+///
 /// `collections` - Collection store of this build
 fn build_loop(
     file_list: Vec<PathBuf>,
