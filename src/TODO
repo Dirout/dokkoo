@@ -6,7 +6,7 @@ Chores:
 
 WIP:
 * Fully implement collections
-    i.      As compiling, append to HashMap<collection: String, page: Page>
+    i.      As compiling, append to HashMap<collection: String, Vec<page: Page>>
     ii.     Incorporate into contexts as 'collections' context
     iii.    Compile files at root last
 
