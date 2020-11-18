@@ -364,6 +364,8 @@ pub fn get_contexts(
 /// * `text_to_render` - The text to be rendered
 ///
 /// * `only_context` - Whether or not to only render the contexts of a File
+///
+/// * `collections` - Collection store of this build
 pub fn render(
     page: &Page,
     text_to_render: &str,
@@ -442,6 +444,8 @@ pub fn render(
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
+///
+/// * `collections` - Collection store of this build
 pub fn compile(
     mut page: Page,
     mut collections: HashMap<String, Vec<Page>>,
@@ -509,6 +513,8 @@ pub fn compile(
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `layout` - The File's layout's context as a Page
+///
+/// * `collections` - Collection store of this build
 pub fn render_layouts(
     sub: &Page,
     layout: Page,
@@ -544,6 +550,8 @@ pub fn render_layouts(
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `text_to_parse` - The text to be parsed
+///
+/// * `collections` - Collection store of this build
 pub fn render_snippets(
     page: &Page,
     text_to_parse: &str,
@@ -612,6 +620,8 @@ pub fn render_snippets(
 /// * `snippet_path` - The path to the snippet being called
 ///
 /// * `snippet_context` - The context passed within the snippet call
+///
+/// * `collections` - Collection store of this build
 pub fn render_snippet(
     page: &Page,
     snippet_path: String,

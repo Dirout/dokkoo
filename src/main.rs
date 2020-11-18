@@ -61,7 +61,6 @@ fn main() {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-// Avoid '.mokkf' files in layouts folder
 fn build(matches: &clap::ArgMatches) {
     let path = matches.value_of("PATH").unwrap();
     let collections: HashMap<String, Vec<file::Page>> = HashMap::new(); // Collections store
@@ -90,11 +89,11 @@ fn build(matches: &clap::ArgMatches) {
 ///
 /// # Arguments
 ///
-/// `file_list` - List of files to build
+/// * `file_list` - List of files to build
 ///
-/// `path` - Path given to the build subcommand
+/// * `path` - Path given to the build subcommand
 ///
-/// `collections` - Collection store of this build
+/// * `collections` - Collection store of this build
 fn build_loop(
     file_list: Vec<PathBuf>,
     path: &str,
