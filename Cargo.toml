@@ -15,8 +15,10 @@
 [package]
 name = "dokkoo"
 version = "0.1.0"
-authors = ["Emil Sayahi <em@emsa.cf>"]
+authors = ["Emil Sayahi <limesayahi@gmail.com>"]
 edition = "2018"
+categories = ["command-line-utilities", "parser-implementations", "text-processing"]
+exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "/azure-pipelines.yml"]
 license = "AGPL-3.0-or-later"
 description = "Mokk (Macro Output Key Kit) implementation written in Rust."
 repository = "https://github.com/MadeByEmil/dokkoo"
@@ -27,12 +29,12 @@ readme = "README"
 [dependencies]
 chrono = { version = "*", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
-comrak = "*"
 glob = "*"
 liquid = "*"
 liquid-core = "*"
 liquid-lib = { version = "*", features = ["stdlib", "jekyll", "shopify", "extra"] }
 pathdiff = "*"
+pulldown-cmark = { version = "*", default-features = false, features = ["simd"] }
 serde = "*"
 serde_yaml = "*"
 spinners = "*"

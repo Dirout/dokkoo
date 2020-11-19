@@ -20,7 +20,7 @@ File:
     Term for either a Document or a Page
 */
 use chrono::DateTime;
-use comrak::{markdown_to_html, ComrakOptions};
+use pulldown_cmark::{Parser, Options, html};
 use liquid::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -398,21 +398,8 @@ pub fn render(
             )
         }
         false => {
-            let mut markdown_options: ComrakOptions = ComrakOptions::default();
-            markdown_options.extension.strikethrough = true;
-            markdown_options.extension.tagfilter = false;
-            markdown_options.render.unsafe_ = true;
-            markdown_options.render.escape = false;
-            markdown_options.extension.table = true;
-            //markdown_options.extension.autolink = true;
-            markdown_options.extension.tasklist = true;
-            markdown_options.extension.superscript = true;
-            markdown_options.extension.header_ids = Some("".to_string());
-            markdown_options.extension.footnotes = true;
-            markdown_options.extension.description_lists = true;
-            markdown_options.parse.smart = true;
-            markdown_options.render.github_pre_lang = true;
-
+            let rendered_markdown = render_markdown(text_to_render);
+            
             let template = liquid::ParserBuilder::with_stdlib()
                 .tag(liquid_lib::jekyll::IncludeTag)
                 .filter(liquid_lib::jekyll::ArrayToSentenceString)
@@ -425,7 +412,7 @@ pub fn render(
                 .filter(liquid_lib::extra::DateInTz)
                 .build()
                 .unwrap()
-                .parse(&markdown_to_html(text_to_render, &markdown_options))
+                .parse(&rendered_markdown)
                 .unwrap();
 
             render_snippets(
@@ -755,4 +742,24 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
     }
 
     values
+}
+
+/// Render Markdown as HTML
+/// 
+/// # Arguments
+/// 
+/// * `text_to_render` - The Markdown text to render
+pub fn render_markdown(text_to_render: &str) -> &str
+{
+    let mut markdown_options = Options::empty();
+    markdown_options.insert(Options::ENABLE_TABLES);
+    markdown_options.insert(Options::ENABLE_FOOTNOTES);
+    markdown_options.insert(Options::ENABLE_STRIKETHROUGH);
+    markdown_options.insert(Options::ENABLE_TASKLISTS);
+    markdown_options.insert(Options::ENABLE_SMART_PUNCTUATION);
+    let markdown_parser = Parser::new_ext(text_to_render, markdown_options);
+    let mut rendered_markdown = String::new();
+    html::push_html(&mut rendered_markdown, markdown_parser);
+
+    text_to_render
 }
