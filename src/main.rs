@@ -66,13 +66,13 @@ fn build(matches: &clap::ArgMatches) {
 
     // Sort files into vectors of path buffers; for when we compile root files last
     let mut root_files: Vec<PathBuf> = vec![];
-    let mut other_files: Vec<PathBuf> = vec![];
+    let mut files: Vec<PathBuf> = vec![];
 
     env::set_current_dir(path).unwrap(); // Set working directory to one passed to subcommand
 
-    for entry in glob(&format!("{}/**/*.mokkf", path)).unwrap() {
+    for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {
         let file = entry.unwrap();
-        other_files.push(file);
+        files.push(file);
     }
 
     for entry in glob(&format!("{}/*.mokkf", path)).unwrap() {
@@ -80,10 +80,10 @@ fn build(matches: &clap::ArgMatches) {
         root_files.push(file);
     }
 
-    let mut timer = Stopwatch::start_new(); // Start the stopwatch
+    files.append(&mut root_files); // Make root files the last ones to compile on the list
 
-    build_loop(other_files, path, collections.clone());
-    build_loop(root_files, path, collections);
+    let mut timer = Stopwatch::start_new(); // Start the stopwatch
+    build_loop(files, path, collections);
 
     // Show how long it took to build
     timer.stop();
