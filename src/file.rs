@@ -302,7 +302,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `conditions` - Prints conditions information
-/// 
+///
 /// * `snippet_context` - An optional context for rendering snippets, giving them a context from their call arguments
 pub fn get_contexts(
     page: &Page,
