@@ -20,8 +20,8 @@ File:
     Term for either a Document or a Page
 */
 use chrono::DateTime;
-use pulldown_cmark::{Parser, Options, html};
 use liquid::*;
+use pulldown_cmark::{html, Options, Parser};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -399,7 +399,7 @@ pub fn render(
         }
         false => {
             let rendered_markdown = render_markdown(text_to_render);
-            
+
             let template = liquid::ParserBuilder::with_stdlib()
                 .tag(liquid_lib::jekyll::IncludeTag)
                 .filter(liquid_lib::jekyll::ArrayToSentenceString)
@@ -745,12 +745,11 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 }
 
 /// Render Markdown as HTML
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `text_to_render` - The Markdown text to render
-pub fn render_markdown(text_to_render: &str) -> &str
-{
+pub fn render_markdown(text_to_render: &str) -> &str {
     let mut markdown_options = Options::empty();
     markdown_options.insert(Options::ENABLE_TABLES);
     markdown_options.insert(Options::ENABLE_FOOTNOTES);
