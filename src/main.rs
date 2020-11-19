@@ -18,7 +18,6 @@ mod file;
 
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
-use spinners::{Spinner, Spinners};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -46,7 +45,6 @@ fn main() {
             show(show_matches);
         }
         Some(("build", build_matches)) => build(build_matches),
-        Some(("clean", clean_matches)) => clean(clean_matches),
         Some(("serve", _serve_matches)) => {
             //serve(serve_matches)
         }
@@ -121,12 +119,6 @@ fn build_loop(
         let page = file::get_page_object(format!("{}", file.display()), &collections);
         let output_path = format!("{}/output/{}", path, page.url);
 
-        // Define the progress indicator
-        let spinner = Spinner::new(
-            Spinners::Dots,
-            format!("Compiling {} to {} … ", file.display(), output_path),
-        );
-
         let compile_page = file::compile(page, collections); // Compile the current Page
         collections = compile_page.1; // Get updated collections store as result of compilation
 
@@ -136,21 +128,7 @@ fn build_loop(
         let mut buffered_writer = BufWriter::new(write_file); // Create a buffered writer, allowing us to modify the file we've just created
         write!(buffered_writer, "{}", compile_page.0).unwrap(); // Write compiled Page contents to file
         buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
-
-        spinner.stop(); // Indicate to the user that the Page is compiled & written
     }
-}
-
-/// Deletes an outputted Mokk
-///
-/// # Arguments
-///
-/// * `PATH` - Path to a Mokk (required)
-fn clean(matches: &clap::ArgMatches) {
-    let path = matches.value_of("PATH").unwrap();
-    let spinner = Spinner::new(Spinners::Point, format!("Cleaning {} … ", path));
-    fs::remove_dir_all(format!("{}/output", path)).unwrap();
-    spinner.stop();
 }
 
 /// Shows information regarding the usage and handling of this software

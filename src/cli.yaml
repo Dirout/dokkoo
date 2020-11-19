@@ -39,10 +39,3 @@ subcommands:
                 about: Path to a Mokk
                 required: true
                 index: 1
-    - clean:
-        about: Deletes an outputted Mokk
-        args:
-            - PATH:
-                about: Path to a Mokk
-                required: true
-                index: 1
