@@ -26,7 +26,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
-use stopwatch::{Stopwatch};
+use stopwatch::Stopwatch;
 
 fn main() {
     println!(
@@ -87,7 +87,10 @@ fn build(matches: &clap::ArgMatches) {
 
     // Show how long it took to build
     timer.stop();
-    println!("\nBuilt in {} seconds", (timer.elapsed_ms() as f32 / 1000.0));
+    println!(
+        "\nBuilt in {} seconds",
+        (timer.elapsed_ms() as f32 / 1000.0)
+    );
 }
 
 /// The primary logic loop of the build process
