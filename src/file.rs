@@ -247,7 +247,8 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
             let locale: chrono::Locale =
                 chrono::Locale::try_from(&(global.get("locale").unwrap().as_str().unwrap()[..]))
                     .unwrap(); // Get locale from Global context
-                               // Define our Page
+            
+            // Define our Page
             page = Page {
                 document,
                 directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),

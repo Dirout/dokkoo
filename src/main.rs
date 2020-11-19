@@ -26,8 +26,8 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
+use stopwatch::{Stopwatch};
 
-// TODO: Add timers to subcommands
 fn main() {
     println!(
         "
@@ -80,8 +80,14 @@ fn build(matches: &clap::ArgMatches) {
         root_files.push(file);
     }
 
+    let mut timer = Stopwatch::start_new(); // Start the stopwatch
+
     build_loop(other_files, path, collections.clone());
     build_loop(root_files, path, collections);
+
+    // Show how long it took to build
+    timer.stop();
+    println!("\nBuilt in {} seconds", (timer.elapsed_ms() as f32 / 1000.0));
 }
 
 /// The primary logic loop of the build process
@@ -103,8 +109,8 @@ fn build_loop(
         let file_root_str = file_root.to_str().unwrap();
         let file_root_str_length = file_root_str.len();
         if file.is_dir()
-            || (file_root_str_length >= 7 && &file_root_str[0..6] == "layouts")
-            || (file_root_str_length >= 9 && &file_root_str[0..8] == "snippets")
+            || (file_root_str_length >= 7 && &file_root_str[0..7] == "layouts")
+            || (file_root_str_length >= 9 && &file_root_str[0..9] == "snippets")
         {
             continue;
         }

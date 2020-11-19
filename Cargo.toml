@@ -38,6 +38,7 @@ pulldown-cmark = { version = "*", default-features = false, features = ["simd"] 
 serde = "*"
 serde_yaml = "*"
 spinners = "*"
+stopwatch = "*"
 
 [profile.release]
 codegen-units = 1
