@@ -419,7 +419,7 @@ pub fn render(
                 .build()
                 .unwrap()
                 .parse(text_to_render)
-                .unwrap(); 
+                .unwrap();
 
             render_markdown(render_snippets(
                 page,
