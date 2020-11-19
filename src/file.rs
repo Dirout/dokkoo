@@ -28,7 +28,7 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 /// Document:
 ///     User-specified data regarding a Mokk File
 pub struct Document {
@@ -44,7 +44,7 @@ pub struct Document {
     pub date: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Serialize)]
 /// Page:
 ///     Generated data regarding a Mokk File
 pub struct Page {
@@ -167,6 +167,8 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 /// # Arguments
 ///
 /// * `page_path` - The `.mokkf` file's path as a `String`
+///
+/// * `conditions` - Prints conditions information
 pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page>>) -> Page {
     // Define variables which we'll use to create our Document, which we'll use to generate the Page context
     let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
@@ -298,6 +300,10 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 /// # Arguments
 ///
 /// * `page` - The `.mokkf` file's context as a Page
+///
+/// * `conditions` - Prints conditions information
+/// 
+/// * `snippet_context` - An optional context for rendering snippets, giving them a context from their call arguments
 pub fn get_contexts(
     page: &Page,
     collections: &HashMap<String, Vec<Page>>,
@@ -748,7 +754,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 ///
 /// # Arguments
 ///
-/// * `text_to_render` - The Markdown text to render
+/// * `text_to_render` - The Markdown text to render into HTML
 pub fn render_markdown(text_to_render: &str) -> &str {
     let mut markdown_options = Options::empty();
     markdown_options.insert(Options::ENABLE_TABLES);
