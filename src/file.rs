@@ -406,8 +406,6 @@ pub fn render(
             )
         }
         false => {
-            let rendered_markdown = render_markdown(text_to_render);
-
             let template = liquid::ParserBuilder::with_stdlib()
                 .tag(liquid_lib::jekyll::IncludeTag)
                 .filter(liquid_lib::jekyll::ArrayToSentenceString)
@@ -420,16 +418,16 @@ pub fn render(
                 .filter(liquid_lib::extra::DateInTz)
                 .build()
                 .unwrap()
-                .parse(&rendered_markdown)
-                .unwrap();
+                .parse(text_to_render)
+                .unwrap(); 
 
-            render_snippets(
+            render_markdown(render_snippets(
                 page,
                 &template
                     .render(&get_contexts(page, collections, None))
                     .unwrap(),
                 collections,
-            )
+            ))
         }
     }
 }
@@ -757,14 +755,14 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-pub fn render_markdown(text_to_render: &str) -> String {
+pub fn render_markdown(text_to_render: String) -> String {
     let mut markdown_options = Options::empty();
     markdown_options.insert(Options::ENABLE_TABLES);
     markdown_options.insert(Options::ENABLE_FOOTNOTES);
     markdown_options.insert(Options::ENABLE_STRIKETHROUGH);
     markdown_options.insert(Options::ENABLE_TASKLISTS);
     markdown_options.insert(Options::ENABLE_SMART_PUNCTUATION);
-    let markdown_parser = Parser::new_ext(text_to_render, markdown_options);
+    let markdown_parser = Parser::new_ext(&text_to_render, markdown_options);
     let mut rendered_markdown = String::new();
     html::push_html(&mut rendered_markdown, markdown_parser);
 
