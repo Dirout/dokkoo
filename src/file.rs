@@ -318,6 +318,7 @@ pub fn get_contexts(
     */
     let layout_name = page.document.frontmatter.get("layout");
     let layout: HashMap<String, serde_yaml::Value>;
+
     // Import layout context if Page has a layout
     match layout_name {
         None => {
@@ -446,6 +447,7 @@ pub fn compile(
 ) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
     let embeddable_page = render(&page, &page.document.content, false, &collections);
+    page.document.content = embeddable_page;
     let layout_name = &page.document.frontmatter.get("layout");
     let collection_name = &page.document.frontmatter.get("collection");
 
@@ -453,7 +455,7 @@ pub fn compile(
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = embeddable_page.to_string();
+            compiled_page = page.document.content.to_string();
         }
         Some(_) => {
             let layout_object = get_page_object(
@@ -476,7 +478,6 @@ pub fn compile(
     match collection_name {
         None => {}
         Some(_) => {
-            page.document.content = embeddable_page;
             match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
             {
                 true => {
@@ -756,7 +757,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-pub fn render_markdown(text_to_render: &str) -> &str {
+pub fn render_markdown(text_to_render: &str) -> String {
     let mut markdown_options = Options::empty();
     markdown_options.insert(Options::ENABLE_TABLES);
     markdown_options.insert(Options::ENABLE_FOOTNOTES);
@@ -767,5 +768,5 @@ pub fn render_markdown(text_to_render: &str) -> &str {
     let mut rendered_markdown = String::new();
     html::push_html(&mut rendered_markdown, markdown_parser);
 
-    text_to_render
+    rendered_markdown
 }
