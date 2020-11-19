@@ -19,13 +19,12 @@ mod file;
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
 use std::path::PathBuf;
-
 use spinners::{Spinner, Spinners};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 // TODO: Add timers to subcommands
@@ -125,7 +124,9 @@ fn build_loop(
         // Create output path, write to file
         fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap(); // Create path to file which we will write to
         let write_file = File::create(&output_path).unwrap(); // Create file which we will write to
-        write!(&write_file, "{}", compile_page.0).unwrap(); // Write compiled Page contents to file
+        let mut buffered_writer = BufWriter::new(write_file); // Create a buffered writer, allowing us to modify the file we've just created
+        write!(buffered_writer, "{}", compile_page.0).unwrap(); // Write compiled Page contents to file
+        buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
 
         spinner.stop(); // Indicate to the user that the Page is compiled & written
     }
