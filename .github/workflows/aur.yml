@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v2
+      - name: Install compiler toolchain
+        run: |
+          sudo pacman -Syu gcc --noconfirm
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
