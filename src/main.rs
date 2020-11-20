@@ -85,10 +85,7 @@ fn build(matches: &clap::ArgMatches) {
 
     // Show how long it took to build
     timer.stop();
-    println!(
-        "Built in {} seconds",
-        (timer.elapsed_ms() as f32 / 1000.0)
-    );
+    println!("Built in {} seconds", (timer.elapsed_ms() as f32 / 1000.0));
 }
 
 /// The primary logic loop of the build process
