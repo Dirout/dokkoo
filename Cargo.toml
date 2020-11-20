@@ -59,7 +59,7 @@ assets = [
 package = "dokkoo"
 
 [package.metadata.rpm.cargo]
-buildflags = ["--release --all-features --target x86_64-unknown-linux-gnu"]
+buildflags = ["--release"]
 
 [package.metadata.rpm.targets]
 dokkoo = { path = "/usr/bin/dokkoo" }
