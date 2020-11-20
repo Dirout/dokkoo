@@ -1,4 +1,4 @@
-on: [push]
+on: [release]
 
 name: 'Publish: crates.io'
 
@@ -27,4 +27,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: publish
-          args: --dry-run
