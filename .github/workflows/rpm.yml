@@ -45,5 +45,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.deb.gnu+linux
-          path: ./target/release/rpmbuild/RPMs/x86_64/dokkoo-*.x86_64.rpm
+          path: ./target/release/rpmbuild/RPMs/x86_64/dokkoo-*.rpm
           if-no-files-found: error
