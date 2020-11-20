@@ -41,6 +41,9 @@ jobs:
         with:
           command: rpm
           args: build -v
+      - name: DEBUG - List files
+        run: |
+          ls ./target/release/rpmbuild/RPMs/x86_64/
       - name: Upload Dokkoo build artifact to GitHub
         uses: actions/upload-artifact@v2
         with:
