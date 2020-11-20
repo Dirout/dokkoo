@@ -54,3 +54,11 @@ assets = [
     ["README", "usr/share/doc/dokkoo/README", "644"],
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]
+[package.metadata.rpm]
+package = "dokkoo"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release --all-features --target x86_64-unknown-linux-gnu"]
+
+[package.metadata.rpm.targets]
+dokkoo = { path = "/usr/bin/dokkoo" }
