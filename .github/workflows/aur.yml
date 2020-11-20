@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install compiler toolchain
         run: |
-          pacman -Syu gcc --noconfirm
+          pacman -Syu gcc git base-devel --noconfirm
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
