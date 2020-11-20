@@ -41,15 +41,9 @@ jobs:
         with:
           command: rpm
           args: build -v
-      - name: DEBUG - List files
-        run: |
-          ls ./target/
-          ls ./target/release/
-          ls ./target/release/rpmbuild/
-          ls ./target/release/rpmbuild/RPMS/
       - name: Upload Dokkoo build artifact to GitHub
         uses: actions/upload-artifact@v2
         with:
-          name: x86_64-dokkoo.deb.gnu+linux
-          path: ./target/release/rpmbuild/RPMS/x86_64/dokkoo-*.rpm
+          name: x86_64-dokkoo.rpm.gnu+linux
+          path: ./target/release/rpmbuild/RPMS/x86_64/dokkoo-*.x86_64.rpm
           if-no-files-found: error
