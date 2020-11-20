@@ -43,6 +43,9 @@ jobs:
           args: build -v
       - name: DEBUG - List files
         run: |
+          ls ./target/
+          ls ./target/release/
+          ls ./target/release/rpmbuild/
           ls ./target/release/rpmbuild/RPMs/
       - name: Upload Dokkoo build artifact to GitHub
         uses: actions/upload-artifact@v2
