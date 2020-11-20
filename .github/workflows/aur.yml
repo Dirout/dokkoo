@@ -43,6 +43,8 @@ jobs:
           cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
+          git config user.name "emsa"
+          git config user.email "limesayahi@gmail.com"
           git add -A
           git commit -m "Automatically updating Dokkoo release via GitHub Actions"
           git push
