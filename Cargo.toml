@@ -18,7 +18,7 @@ version = "0.1.0"
 authors = ["Emil Sayahi <limesayahi@gmail.com>"]
 edition = "2018"
 categories = ["command-line-utilities", "parser-implementations", "text-processing"]
-exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "/azure-pipelines.yml"]
+exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "/azure-pipelines.yml", "/snapcraft.yaml"]
 license = "AGPL-3.0-or-later"
 description = "Mokk (Macro Output Key Kit) implementation written in Rust."
 repository = "https://github.com/MadeByEmil/dokkoo"
@@ -55,6 +55,7 @@ assets = [
     ["README", "usr/share/doc/dokkoo/README", "644"],
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]
+
 [package.metadata.rpm]
 package = "dokkoo"
 
