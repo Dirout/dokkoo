@@ -23,7 +23,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: package
-#      - name: Publish Dokkoo
-#        uses: actions-rs/cargo@v1
-#        with:
-#          command: publish
+      - name: Publish Dokkoo
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --dry-run
