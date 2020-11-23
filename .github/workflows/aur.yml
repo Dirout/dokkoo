@@ -53,7 +53,13 @@ jobs:
             User aur
           EOT
           
-          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+          #ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+      - name: Upload Dokkoo Pacman package
+        uses: actions/upload-artifact@v2
+        with:
+          name: x86_64-dokkoo.pacman
+          path: dokkoo-*-x86_64.tar.gz
+          if-no-files-found: error
       - name: Push to AUR
         run: |
           git config --global user.name "Emil Sayahi"
@@ -66,9 +72,3 @@ jobs:
           git add -A
           git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
           git push
-      - name: Upload Dokkoo Pacman package
-        uses: actions/upload-artifact@v2
-        with:
-          name: x86_64-dokkoo.pacman
-          path: dokkoo-*-x86_64.tar.gz
-          if-no-files-found: error
