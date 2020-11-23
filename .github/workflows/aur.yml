@@ -54,8 +54,8 @@ jobs:
           EOT
       - name: Push to AUR
         run: |
-          git config user.name "Emil Sayahi"
-          git config user.email "limesayahi@gmail.com"
+          git config --global user.name "Emil Sayahi"
+          git config --global user.email "limesayahi@gmail.com"
           yes | git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           cd ./dokkoo-bin
           cp -avf ../dokkoo-*-x86_64.tar.gz
