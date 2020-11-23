@@ -35,6 +35,23 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: aur
+      - name: Setup SSH authentication details
+        run: |
+          mkdir -p ~/.ssh
+          
+          tee -a ~/.ssh/aur > /dev/null <<EOT
+          ${{ secrets.AUR_PRIVATE_KEY }}
+          EOT
+          
+          tee -a ~/.ssh/aur.pub > /dev/null <<EOT
+          ${{ secrets.AUR_PUBLIC_KEY }}
+          EOT
+          
+          tee -a ~/.ssh/config > /dev/null <<EOT
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+          EOT
       - name: Push to AUR
         run: |
           mkdir ./aur
@@ -43,8 +60,8 @@ jobs:
           cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
-          git config user.name "emsa"
+          git config user.name "Dokkoo Automatic Maintenance"
           git config user.email "limesayahi@gmail.com"
           git add -A
-          git commit -m "Automatically updating Dokkoo release via GitHub Actions"
+          git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
           git push
