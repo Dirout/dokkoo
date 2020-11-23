@@ -52,11 +52,13 @@ jobs:
             IdentityFile ~/.ssh/aur
             User aur
           EOT
+          
+          ls ~/.ssh
       - name: Push to AUR
         run: |
           mkdir ./aur
           cd ./aur
-          git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
+          yes | git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
