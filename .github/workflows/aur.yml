@@ -54,13 +54,13 @@ jobs:
           EOT
       - name: Push to AUR
         run: |
+          git config user.name "Emil Sayahi"
+          git config user.email "limesayahi@gmail.com"
           yes | git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           cd ./dokkoo-bin
           cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
-          git config user.name "Dokkoo Automatic Maintenance"
-          git config user.email "limesayahi@gmail.com"
           git add -A
           git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
           git push
