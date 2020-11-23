@@ -52,6 +52,8 @@ jobs:
             IdentityFile ~/.ssh/aur
             User aur
           EOT
+          
+          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
       - name: Push to AUR
         run: |
           git config --global user.name "Emil Sayahi"
