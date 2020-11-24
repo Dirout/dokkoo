@@ -62,14 +62,20 @@ jobs:
           name: x86_64-dokkoo.pacman
           path: dokkoo-*-x86_64.tar.gz
           if-no-files-found: error
-      - name: Push to AUR
+      - name: Prepare to drop out of 'root' access
+        run: |
+          systemd-machine-id-setup
+          tee -a /etc/sudoers > /dev/null <<EOT
+          nobody    ALL=(ALL) NOPASSWD:ALL
+          EOT
+      - name: Push release details to AUR
         run: |
           git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
           cd ./dokkoo-bin
           cp -avf ../PKGBUILD ./
-          makepkg --printsrcinfo > .SRCINFO
+          su -s /bin/sh nobody -c "makepkg --printsrcinfo" > .SRCINFO
           git add -A
           git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
           git push
