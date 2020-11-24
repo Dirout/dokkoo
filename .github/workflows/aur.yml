@@ -1,6 +1,8 @@
 on:
-  release:
-    types: [published]
+  push:
+    branches:    
+        # Push events on master branch
+        - master
 
 name: 'Package: AUR Binary (x86_64)'
 
@@ -72,7 +74,7 @@ jobs:
           EOT
       - name: Push release details to AUR
         run: |
-          git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
+          git clone -b master ssh://aur@aur.archlinux.org/dokkoo-bin.git
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
           chmod 777 dokkoo-bin
