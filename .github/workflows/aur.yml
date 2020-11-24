@@ -73,6 +73,7 @@ jobs:
           git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
+          chmod 777 dokkoo-bin
           cd ./dokkoo-bin
           cp -avf ../PKGBUILD ./
           su -s /bin/sh nobody -c "makepkg --printsrcinfo" > .SRCINFO
