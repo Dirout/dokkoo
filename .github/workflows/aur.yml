@@ -1,8 +1,6 @@
 on:
-  push:
-    branches:    
-        # Push events on master branch
-        - master
+  release:
+    types: [published]
 
 name: 'Package: AUR Binary (x86_64)'
 
