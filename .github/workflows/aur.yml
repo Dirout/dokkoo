@@ -55,8 +55,6 @@ jobs:
           
           chmod 600 /root/.ssh/config
           chmod 400 /root/.ssh/aur
-          #ssh-keygen -R aur.archlinux.org
-          #ssh-keyscan -t rsa aur.archlinux.org >> /root/.ssh/known_hosts
           ssh-keyscan -H aur.archlinux.org >> /root/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
         uses: actions/upload-artifact@v2
@@ -70,7 +68,6 @@ jobs:
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
           cd ./dokkoo-bin
-          cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
           makepkg --printsrcinfo > .SRCINFO
           git add -A
