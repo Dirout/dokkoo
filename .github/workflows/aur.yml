@@ -79,4 +79,4 @@ jobs:
           su -s /bin/sh nobody -c "makepkg --printsrcinfo" > .SRCINFO
           git add -A
           git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
-          git push
+          git push origin HEAD:master
