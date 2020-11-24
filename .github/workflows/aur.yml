@@ -12,7 +12,7 @@ jobs:
         - /proc:/proc
         - /sys/fs/cgroup/systemd/actions_job:/sys/fs/cgroup/systemd/actions_job
         - /sys/fs/cgroup:/sys/fs/cgroup
-        - ~/.ssh/known_hosts:/root/.ssh/known_hosts
+        - /root/.ssh/known_hosts:/root/.ssh/known_hosts
       options: --privileged
     steps:
       - name: Checkout codebase
