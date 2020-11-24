@@ -26,11 +26,12 @@ homepage = "https://github.com/MadeByEmil/dokkoo"
 readme = "README"
 
 [lib]
-name = "file"
+name = "dokkoo"
 path = "src/lib.rs"
+crate-type=["rlib", "cdylib", "dylib"]
 
 [[bin]]
-name = "main"
+name = "dokkoo"
 path = "src/main.rs"
 doc = false
 
