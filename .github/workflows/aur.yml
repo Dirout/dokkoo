@@ -68,7 +68,7 @@ jobs:
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
           cd ./dokkoo-bin
-          cp -avf ../PKGBUILD
+          cp -avf ../PKGBUILD ./
           makepkg --printsrcinfo > .SRCINFO
           git add -A
           git commit -m "Automatically updating Dokkoo package via GitHub Actions (see repository for release notes)"
