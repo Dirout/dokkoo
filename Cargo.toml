@@ -28,17 +28,17 @@ readme = "README"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "*", features = ["unstable-locales"] }
+chrono = { version = "0.4.19", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
-glob = "*"
-liquid = "*"
-liquid-core = "*"
-liquid-lib = { version = "*", features = ["stdlib", "jekyll", "shopify", "extra"] }
-pathdiff = "*"
-pulldown-cmark = { version = "*", default-features = false, features = ["simd"] }
-serde = "*"
-serde_yaml = "*"
-stopwatch = "*"
+glob = "0.3.0"
+liquid = "0.21.4"
+liquid-core = "0.21.2"
+liquid-lib = { version = "0.21.1", features = ["stdlib", "jekyll", "shopify", "extra"] }
+pathdiff = "0.2.0"
+pulldown-cmark = { version = "0.8.0", default-features = false, features = ["simd"] }
+serde = "1.0.117"
+serde_yaml = "0.8.14"
+stopwatch = "0.0.7"
 
 [profile.release]
 codegen-units = 1
@@ -51,7 +51,7 @@ panic = 'abort'
 section = "utility"
 priority = "optional"
 assets = [
-    ["target/x86_64-unknown-linux-gnu/release/dokkoo", "usr/local/bin/", "755"],
+    ["target/x86_64-unknown-linux-gnu/release/dokkoo", "usr/bin/", "755"],
     ["README", "usr/share/doc/dokkoo/README", "644"],
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]
