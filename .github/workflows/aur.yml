@@ -55,7 +55,7 @@ jobs:
           
           chmod 600 ~/.ssh/config
           chmod 400 ~/.ssh/aur
-          #ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
         uses: actions/upload-artifact@v2
         with:
@@ -64,9 +64,9 @@ jobs:
           if-no-files-found: error
       - name: Push to AUR
         run: |
+          git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           git config --global user.name "Emil Sayahi"
           git config --global user.email "limesayahi@gmail.com"
-          git clone ssh://aur@aur.archlinux.org/dokkoo-bin.git
           cd ./dokkoo-bin
           cp -avf ../dokkoo-*-x86_64.tar.gz
           cp -avf ../PKGBUILD
