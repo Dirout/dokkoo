@@ -1,4 +1,4 @@
-on: [push]
+on: [release]
 
 name: 'Package: AUR Binary (x86_64)'
 
@@ -62,7 +62,7 @@ jobs:
           name: x86_64-dokkoo.pacman
           path: dokkoo-*-x86_64.tar.gz
           if-no-files-found: error
-      - name: Prepare to drop out of 'root' access
+      - name: Prepare to drop out of superuser access
         run: |
           systemd-machine-id-setup
           tee -a /etc/sudoers > /dev/null <<EOT
