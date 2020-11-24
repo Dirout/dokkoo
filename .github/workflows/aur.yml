@@ -12,6 +12,7 @@ jobs:
         - /proc:/proc
         - /sys/fs/cgroup/systemd/actions_job:/sys/fs/cgroup/systemd/actions_job
         - /sys/fs/cgroup:/sys/fs/cgroup
+        - ${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts
       options: --privileged
     steps:
       - name: Checkout codebase
@@ -55,6 +56,7 @@ jobs:
           
           chmod 600 ~/.ssh/config
           chmod 400 ~/.ssh/aur
+          ssh-keygen -R aur.archlinux.org
           ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
         uses: actions/upload-artifact@v2
