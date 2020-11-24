@@ -32,10 +32,10 @@ subcommands:
                 about: Path to a Mokk
                 required: true
                 index: 1
-    - serve:
-        about: Serves a Mokk using an HTTP server
-        args:
-            - PATH:
-                about: Path to a Mokk
-                required: true
-                index: 1
+    # - serve:
+    #     about: Serves a Mokk using an HTTP server
+    #     args:
+    #         - PATH:
+    #             about: Path to a Mokk
+    #             required: true
+    #             index: 1

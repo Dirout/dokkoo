@@ -45,9 +45,9 @@ fn main() {
             show(show_matches);
         }
         Some(("build", build_matches)) => build(build_matches),
-        Some(("serve", _serve_matches)) => {
-            //serve(serve_matches)
-        }
+        // Some(("serve", serve_matches)) => {
+        //     serve(serve_matches)
+        // }
         None => println!("Dokkoo {}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
