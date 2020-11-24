@@ -56,8 +56,9 @@ jobs:
           
           chmod 600 /root/.ssh/config
           chmod 400 /root/.ssh/aur
-          ssh-keygen -R aur.archlinux.org
-          ssh-keyscan -t rsa aur.archlinux.org >> /root/.ssh/known_hosts
+          #ssh-keygen -R aur.archlinux.org
+          #ssh-keyscan -t rsa aur.archlinux.org >> /root/.ssh/known_hosts
+          ssh-keyscan -H aur.archlinux.org >> /root/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
         uses: actions/upload-artifact@v2
         with:
