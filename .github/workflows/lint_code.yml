@@ -1,4 +1,8 @@
-on: [push]
+on:
+  push:
+    branches:    
+        # Push events on master branch
+        - master
 
 name: Lint codebase
 
