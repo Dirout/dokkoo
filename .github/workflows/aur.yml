@@ -38,26 +38,26 @@ jobs:
           command: aur
       - name: Setup SSH authentication details
         run: |
-          mkdir -p ~/.ssh
+          mkdir -p /root/.ssh
           
-          tee -a ~/.ssh/aur > /dev/null <<EOT
+          tee -a /root/.ssh/aur > /dev/null <<EOT
           ${{ secrets.AUR_PRIVATE_KEY }}
           EOT
           
-          tee -a ~/.ssh/aur.pub > /dev/null <<EOT
+          tee -a /root/.ssh/aur.pub > /dev/null <<EOT
           ${{ secrets.AUR_PUBLIC_KEY }}
           EOT
           
-          tee -a ~/.ssh/config > /dev/null <<EOT
+          tee -a /root/.ssh/config > /dev/null <<EOT
           Host aur.archlinux.org
-            IdentityFile ~/.ssh/aur
+            IdentityFile /root/.ssh/aur
             User aur
           EOT
           
-          chmod 600 ~/.ssh/config
-          chmod 400 ~/.ssh/aur
+          chmod 600 /root/.ssh/config
+          chmod 400 /root/.ssh/aur
           ssh-keygen -R aur.archlinux.org
-          ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa aur.archlinux.org >> /root/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
         uses: actions/upload-artifact@v2
         with:
