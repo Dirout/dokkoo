@@ -14,7 +14,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
-mod file;
+mod lib;
 
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
@@ -60,7 +60,7 @@ fn main() {
 /// * `PATH` - Path to a Mokk (required)
 fn build(matches: &clap::ArgMatches) {
     let path = matches.value_of("PATH").unwrap();
-    let collections: HashMap<String, Vec<file::Page>> = HashMap::new(); // Collections store
+    let collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
 
     // Sort files into vectors of path buffers; for when we compile root files last
     let mut root_files: Vec<PathBuf> = vec![];
@@ -100,7 +100,7 @@ fn build(matches: &clap::ArgMatches) {
 fn build_loop(
     file_list: Vec<PathBuf>,
     path: &str,
-    mut collections: HashMap<String, Vec<file::Page>>,
+    mut collections: HashMap<String, Vec<lib::Page>>,
 ) {
     for file in file_list {
         let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
@@ -113,10 +113,10 @@ fn build_loop(
             continue;
         }
 
-        let page = file::get_page_object(format!("{}", file.display()), &collections);
+        let page = lib::get_page_object(format!("{}", file.display()), &collections);
         let output_path = format!("{}/output/{}", path, page.url);
 
-        let compile_page = file::compile(page, collections); // Compile the current Page
+        let compile_page = lib::compile(page, collections); // Compile the current Page
         collections = compile_page.1; // Get updated collections store as result of compilation
 
         // Create output path, write to file
