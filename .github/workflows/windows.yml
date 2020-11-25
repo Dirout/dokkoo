@@ -24,6 +24,7 @@ jobs:
           args: --release --all-features --target x86_64-pc-windows-msvc
       - name: Prepare Dokkoo for upload
         run: |
+          ls ./target/x86_64-pc-windows-msvc/release/
           tar -czvf x86_64-dokkoo.win32.zip `
           ./target/x86_64-pc-windows-msvc/release/dokkoo.exe `
           ./target/x86_64-pc-windows-msvc/release/libdokkoo.dll `
