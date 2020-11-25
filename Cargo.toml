@@ -28,7 +28,7 @@ readme = "README"
 [lib]
 name = "dokkoo"
 path = "src/lib.rs"
-crate-type=["rlib", "cdylib", "dylib"]
+crate-type=["rlib", "dylib", "staticlib"]
 
 [[bin]]
 name = "dokkoo"
@@ -38,6 +38,8 @@ doc = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-files = "0.4.1"
+actix-web = "3.2.0"
 chrono = { version = "0.4.19", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
 glob = "0.3.0"
@@ -62,6 +64,7 @@ section = "utility"
 priority = "optional"
 assets = [
     ["target/x86_64-unknown-linux-gnu/release/dokkoo", "usr/bin/", "755"],
+    ["target/x86_64-unknown-linux-gnu/release/libdokkoo.so", "usr/lib/", "644"],
     ["README", "usr/share/doc/dokkoo/README", "644"],
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]

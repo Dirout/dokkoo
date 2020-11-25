@@ -26,8 +26,11 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use stopwatch::Stopwatch;
+use actix_files;
+use actix_web::{HttpServer};
 
-fn main() {
+#[actix_web::main]
+async fn main() {
     println!(
         "
     Dokkoo  Copyright (C) 2020  Emil Sayahi
@@ -45,13 +48,31 @@ fn main() {
             show(show_matches);
         }
         Some(("build", build_matches)) => build(build_matches),
-        // Some(("serve", serve_matches)) => {
-        //     serve(serve_matches)
-        // }
+        Some(("serve", serve_matches)) => {
+            serve(serve_matches).await;
+        }
         None => println!("Dokkoo {}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
 }
+
+async fn serve(matches: &clap::ArgMatches) 
+{
+  build(matches);
+  println!("Serving at http://127.0.0.1:8080 from {}/output … ", env::current_dir().unwrap().to_str().unwrap());
+  host().await.unwrap();
+}
+
+async fn host() -> std::io::Result<()>
+{
+  HttpServer::new(|| {
+      actix_web::App::new().service(actix_files::Files::new("/", "./output"))
+  })
+  .bind("127.0.0.1:8080")?
+  .run()
+  .await
+}
+
 
 /// Outputs a Mokk
 ///

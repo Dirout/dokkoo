@@ -22,12 +22,17 @@ jobs:
           use-cross: true
           command: build
           args: --release --all-features --target x86_64-unknown-linux-gnu
-      - name: Prepare Dokkoo build artifact for upload
+      - name: Prepare Dokkoo for upload
         run: |
           strip -v --strip-all ./target/x86_64-unknown-linux-gnu/release/dokkoo
+          strip -v --strip-all ./target/x86_64-unknown-linux-gnu/release/libdokkoo.so
+          strip -v --strip-all ./target/x86_64-unknown-linux-gnu/release/libdokkoo.a
           chmod +x ./target/x86_64-unknown-linux-gnu/release/dokkoo
-          tar -cvf x86_64-dokkoo.gnu+linux.tar ./target/x86_64-unknown-linux-gnu/release/dokkoo
-      - name: Upload Dokkoo build artifact to GitHub
+          tar -cvf x86_64-dokkoo.gnu+linux.tar \
+          ./target/x86_64-unknown-linux-gnu/release/dokkoo \
+          ./target/x86_64-unknown-linux-gnu/release/libdokkoo.so \
+          ./target/x86_64-unknown-linux-gnu/release/libdokkoo.a
+      - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.gnu+linux

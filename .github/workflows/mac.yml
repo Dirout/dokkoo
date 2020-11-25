@@ -22,12 +22,18 @@ jobs:
           use-cross: true
           command: build
           args: --release --all-features --target x86_64-apple-darwin
-      - name: Prepare Dokkoo build artifact for upload
+      - name: Prepare Dokkoo for upload
         run: |
+          ls ./target/x86_64-apple-darwin/release/
           strip ./target/x86_64-apple-darwin/release/dokkoo
+          strip ./target/x86_64-apple-darwin/release/libdokkoo.dylib
+          strip ./target/x86_64-apple-darwin/release/libdokkoo.a
           chmod +x ./target/x86_64-apple-darwin/release/dokkoo
-          tar -cvf x86_64-dokkoo.osx.tar ./target/x86_64-apple-darwin/release/dokkoo
-      - name: Upload Dokkoo build artifact to GitHub
+          tar -cvf x86_64-dokkoo.osx.tar \
+          ./target/x86_64-apple-darwin/release/dokkoo \
+          ./target/x86_64-apple-darwin/release/libdokkoo.dylib \
+          ./target/x86_64-apple-darwin/release/libdokkoo.a
+      - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.osx
