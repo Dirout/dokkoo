@@ -28,11 +28,9 @@ jobs:
           ./target/x86_64-pc-windows-msvc/release/dokkoo.exe `
           ./target/x86_64-pc-windows-msvc/release/dokkoo.dll `
           ./target/x86_64-pc-windows-msvc/release/dokkoo.lib
-
-          ls ./target/x86_64-pc-windows-msvc/release/
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.win32
-          path: ./target/x86_64-pc-windows-msvc/release/x86_64-dokkoo.win32.zip
+          path: x86_64-dokkoo.win32.zip
           if-no-files-found: error
