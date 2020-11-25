@@ -16,7 +16,6 @@
 */
 mod lib;
 
-
 use actix_web::HttpServer;
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
