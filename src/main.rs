@@ -16,6 +16,8 @@
 */
 mod lib;
 
+use actix_files;
+use actix_web::HttpServer;
 use clap::{crate_version, load_yaml, App};
 use glob::glob;
 use std::collections::HashMap;
@@ -26,8 +28,6 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use stopwatch::Stopwatch;
-use actix_files;
-use actix_web::{HttpServer};
 
 #[actix_web::main]
 async fn main() {
@@ -56,23 +56,21 @@ async fn main() {
     }
 }
 
-async fn serve(matches: &clap::ArgMatches) 
-{
-  build(matches);
-  println!("Serving at http://127.0.0.1:8080 from {}/output … ", env::current_dir().unwrap().to_str().unwrap());
-  host().await.unwrap();
+async fn serve(matches: &clap::ArgMatches) {
+    build(matches);
+    println!(
+        "Serving at http://127.0.0.1:8080 from {}/output … ",
+        env::current_dir().unwrap().to_str().unwrap()
+    );
+    host().await.unwrap();
 }
 
-async fn host() -> std::io::Result<()>
-{
-  HttpServer::new(|| {
-      actix_web::App::new().service(actix_files::Files::new("/", "./output"))
-  })
-  .bind("127.0.0.1:8080")?
-  .run()
-  .await
+async fn host() -> std::io::Result<()> {
+    HttpServer::new(|| actix_web::App::new().service(actix_files::Files::new("/", "./output")))
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
 }
-
 
 /// Outputs a Mokk
 ///
