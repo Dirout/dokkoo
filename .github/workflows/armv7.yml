@@ -24,7 +24,6 @@ jobs:
           args: --release --all-features --target armv7-unknown-linux-gnueabihf
       - name: Prepare Dokkoo for upload
         run: |
-          strip -v --strip-all ./target/armv7-unknown-linux-gnueabihf/release/dokkoo
           strip -v --strip-all ./target/armv7-unknown-linux-gnueabihf/release/libdokkoo.so
           strip -v --strip-all ./target/armv7-unknown-linux-gnueabihf/release/libdokkoo.a
           chmod +x ./target/armv7-unknown-linux-gnueabihf/release/dokkoo
