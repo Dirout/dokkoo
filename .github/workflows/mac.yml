@@ -25,7 +25,6 @@ jobs:
       - name: Prepare Dokkoo for upload
         run: |
           strip ./target/x86_64-apple-darwin/release/dokkoo
-          strip ./target/x86_64-apple-darwin/release/libdokkoo.a
           chmod +x ./target/x86_64-apple-darwin/release/dokkoo
           tar -cvf x86_64-dokkoo.osx.tar \
           ./target/x86_64-apple-darwin/release/dokkoo \
