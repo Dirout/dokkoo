@@ -24,9 +24,9 @@ jobs:
           args: --release --all-features --target x86_64-pc-windows-msvc
       - name: Prepare Dokkoo for upload
         run: |
-          tar -czvf x86_64-dokkoo.win32.zip \
-          ./target/x86_64-pc-windows-msvc/release/dokkoo.exe \
-          ./target/x86_64-pc-windows-msvc/release/libdokkoo.dll \
+          tar -czvf x86_64-dokkoo.win32.zip ^
+          ./target/x86_64-pc-windows-msvc/release/dokkoo.exe ^
+          ./target/x86_64-pc-windows-msvc/release/libdokkoo.dll ^
           ./target/x86_64-pc-windows-msvc/release/libdokkoo.lib
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2

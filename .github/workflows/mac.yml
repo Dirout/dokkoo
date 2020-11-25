@@ -24,7 +24,6 @@ jobs:
           args: --release --all-features --target x86_64-apple-darwin
       - name: Prepare Dokkoo for upload
         run: |
-          ls ./target/x86_64-apple-darwin/release/
           strip ./target/x86_64-apple-darwin/release/dokkoo
           strip ./target/x86_64-apple-darwin/release/libdokkoo.dylib
           strip ./target/x86_64-apple-darwin/release/libdokkoo.a
