@@ -28,6 +28,8 @@ jobs:
           ./target/x86_64-pc-windows-msvc/release/dokkoo.exe `
           ./target/x86_64-pc-windows-msvc/release/dokkoo.dll `
           ./target/x86_64-pc-windows-msvc/release/dokkoo.lib
+
+          ls ./target/x86_64-pc-windows-msvc/release/
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
