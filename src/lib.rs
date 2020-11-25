@@ -15,7 +15,7 @@
     along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
 /*
-file.rs - Handling Mokk Files (.mokkf)
+lib.rs - Handling Mokk Files (.mokkf)
 File:
     Term for either a Document or a Page
 */
@@ -29,8 +29,7 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-/// Document:
-///     User-specified data regarding a Mokk File
+/// User-specified data regarding a Mokk File
 pub struct Document {
     /// A File's contextual data, represented as YAML at the head/front of the file
     pub frontmatter: HashMap<String, serde_yaml::Value>,
@@ -45,8 +44,7 @@ pub struct Document {
 }
 
 #[derive(Clone, Serialize)]
-/// Page:
-///     Generated data regarding a Mokk File
+/// Generated data regarding a Mokk File
 pub struct Page {
     /// A Page's Document
     pub document: Document,
