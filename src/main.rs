@@ -79,7 +79,7 @@ async fn watch_mokk(matches: &clap::ArgMatches) {
 
     // Ignore .git folder
     let ignore_git_folder = watcher.unwatch(format!("{}/.git", path.to_str().unwrap()));
-    if let Ok(_) = ignore_git_folder {
+    if ignore_git_folder.is_ok() {
         ignore_git_folder.unwrap();
     }
 
