@@ -18,7 +18,9 @@ mod lib;
 
 use actix_web::HttpServer;
 use clap::{crate_version, load_yaml, App};
+use futures::join;
 use glob::glob;
+use notify::{watcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -26,11 +28,9 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
-use stopwatch::Stopwatch;
-use notify::{Watcher, RecursiveMode, watcher};
 use std::sync::mpsc::channel;
 use std::time::Duration;
-use futures::join;
+use stopwatch::Stopwatch;
 
 #[actix_web::main]
 async fn main() {
@@ -68,33 +68,30 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     host().await.unwrap();
 }
 
-async fn watch_mokk(matches: &clap::ArgMatches)
-{
-  let path = env::current_dir().unwrap();
-  let (sender, receiver) = channel(); // Open a channel to receive notifications
-  let mut watcher = watcher(sender, Duration::from_millis(10000)).unwrap(); // Create a watcher
-  watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
-  watcher.unwatch(format!("{}/output", path.to_str().unwrap())).unwrap(); // Ignore the output folder
+async fn watch_mokk(matches: &clap::ArgMatches) {
+    let path = env::current_dir().unwrap();
+    let (sender, receiver) = channel(); // Open a channel to receive notifications
+    let mut watcher = watcher(sender, Duration::from_millis(10000)).unwrap(); // Create a watcher
+    watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
+    watcher
+        .unwatch(format!("{}/output", path.to_str().unwrap()))
+        .unwrap(); // Ignore the output folder
 
-  // Ignore .git folder
-  let ignore_git_folder = watcher.unwatch(format!("{}/.git", path.to_str().unwrap()));
-  match ignore_git_folder
-  {
-    Ok(_) => {
-      ignore_git_folder.unwrap();
+    // Ignore .git folder
+    let ignore_git_folder = watcher.unwatch(format!("{}/.git", path.to_str().unwrap()));
+    match ignore_git_folder {
+        Ok(_) => {
+            ignore_git_folder.unwrap();
+        }
+        Err(_) => {}
     }
-    Err(_) => {
 
+    loop {
+        match receiver.recv() {
+            Ok(_) => build(matches),        // Build on receiving of notification
+            Err(e) => println!("{:#?}", e), // Show errors in processing Mokk
+        }
     }
-  }
-
-  loop {
-    match receiver.recv()
-    {
-      Ok(_) => build(matches), // Build on receiving of notification
-      Err(e) => println!("{:#?}", e), // Show errors in processing Mokk
-    }
-  }
 }
 
 async fn host() -> std::io::Result<()> {
