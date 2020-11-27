@@ -481,16 +481,12 @@ pub fn compile(
         None => {}
         Some(_) => {
             let collection_name_str = collection_name.unwrap().as_str().unwrap();
-            match collections.contains_key(&collection_name_str.to_string())
-            {
-                true => {                
+            match collections.contains_key(&collection_name_str.to_string()) {
+                true => {
                     (*collections.get_mut(collection_name_str).unwrap()).push(page);
                 }
                 false => {
-                    collections.insert(
-                        collection_name_str.to_owned(),
-                        vec![page],
-                    );
+                    collections.insert(collection_name_str.to_owned(), vec![page]);
                 }
             }
         }
