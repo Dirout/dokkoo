@@ -24,12 +24,13 @@ jobs:
           args: --release --all-features --target armv7-unknown-linux-gnueabihf
       - name: Prepare Dokkoo for upload
         run: |
-          strip -v --strip-all ./target/armv7-unknown-linux-gnueabihf/release/libdokkoo.a
-          chmod +x ./target/armv7-unknown-linux-gnueabihf/release/dokkoo
+          cd ./target/armv7-unknown-linux-gnueabihf/release/
+          strip -v --strip-all ./libdokkoo.a
+          chmod +x ./dokkoo
           tar -cvf armv7-dokkoo.gnu+linux.tar \
-          ./target/armv7-unknown-linux-gnueabihf/release/dokkoo \
-          ./target/armv7-unknown-linux-gnueabihf/release/libdokkoo.so \
-          ./target/armv7-unknown-linux-gnueabihf/release/libdokkoo.a
+          dokkoo \
+          libdokkoo.so \
+          libdokkoo.a
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
