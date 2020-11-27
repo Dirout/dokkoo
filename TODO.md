@@ -20,12 +20,13 @@ WIP:
     * Very sensitive with whitespace
     * Performance could be improved
     - [x] Test replacement implementation
-- [ ] Look into replacing Liquid crate(s)
+- [x] Look into replacing Liquid crate(s)
     - Currently considering replacing Liquid with:
-        Sailfish
+        Tera
     * Basic logic blocks, like 'if' statements and 'for' loops are not properly implemented
     * Performance could be improved
-    - [ ] Test replacement implementation
+    - [x] Test replacement implementation
+        - Conclusion: Replaced Liquid, performance went from 0.75 second build time to 1.18 seconds. Keeping Liquid.
 
 Distribution plans:
 * Consider iterating on branding prior to releases
