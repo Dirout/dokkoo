@@ -21,6 +21,8 @@ WIP:
     * Performance could be improved
     - [x] Test replacement implementation
 - [ ] Look into replacing Liquid crate(s)
+    - Currently considering replacing Liquid with:
+        Sailfish
     * Basic logic blocks, like 'if' statements and 'for' loops are not properly implemented
     * Performance could be improved
     - [ ] Test replacement implementation
