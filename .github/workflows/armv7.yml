@@ -35,5 +35,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: armv7-dokkoo.gnu+linux
-          path: armv7-dokkoo.gnu+linux.tar
+          path: ./target/armv7-unknown-linux-gnueabihf/release/armv7-dokkoo.gnu+linux.tar
           if-no-files-found: error

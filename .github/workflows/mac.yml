@@ -35,5 +35,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.osx
-          path: x86_64-dokkoo.osx.tar
+          path: ./target/x86_64-apple-darwin/release/x86_64-dokkoo.osx.tar
           if-no-files-found: error

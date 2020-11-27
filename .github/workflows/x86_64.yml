@@ -37,5 +37,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.gnu+linux
-          path: x86_64-dokkoo.gnu+linux.tar
+          path: ./target/x86_64-unknown-linux-gnu/release/x86_64-dokkoo.gnu+linux.tar
           if-no-files-found: error
