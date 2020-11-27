@@ -50,8 +50,8 @@ async fn main() {
             show(show_matches);
         }
         Some(("build", build_matches)) => {
-          build(build_matches);
-        },
+            build(build_matches);
+        }
         Some(("serve", serve_matches)) => {
             join!(void_host(serve_matches), serve_mokk(serve_matches));
         }
@@ -69,19 +69,13 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
         "\nServing at http://127.0.0.1:8080 from {}/output\nChanges will be served … ",
         path.to_str().unwrap()
     );
-  
+
     let (sender, receiver) = channel(); // Open a channel to receive notifications
     let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
     watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
-    watcher
-        .unwatch(format!("{}/output", path_str))
-        .unwrap(); // Ignore the output folder
-    watcher
-        .unwatch(format!("{}/layouts", path_str))
-        .unwrap(); // Ignore the layouts folder
-    watcher
-        .unwatch(format!("{}/snippets", path_str))
-        .unwrap(); // Ignore the snippets folder
+    watcher.unwatch(format!("{}/output", path_str)).unwrap(); // Ignore the output folder
+    watcher.unwatch(format!("{}/layouts", path_str)).unwrap(); // Ignore the layouts folder
+    watcher.unwatch(format!("{}/snippets", path_str)).unwrap(); // Ignore the snippets folder
 
     // Ignore .git folder
     let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
@@ -92,16 +86,15 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     loop {
         match receiver.recv() {
             Ok(event) => {
-              let file = &event.path.unwrap();
-              if file.extension().unwrap() == "mokkf"
-              {
-                let page = lib::get_page_object(format!("{}", file.display()), &collections);
-                let output_path = format!("{}/output/{}", path_str, page.url);
-                let compile_page = lib::compile(page, collections);
-                collections = compile_page.1;
-                write_file(&output_path, compile_page.0); // Create output path, write to file
-              }
-            },        // Compile file on receiving of notification
+                let file = &event.path.unwrap();
+                if file.extension().unwrap() == "mokkf" {
+                    let page = lib::get_page_object(format!("{}", file.display()), &collections);
+                    let output_path = format!("{}/output/{}", path_str, page.url);
+                    let compile_page = lib::compile(page, collections);
+                    collections = compile_page.1;
+                    write_file(&output_path, compile_page.0); // Create output path, write to file
+                }
+            } // Compile file on receiving of notification
             Err(e) => println!("{:#?}", e), // Show errors in processing Mokk
         }
     }
@@ -109,18 +102,19 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 
 /// Avoid warning when using `host()`, as that returns a `Result<()>`
 #[inline(always)]
-async fn void_host(matches: &clap::ArgMatches)
-{
-  env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
-  host().await.unwrap();
+async fn void_host(matches: &clap::ArgMatches) {
+    env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
+    host().await.unwrap();
 }
 
 #[inline(always)]
 async fn host() -> std::io::Result<()> {
-  HttpServer::new(|| actix_web::App::new().service(actix_files::Files::new("/", "./output").show_files_listing()))
-      .bind("127.0.0.1:8080")?
-      .run()
-      .await
+    HttpServer::new(|| {
+        actix_web::App::new().service(actix_files::Files::new("/", "./output").show_files_listing())
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
 }
 
 /// Outputs a Mokk
@@ -198,13 +192,12 @@ fn build_loop(
 }
 
 #[inline(always)]
-fn write_file(path: &str, text_to_write: String)
-{
-  fs::create_dir_all(Path::new(&path[..]).parent().unwrap()).unwrap(); // Create output path, write to file
-  let file = File::create(&path).unwrap(); // Create file which we will write to
-  let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
-  write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
-  buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
+fn write_file(path: &str, text_to_write: String) {
+    fs::create_dir_all(Path::new(&path[..]).parent().unwrap()).unwrap(); // Create output path, write to file
+    let file = File::create(&path).unwrap(); // Create file which we will write to
+    let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
+    write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
+    buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
 }
 
 /// Shows information regarding the usage and handling of this software
