@@ -5,16 +5,16 @@ Chores:
 * Complete all TODOs in codebase
 
 WIP:
-- [ ] Re-implement collections
-    i.      When building, create collections: HashMap<collection: String, Vec<page: Page>>
-    ii.     As compiling, append to collection's Vec<page>
-    iii.    Recombine collection Vec<Page> into collections
-    iv.     Write collections to binary file
-    - [ ] Test current implementation
+- [x] Re-implement collections
+    1.  When building, create collections: HashMap<collection: String, Vec<page: Page>>
+    2.  As compiling, append to collection's Vec<page>
+    3.  Recombine collection Vec<Page> into collections
+    4.  Write collections to binary file
+    - [x] Test current implementation
 - [x] ~~Fully implement collections~~
-    i.      As compiling, append to HashMap<collection: String, Vec<page: Page>>
-    ii.     Incorporate into contexts as 'collections' context
-    iii.    Compile files at root last
+    1.  As compiling, append to HashMap<collection: String, Vec<page: Page>>
+    2.  Incorporate into contexts as 'collections' context
+    3.  Compile files at root last
     - [x] Test current implementation
 - [x] Look into replacing current Markdown processor
     * Very sensitive with whitespace
@@ -32,7 +32,7 @@ Distribution plans:
     - [x] Debian package
     - [x] RPM package
     - [ ] COPR
-    - [] Gentoo
+    - [ ] Gentoo
     - [x] Snapcraft
     - [ ] Flatpak
     - [x] Arch User Repository packages ('dokkoo-bin')
