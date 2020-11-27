@@ -20,7 +20,7 @@ use actix_web::HttpServer;
 use clap::{crate_version, load_yaml, App};
 use futures::join;
 use glob::glob;
-use notify::{watcher, RecursiveMode, Watcher};
+use notify::{raw_watcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -29,7 +29,6 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
-use std::time::Duration;
 use stopwatch::Stopwatch;
 
 #[actix_web::main]
@@ -50,52 +49,78 @@ async fn main() {
         Some(("show", show_matches)) => {
             show(show_matches);
         }
-        Some(("build", build_matches)) => build(build_matches),
+        Some(("build", build_matches)) => {
+          build(build_matches);
+        },
         Some(("serve", serve_matches)) => {
-            join!(serve_mokk(serve_matches), watch_mokk(serve_matches));
+            join!(void_host(serve_matches), serve_mokk(serve_matches));
         }
-        None => println!("Dokkoo {}", crate_version!()),
+        None => println!("Dokkoo v{}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
 }
 
 async fn serve_mokk(matches: &clap::ArgMatches) {
-    build(matches);
-    println!(
-        "Serving at http://127.0.0.1:8080 from {}/output … ",
-        env::current_dir().unwrap().to_str().unwrap()
-    );
-    host().await.unwrap();
-}
+    let mut collections = build(matches);
 
-async fn watch_mokk(matches: &clap::ArgMatches) {
     let path = env::current_dir().unwrap();
+    let path_str = path.to_str().unwrap();
+    println!(
+        "\nServing at http://127.0.0.1:8080 from {}/output\nChanges will be served … ",
+        path.to_str().unwrap()
+    );
+  
     let (sender, receiver) = channel(); // Open a channel to receive notifications
-    let mut watcher = watcher(sender, Duration::from_millis(10000)).unwrap(); // Create a watcher
+    let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
     watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
     watcher
-        .unwatch(format!("{}/output", path.to_str().unwrap()))
+        .unwatch(format!("{}/output", path_str))
         .unwrap(); // Ignore the output folder
+    watcher
+        .unwatch(format!("{}/layouts", path_str))
+        .unwrap(); // Ignore the layouts folder
+    watcher
+        .unwatch(format!("{}/snippets", path_str))
+        .unwrap(); // Ignore the snippets folder
 
     // Ignore .git folder
-    let ignore_git_folder = watcher.unwatch(format!("{}/.git", path.to_str().unwrap()));
+    let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
     if ignore_git_folder.is_ok() {
         ignore_git_folder.unwrap();
     }
 
     loop {
         match receiver.recv() {
-            Ok(_) => build(matches),        // Build on receiving of notification
+            Ok(event) => {
+              let file = &event.path.unwrap();
+              if file.extension().unwrap() == "mokkf"
+              {
+                let page = lib::get_page_object(format!("{}", file.display()), &collections);
+                let output_path = format!("{}/output/{}", path_str, page.url);
+                let compile_page = lib::compile(page, collections);
+                collections = compile_page.1;
+                write_file(&output_path, compile_page.0); // Create output path, write to file
+              }
+            },        // Compile file on receiving of notification
             Err(e) => println!("{:#?}", e), // Show errors in processing Mokk
         }
     }
 }
 
+/// Avoid warning when using `host()`, as that returns a `Result<()>`
+#[inline(always)]
+async fn void_host(matches: &clap::ArgMatches)
+{
+  env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
+  host().await.unwrap();
+}
+
+#[inline(always)]
 async fn host() -> std::io::Result<()> {
-    HttpServer::new(|| actix_web::App::new().service(actix_files::Files::new("/", "./output")))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await
+  HttpServer::new(|| actix_web::App::new().service(actix_files::Files::new("/", "./output").show_files_listing()))
+      .bind("127.0.0.1:8080")?
+      .run()
+      .await
 }
 
 /// Outputs a Mokk
@@ -103,9 +128,9 @@ async fn host() -> std::io::Result<()> {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-fn build(matches: &clap::ArgMatches) {
+fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
     let path = matches.value_of("PATH").unwrap();
-    let collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
+    let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
 
     // Sort files into vectors of path buffers; for when we compile root files last
     let mut root_files: Vec<PathBuf> = vec![];
@@ -126,11 +151,13 @@ fn build(matches: &clap::ArgMatches) {
     files.append(&mut root_files); // Make root files the last ones to compile on the list
 
     let mut timer = Stopwatch::start_new(); // Start the stopwatch
-    build_loop(files, path, collections);
+    collections = build_loop(files, path, collections);
 
     // Show how long it took to build
     timer.stop();
-    println!("Built in {} seconds", (timer.elapsed_ms() as f32 / 1000.0));
+    println!("Built in {} seconds.", (timer.elapsed_ms() as f32 / 1000.0));
+
+    collections
 }
 
 /// The primary logic loop of the build process
@@ -142,11 +169,12 @@ fn build(matches: &clap::ArgMatches) {
 /// * `path` - Path given to the build subcommand
 ///
 /// * `collections` - Collection store of this build
+#[inline(always)]
 fn build_loop(
     file_list: Vec<PathBuf>,
     path: &str,
     mut collections: HashMap<String, Vec<lib::Page>>,
-) {
+) -> HashMap<String, Vec<lib::Page>> {
     for file in file_list {
         let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
         let file_root_str = file_root.to_str().unwrap();
@@ -164,13 +192,19 @@ fn build_loop(
         let compile_page = lib::compile(page, collections); // Compile the current Page
         collections = compile_page.1; // Get updated collections store as result of compilation
 
-        // Create output path, write to file
-        fs::create_dir_all(Path::new(&output_path[..]).parent().unwrap()).unwrap(); // Create path to file which we will write to
-        let write_file = File::create(&output_path).unwrap(); // Create file which we will write to
-        let mut buffered_writer = BufWriter::new(write_file); // Create a buffered writer, allowing us to modify the file we've just created
-        write!(buffered_writer, "{}", compile_page.0).unwrap(); // Write compiled Page contents to file
-        buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
+        write_file(&output_path, compile_page.0); // Create output path, write to file
     }
+    collections
+}
+
+#[inline(always)]
+fn write_file(path: &str, text_to_write: String)
+{
+  fs::create_dir_all(Path::new(&path[..]).parent().unwrap()).unwrap(); // Create output path, write to file
+  let file = File::create(&path).unwrap(); // Create file which we will write to
+  let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
+  write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
+  buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
 }
 
 /// Shows information regarding the usage and handling of this software

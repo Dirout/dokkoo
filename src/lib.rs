@@ -106,6 +106,7 @@ pub struct Page {
 /// * `weekdate` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.document.frontmatter.title }}.html`
 ///
 /// * `none` → `/{{ page.document.frontmatter.collection }}/{{ page.document.frontmatter.title }}.html`
+#[inline(always)]
 pub fn get_permalink(permalink: &str) -> String {
     match &*permalink {
         "date" => {
@@ -135,6 +136,7 @@ pub fn get_permalink(permalink: &str) -> String {
 /// # Arguments
 ///
 /// * `page_text` - The `.mokkf` file's data as a `String`
+#[inline(always)]
 pub fn split_frontmatter(page_text: String) -> (String, String) {
     let mut begin = false;
     let mut end = false;
@@ -167,6 +169,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 /// * `page_path` - The `.mokkf` file's path as a `String`
 ///
 /// * `conditions` - Prints conditions information
+#[inline(always)]
 pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page>>) -> Page {
     // Define variables which we'll use to create our Document, which we'll use to generate the Page context
     let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
@@ -303,6 +306,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 /// * `conditions` - Prints conditions information
 ///
 /// * `snippet_context` - An optional context for rendering snippets, giving them a context from their call arguments
+#[inline(always)]
 pub fn get_contexts(
     page: &Page,
     collections: &HashMap<String, Vec<Page>>,
@@ -372,6 +376,7 @@ pub fn get_contexts(
 /// * `only_context` - Whether or not to only render the contexts of a File
 ///
 /// * `collections` - Collection store of this build
+#[inline(always)]
 pub fn render(
     page: &Page,
     text_to_render: &str,
@@ -437,6 +442,7 @@ pub fn render(
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `collections` - Collection store of this build
+#[inline(always)]
 pub fn compile(
     mut page: Page,
     mut collections: HashMap<String, Vec<Page>>,
@@ -474,19 +480,15 @@ pub fn compile(
     match collection_name {
         None => {}
         Some(_) => {
-            match collections.contains_key(&collection_name.unwrap().as_str().unwrap().to_string())
+            let collection_name_str = collection_name.unwrap().as_str().unwrap();
+            match collections.contains_key(&collection_name_str.to_string())
             {
-                true => {
-                    let mut current_collection_entries = collections
-                        .get_key_value(collection_name.unwrap().as_str().unwrap())
-                        .unwrap()
-                        .1
-                        .to_vec();
-                    current_collection_entries.push(page);
+                true => {                
+                    (*collections.get_mut(collection_name_str).unwrap()).push(page);
                 }
                 false => {
                     collections.insert(
-                        collection_name.unwrap().as_str().unwrap().to_string(),
+                        collection_name_str.to_owned(),
                         vec![page],
                     );
                 }
@@ -506,6 +508,7 @@ pub fn compile(
 /// * `layout` - The File's layout's context as a Page
 ///
 /// * `collections` - Collection store of this build
+#[inline(always)]
 pub fn render_layouts(
     sub: &Page,
     layout: Page,
@@ -543,6 +546,7 @@ pub fn render_layouts(
 /// * `text_to_parse` - The text to be parsed
 ///
 /// * `collections` - Collection store of this build
+#[inline]
 pub fn render_snippets(
     page: &Page,
     text_to_parse: &str,
@@ -613,6 +617,7 @@ pub fn render_snippets(
 /// * `snippet_context` - The context passed within the snippet call
 ///
 /// * `collections` - Collection store of this build
+#[inline]
 pub fn render_snippet(
     page: &Page,
     snippet_path: String,
@@ -644,6 +649,7 @@ pub fn render_snippet(
 /// # Arguments
 ///
 /// * `snippet_call` - The snippet call to be cut up
+#[inline]
 pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
     let mut call_portions: Vec<String> = vec![];
     let mut current_argument: String = "".to_owned();
@@ -670,6 +676,7 @@ pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
 /// # Arguments
 ///
 /// * `call_portions` - A snippet call, seperated into multiple portions by spaces
+#[inline]
 pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
     let mut current_key: String = "".to_owned();
@@ -701,6 +708,7 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
 /// * `call_portions` - A snippet call, seperated into multiple portions by spaces
 ///
 /// * `keys` - The keys of a snippet call's arguments
+#[inline]
 pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
     let mut current_value: String = "".to_owned();
@@ -753,6 +761,7 @@ pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<Stri
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
+#[inline(always)]
 pub fn render_markdown(text_to_render: String) -> String {
     let mut markdown_options = Options::empty();
     markdown_options.insert(Options::ENABLE_TABLES);
