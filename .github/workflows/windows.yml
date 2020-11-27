@@ -33,5 +33,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: x86_64-dokkoo.win32
-          path: x86_64-dokkoo.win32.zip
+          path: ./target/x86_64-pc-windows-msvc/release/x86_64-dokkoo.win32.zip
           if-no-files-found: error
