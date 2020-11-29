@@ -2,6 +2,7 @@ on: push
 name: Annotate code
 jobs:
   clippy_check:
+    name: Annotate code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
