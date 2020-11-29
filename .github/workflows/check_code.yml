@@ -13,7 +13,8 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          components: rust-src, clippy, rustfmt
+          components: clippy, rustfmt
+          profile: minimal
       - name: Check codebase is properly formatted
         uses: actions-rs/cargo@v1
         with:

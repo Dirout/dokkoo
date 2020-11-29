@@ -14,8 +14,9 @@ jobs:
         with:
           toolchain: nightly
           target: x86_64-pc-windows-msvc
-          override: true
-          components: rust-src
+          default: true
+          profile: minimal
+          #components: rust-src
       - name: Build Dokkoo
         uses: actions-rs/cargo@v1
         with:
