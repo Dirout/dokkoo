@@ -19,8 +19,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          override: true
-          components: rust-src, clippy, rustfmt
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
       - name: Correct code files
         uses: actions-rs/cargo@v1
         with:

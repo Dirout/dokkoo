@@ -14,8 +14,9 @@ jobs:
         with:
           toolchain: nightly
           target: armv7-unknown-linux-gnueabihf
-          override: true
-          components: rust-src
+          default: true
+          profile: minimal
+          #components: rust-src
       - name: Build Dokkoo
         uses: actions-rs/cargo@v1
         with:
