@@ -1,10 +1,10 @@
 on: [push]
 
-name: 'Build: macOS (ARMv7)'
+name: 'Build: macOS (ARM64)'
 
 jobs:
-  mac_arm7:
-    name: macOS (ARMv7)
+  mac_aarch64:
+    name: macOS (ARM64)
     runs-on: macos-latest
     steps:
       - name: Checkout codebase
@@ -28,13 +28,13 @@ jobs:
           cd ./target/aarch64-apple-darwin/release/
           strip ./dokkoo
           chmod +x ./dokkoo
-          tar -cvf armv7-dokkoo.osx.tar \
+          tar -cvf aarch64-dokkoo.osx.tar \
           dokkoo \
           libdokkoo.dylib \
           libdokkoo.a
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v2
         with:
-          name: armv7-dokkoo.osx
-          path: ./target/aarch64-apple-darwin/release/armv7-dokkoo.osx.tar
+          name: aarch64-dokkoo.osx
+          path: ./target/aarch64-apple-darwin/release/aarch64-dokkoo.osx.tar
           if-no-files-found: error
