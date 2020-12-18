@@ -16,8 +16,8 @@
 */
 mod lib;
 
-use clap::ArgMatches;
 use actix_web::HttpServer;
+use clap::ArgMatches;
 use clap::{crate_version, load_yaml, App};
 use futures::join;
 use glob::glob;
@@ -36,8 +36,9 @@ use stopwatch::Stopwatch;
 extern crate lazy_static;
 
 lazy_static! {
-  static ref MATCHES: ArgMatches =
-    App::from(load_yaml!("cli.yaml")).version(crate_version!()).get_matches();
+    static ref MATCHES: ArgMatches = App::from(load_yaml!("cli.yaml"))
+        .version(crate_version!())
+        .get_matches();
 }
 
 fn main() {
@@ -59,12 +60,7 @@ fn main() {
         }
         Some(("serve", serve_matches)) => {
             let mut sys = actix_rt::System::new("Oku IPFS System");
-            sys.block_on(
-              async move
-              {
-                join!(void_host(serve_matches), serve_mokk(serve_matches))
-              }
-            );
+            sys.block_on(async move { join!(void_host(serve_matches), serve_mokk(serve_matches)) });
         }
         None => println!("Dokkoo v{}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
