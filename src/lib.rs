@@ -43,7 +43,7 @@ pub struct Document {
     pub date: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 /// Generated data regarding a Mokk File
 pub struct Page {
     /// A Page's Document
@@ -399,14 +399,9 @@ pub fn render(
                 .unwrap()
                 .parse(text_to_render)
                 .unwrap();
-
-            render_snippets(
-                page,
-                &template
-                    .render(&get_contexts(page, collections, None))
-                    .unwrap(),
-                collections,
-            )
+            template
+                .render(&get_contexts(page, collections, None))
+                .unwrap()
         }
         false => {
             let template = liquid::ParserBuilder::with_stdlib()
@@ -424,13 +419,9 @@ pub fn render(
                 .parse(text_to_render)
                 .unwrap();
 
-            render_markdown(render_snippets(
-                page,
-                &template
-                    .render(&get_contexts(page, collections, None))
-                    .unwrap(),
-                collections,
-            ))
+            render_markdown(template
+                .render(&get_contexts(page, collections, None))
+                .unwrap())
         }
     }
 }
@@ -448,8 +439,7 @@ pub fn compile(
     mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
-    let embeddable_page = render(&page, &page.document.content, false, &collections);
-    page.document.content = embeddable_page;
+    page.document.content = render_snippets(&page, &page.document.content, &collections); // Embeddable page - page with only snippets rendered
     let layout_name = &page.document.frontmatter.get("layout");
     let collection_name = &page.document.frontmatter.get("collection");
 
@@ -457,7 +447,7 @@ pub fn compile(
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = page.document.content.to_string();
+            compiled_page = render(&page, &page.document.content, false, &collections);
         }
         Some(_) => {
             let layout_object = get_page_object(
@@ -467,16 +457,13 @@ pub fn compile(
                 ),
                 &collections,
             );
-            compiled_page = render(
-                &page,
-                &render_layouts(&page, layout_object, &collections),
-                false,
-                &collections,
-            );
+            let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
+            let layouts_and_snippets = render_snippets(&page, &layouts, &collections); // Render snippets that come with layout
+            compiled_page = render(&page, &layouts_and_snippets, false, &collections); // Final render, to capture whatever layouts & snippets introduce
         }
     }
 
-    // When within a collection, append embeddable_page to list of collection's entries
+    // When within a collection, append embeddable page to list of collection's entries
     match collection_name {
         None => {}
         Some(_) => {
@@ -580,23 +567,24 @@ pub fn render_snippets(
                 }
             }
         }
-        for snippet_call in &snippet_calls {
-            let call_portions = get_snippet_call_portions(snippet_call.to_owned());
-            let snippet_path = format!("./snippets/{}", call_portions[2]);
+    }
+    
+    for snippet_call in &snippet_calls {
+        let call_portions = get_snippet_call_portions(snippet_call.to_owned());
+        let snippet_path = format!("./snippets/{}", call_portions[2]);
 
-            let keys = get_snippet_keys(&call_portions);
-            let values = get_snippet_values(&call_portions, &keys);
-            let mut snippet_context: HashMap<&str, serde_yaml::Value> = HashMap::new();
+        let keys = get_snippet_keys(&call_portions);
+        let values = get_snippet_values(&call_portions, &keys);
+        let mut snippet_context: HashMap<&str, serde_yaml::Value> = HashMap::new();
 
-            for i in 0..keys.len() {
-                snippet_context.insert(&keys[i], serde_yaml::from_str(&values[i]).unwrap());
-            }
-
-            parsed_str = text_to_parse.replace(
-                snippet_call,
-                &render_snippet(page, snippet_path, &snippet_context, collections),
-            );
+        for i in 0..keys.len() {
+            snippet_context.insert(&keys[i], serde_yaml::from_str(&values[i]).unwrap());
         }
+
+        parsed_str = parsed_str.replace(
+            snippet_call,
+            &render_snippet(page, snippet_path, &snippet_context, collections),
+        );
     }
 
     parsed_str
