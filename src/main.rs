@@ -16,6 +16,7 @@
 */
 mod lib;
 
+use clap::ArgMatches;
 use actix_web::HttpServer;
 use clap::{crate_version, load_yaml, App};
 use futures::join;
@@ -31,8 +32,15 @@ use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use stopwatch::Stopwatch;
 
-#[actix_web::main]
-async fn main() {
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+  static ref MATCHES: ArgMatches =
+    App::from(load_yaml!("cli.yaml")).version(crate_version!()).get_matches();
+}
+
+fn main() {
     println!(
         "
     Dokkoo  Copyright (C) 2020  Emil Sayahi
@@ -42,10 +50,7 @@ async fn main() {
     "
     );
 
-    let yaml = load_yaml!("cli.yaml");
-    let matches = App::from(yaml).version(crate_version!()).get_matches();
-
-    match matches.subcommand() {
+    match MATCHES.subcommand() {
         Some(("show", show_matches)) => {
             show(show_matches);
         }
@@ -53,7 +58,13 @@ async fn main() {
             build(build_matches);
         }
         Some(("serve", serve_matches)) => {
-            join!(void_host(serve_matches), serve_mokk(serve_matches));
+            let mut sys = actix_rt::System::new("Oku IPFS System");
+            sys.block_on(
+              async move
+              {
+                join!(void_host(serve_matches), serve_mokk(serve_matches))
+              }
+            );
         }
         None => println!("Dokkoo v{}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()

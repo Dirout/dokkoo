@@ -18,7 +18,7 @@ version = "0.2.0"
 authors = ["Emil Sayahi <limesayahi@gmail.com>"]
 edition = "2018"
 categories = ["command-line-utilities", "parser-implementations", "text-processing"]
-exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "renovate.json", "/azure-pipelines.yml", "/snapcraft.yaml", "/TODO.md"]
+exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "renovate.json", "/azure-pipelines.yml", "/snapcraft.yaml"]
 license = "AGPL-3.0-or-later"
 description = "Mokk (Macro Output Key Kit) implementation written in Rust."
 repository = "https://github.com/MadeByEmil/dokkoo"
@@ -39,11 +39,13 @@ doc = false
 
 [dependencies]
 actix-files = "0.4.1"
+actix-rt = "1.1.1"
 actix-web = "3.3.2"
 chrono = { version = "0.4.19", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["yaml", "wrap_help"] }
 futures = "0.3.8"
 glob = "0.3.0"
+lazy_static = "1.4.0"
 liquid = "0.21.4"
 liquid-core = "0.21.2"
 liquid-lib = { version = "0.21.1", features = ["stdlib", "jekyll", "shopify", "extra"] }
