@@ -17,8 +17,7 @@
 mod lib;
 
 use actix_web::HttpServer;
-use clap::ArgMatches;
-use clap::{crate_version, load_yaml, App};
+use clap::{crate_version, load_yaml, App, ArgMatches};
 use futures::join;
 use glob::glob;
 use notify::{raw_watcher, RecursiveMode, Watcher};
@@ -31,9 +30,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use stopwatch::Stopwatch;
-
-#[macro_use]
-extern crate lazy_static;
+use lazy_static::lazy_static;
 
 lazy_static! {
     static ref MATCHES: ArgMatches = App::from(load_yaml!("cli.yaml"))
