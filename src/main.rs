@@ -60,12 +60,7 @@ fn main() {
         }
         Some(("serve", serve_matches)) => {
             let mut sys = actix_rt::System::new("Dokkoo Serving System");
-            sys.block_on(
-              async move
-              {
-                join!(void_host(serve_matches), serve_mokk(serve_matches))
-              }
-            );
+            sys.block_on(async move { join!(void_host(serve_matches), serve_mokk(serve_matches)) });
         }
         None => println!("Dokkoo v{}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
