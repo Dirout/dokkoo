@@ -419,9 +419,11 @@ pub fn render(
                 .parse(text_to_render)
                 .unwrap();
 
-            render_markdown(template
-                .render(&get_contexts(page, collections, None))
-                .unwrap())
+            render_markdown(
+                template
+                    .render(&get_contexts(page, collections, None))
+                    .unwrap(),
+            )
         }
     }
 }
@@ -459,7 +461,8 @@ pub fn compile(
             );
             let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
             let layouts_and_snippets = render_snippets(&page, &layouts, &collections); // Render snippets that come with layout
-            compiled_page = render(&page, &layouts_and_snippets, false, &collections); // Final render, to capture whatever layouts & snippets introduce
+            compiled_page = render(&page, &layouts_and_snippets, false, &collections);
+            // Final render, to capture whatever layouts & snippets introduce
         }
     }
 
@@ -568,7 +571,7 @@ pub fn render_snippets(
             }
         }
     }
-    
+
     for snippet_call in &snippet_calls {
         let call_portions = get_snippet_call_portions(snippet_call.to_owned());
         let snippet_path = format!("./snippets/{}", call_portions[2]);
