@@ -30,7 +30,7 @@ jobs:
           
           cd ./dokkoo
           printf "\nGenerating documentation … "
-          printf "\nTime taken for generation: " && time cargo doc --no-deps --document-private-items --release --quiet
+          time cargo doc --no-deps --document-private-items --release --quiet
           cd ../
           
           cp -ar ./dokkoo/target/doc/* ./gh-pages
