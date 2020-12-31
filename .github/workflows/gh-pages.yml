@@ -25,11 +25,12 @@ jobs:
     - name: Generate documentation
       run: |
           sudo apt-get -qq install tree > /dev/null
-          printf "Files to build:\n" && tree ./mokk
+          printf "Codebase:\n" && tree ./dokkoo
           find ./gh-pages -mindepth 1 ! -regex '^./gh-pages/.git\(/.*\)?' -delete
           
           cd ./dokkoo
-          cargo doc --no-deps --document-private-items --release
+          printf "\nGenerating documentation … "
+          printf "\nTime taken for generation: " && time cargo doc --no-deps --document-private-items --release --quiet
           cd ../
           
           cp -ar ./dokkoo/target/doc/* ./gh-pages
@@ -37,7 +38,7 @@ jobs:
           tee -a ./gh-pages/.nojekyll > /dev/null <<EOT
 
           EOT
-          printf "\nFiles to publish:\n" && tree ./gh-pages
+          printf "\nDocumentation:\n" && tree ./gh-pages
     - name: Publish
       run: |
           cd ./gh-pages
