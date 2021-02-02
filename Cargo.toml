@@ -53,7 +53,7 @@ notify = "4.0.15"
 pathdiff = "0.2.0"
 pulldown-cmark = { version = "0.8.0", default-features = false, features = ["simd"] }
 serde = "1.0.123"
-serde_yaml = "0.8.15"
+serde_yaml = "0.8.16"
 stopwatch = "0.0.7"
 
 [profile.release]
