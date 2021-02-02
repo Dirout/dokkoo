@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["dokkoo"] = [{"text":"impl Send for Document","synthetic":true,"types":[]},{"text":"impl Send for Page","synthetic":true,"types":[]}];
+implementors["dokkoo"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> for <a class=\"struct\" href=\"dokkoo/struct.Document.html\" title=\"struct dokkoo::Document\">Document</a>","synthetic":true,"types":["dokkoo::Document"]},{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> for <a class=\"struct\" href=\"dokkoo/struct.Page.html\" title=\"struct dokkoo::Page\">Page</a>","synthetic":true,"types":["dokkoo::Page"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
