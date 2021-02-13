@@ -197,7 +197,7 @@ fn build_loop(
 
 #[inline(always)]
 fn write_file(path: &str, text_to_write: String) {
-    fs::create_dir_all(Path::new(&path[..]).parent().unwrap()).unwrap(); // Create output path, write to file
+    fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
     let file = File::create(&path).unwrap(); // Create file which we will write to
     let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
     write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file

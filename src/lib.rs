@@ -246,7 +246,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
             let global: HashMap<String, serde_yaml::Value> =
                 serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory
             let locale: chrono::Locale =
-                chrono::Locale::try_from(&(global.get("locale").unwrap().as_str().unwrap()[..]))
+                chrono::Locale::try_from(global.get("locale").unwrap().as_str().unwrap())
                     .unwrap(); // Get locale from Global context
 
             // Define our Page
