@@ -186,7 +186,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
             permalink_string = permalink.unwrap().as_str().unwrap().to_string();
         }
         None => {
-            permalink_string = "".to_owned();
+            permalink_string = String::new();
         }
     }
 
@@ -195,7 +195,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
             date_string = date.unwrap().as_str().unwrap().to_string();
         }
         None => {
-            date_string = "".to_owned();
+            date_string = String::new();
         }
     }
 
@@ -221,24 +221,24 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     .to_str()
                     .unwrap()
                     .to_owned(),
-                url: "".to_owned(),
-                year: "".to_owned(),
-                short_year: "".to_owned(),
-                month: "".to_owned(),
-                i_month: "".to_owned(),
-                short_month: "".to_owned(),
-                long_month: "".to_owned(),
-                day: "".to_owned(),
-                i_day: "".to_owned(),
-                y_day: "".to_owned(),
-                w_year: "".to_owned(),
-                week: "".to_owned(),
-                w_day: "".to_owned(),
-                short_day: "".to_owned(),
-                long_day: "".to_owned(),
-                hour: "".to_owned(),
-                minute: "".to_owned(),
-                second: "".to_owned(),
+                url: String::new(),
+                year: String::new(),
+                short_year: String::new(),
+                month: String::new(),
+                i_month: String::new(),
+                short_month: String::new(),
+                long_month: String::new(),
+                day: String::new(),
+                i_day: String::new(),
+                y_day: String::new(),
+                w_year: String::new(),
+                week: String::new(),
+                w_day: String::new(),
+                short_day: String::new(),
+                long_day: String::new(),
+                hour: String::new(),
+                minute: String::new(),
+                second: String::new(),
             };
         }
         _ => {
@@ -258,7 +258,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     .to_str()
                     .unwrap()
                     .to_owned(),
-                url: "".to_owned(),
+                url: String::new(),
                 year: format!("{}", datetime.unwrap().format_localized("%Y", locale)),
                 short_year: format!("{}", datetime.unwrap().format_localized("%y", locale)),
                 month: format!("{}", datetime.unwrap().format_localized("%m", locale)),
@@ -384,18 +384,7 @@ pub fn render(
 ) -> String {
     match only_context {
         true => {
-            let template = liquid::ParserBuilder::with_stdlib()
-                .tag(liquid_lib::jekyll::IncludeTag)
-                .filter(liquid_lib::jekyll::ArrayToSentenceString)
-                .filter(liquid_lib::jekyll::Pop)
-                .filter(liquid_lib::jekyll::Push)
-                .filter(liquid_lib::jekyll::Shift)
-                .filter(liquid_lib::jekyll::Slugify)
-                .filter(liquid_lib::jekyll::Unshift)
-                .filter(liquid_lib::shopify::Pluralize)
-                .filter(liquid_lib::extra::DateInTz)
-                .build()
-                .unwrap()
+            let template = create_liquid_parser()
                 .parse(text_to_render)
                 .unwrap();
             template
@@ -403,18 +392,7 @@ pub fn render(
                 .unwrap()
         }
         false => {
-            let template = liquid::ParserBuilder::with_stdlib()
-                .tag(liquid_lib::jekyll::IncludeTag)
-                .filter(liquid_lib::jekyll::ArrayToSentenceString)
-                .filter(liquid_lib::jekyll::Pop)
-                .filter(liquid_lib::jekyll::Push)
-                .filter(liquid_lib::jekyll::Shift)
-                .filter(liquid_lib::jekyll::Slugify)
-                .filter(liquid_lib::jekyll::Unshift)
-                .filter(liquid_lib::shopify::Pluralize)
-                .filter(liquid_lib::extra::DateInTz)
-                .build()
-                .unwrap()
+            let template = create_liquid_parser()
                 .parse(text_to_render)
                 .unwrap();
 
@@ -539,7 +517,7 @@ pub fn render_snippets(
 ) -> String {
     let mut snippet_calls: Vec<String> = vec![];
     let mut brace_count = 0;
-    let mut parsing_str: String = "".to_owned();
+    let mut parsing_str: String = String::new();
     let mut parsed_str = text_to_parse.to_owned();
 
     for character in text_to_parse.chars() {
@@ -592,6 +570,27 @@ pub fn render_snippets(
     parsed_str
 }
 
+/// Creates a Liquid parser
+pub fn create_liquid_parser() -> liquid::Parser
+{
+    // let mut partial = liquid::partials::InMemorySource::new();
+    // partial.add("hello.txt", "A");
+    // let partial_compiler = liquid::partials::EagerCompiler::new(partial);
+    liquid::ParserBuilder::with_stdlib()
+        .tag(liquid_lib::jekyll::IncludeTag)
+        .filter(liquid_lib::jekyll::ArrayToSentenceString)
+        .filter(liquid_lib::jekyll::Pop)
+        .filter(liquid_lib::jekyll::Push)
+        .filter(liquid_lib::jekyll::Shift)
+        .filter(liquid_lib::jekyll::Slugify)
+        .filter(liquid_lib::jekyll::Unshift)
+        .filter(liquid_lib::shopify::Pluralize)
+        .filter(liquid_lib::extra::DateInTz)
+        // .partials(partial_compiler)
+        .build()
+        .unwrap()
+}
+
 /// Render an individual snippet call
 ///
 /// # Arguments
@@ -610,18 +609,7 @@ pub fn render_snippet(
     snippet_context: &HashMap<&str, serde_yaml::Value>,
     collections: &HashMap<String, Vec<Page>>,
 ) -> String {
-    let template = liquid::ParserBuilder::with_stdlib()
-        .tag(liquid_lib::jekyll::IncludeTag)
-        .filter(liquid_lib::jekyll::ArrayToSentenceString)
-        .filter(liquid_lib::jekyll::Pop)
-        .filter(liquid_lib::jekyll::Push)
-        .filter(liquid_lib::jekyll::Shift)
-        .filter(liquid_lib::jekyll::Slugify)
-        .filter(liquid_lib::jekyll::Unshift)
-        .filter(liquid_lib::shopify::Pluralize)
-        .filter(liquid_lib::extra::DateInTz)
-        .build()
-        .unwrap()
+    let template = create_liquid_parser()
         .parse(&fs::read_to_string(snippet_path).unwrap())
         .unwrap();
 
@@ -638,7 +626,7 @@ pub fn render_snippet(
 #[inline]
 pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
     let mut call_portions: Vec<String> = vec![];
-    let mut current_argument: String = "".to_owned();
+    let mut current_argument: String = String::new();
 
     for character in snippet_call.chars() {
         match character {
@@ -665,7 +653,7 @@ pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
 #[inline]
 pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
     let mut keys: Vec<String> = vec![];
-    let mut current_key: String = "".to_owned();
+    let mut current_key: String = String::new();
 
     for call_argument in call_portions.iter().skip(3) {
         // Skip three places, so as to just look at the actual argument portions
@@ -697,7 +685,7 @@ pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
 #[inline]
 pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
     let mut values: Vec<String> = vec![];
-    let mut current_value: String = "".to_owned();
+    let mut current_value: String = String::new();
     let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
 
     for i in 0..keys.len() {
