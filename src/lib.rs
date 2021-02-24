@@ -245,21 +245,19 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
             let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
             let global_file = fs::read_to_string("./_global.yml");
             let global: HashMap<String, serde_yaml::Value>;
-            match global_file
-            {
+            match global_file {
                 Ok(_) => {
-                    global =
-                    serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
+                    global = serde_yaml::from_str(&global_file.unwrap()).unwrap();
+                    // Defined as variable as it required a type annotation
                 }
                 Err(_) => {
-                    global =
-                    serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
+                    global = serde_yaml::from_str("locale: \"en_US\"").unwrap();
+                    // Defined as variable as it required a type annotation
                 }
             }
             let locale_key = global.get("locale");
             let locale_value;
-            match locale_key
-            {
+            match locale_key {
                 Some(_) => {
                     locale_value = locale_key.unwrap().as_str().unwrap();
                 }
@@ -267,8 +265,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     locale_value = "en_US";
                 }
             }
-            let locale: chrono::Locale =
-                chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
+            let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
             // Define our Page
             page = Page {
@@ -335,18 +332,14 @@ pub fn get_contexts(
 ) -> Object {
     let global_file = fs::read_to_string("./_global.yml");
     let global: HashMap<String, serde_yaml::Value>;
-    match global_file
-    {
+    match global_file {
         Ok(_) => {
-            global =
-            serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
+            global = serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
         }
         Err(_) => {
-            global =
-            serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
+            global = serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
         }
     }
-    
 
     /*
     Layouts
@@ -604,8 +597,7 @@ pub fn render_snippets(
 pub fn create_liquid_parser() -> liquid::Parser {
     let mut partial = liquid::partials::InMemorySource::new();
     let snippets = fs::read_dir("./snippets");
-    if snippets.is_ok()
-    {
+    if snippets.is_ok() {
         for snippet in snippets.unwrap() {
             let unwrapped_snippet = snippet.unwrap();
             let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
