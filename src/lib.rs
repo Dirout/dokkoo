@@ -243,10 +243,32 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
         }
         _ => {
             let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
-            let global: HashMap<String, serde_yaml::Value> =
-                serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory
+            let global_file = fs::read_to_string("./_global.yml");
+            let global: HashMap<String, serde_yaml::Value>;
+            match global_file
+            {
+                Ok(_) => {
+                    global =
+                    serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
+                }
+                Err(_) => {
+                    global =
+                    serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
+                }
+            }
+            let locale_key = global.get("locale");
+            let locale_value;
+            match locale_key
+            {
+                Some(_) => {
+                    locale_value = locale_key.unwrap().as_str().unwrap();
+                }
+                None => {
+                    locale_value = "en_US";
+                }
+            }
             let locale: chrono::Locale =
-                chrono::Locale::try_from(global.get("locale").unwrap().as_str().unwrap()).unwrap(); // Get locale from Global context
+                chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
             // Define our Page
             page = Page {
@@ -311,8 +333,20 @@ pub fn get_contexts(
     collections: &HashMap<String, Vec<Page>>,
     snippet_context: Option<&HashMap<&str, serde_yaml::Value>>,
 ) -> Object {
-    let global: HashMap<String, serde_yaml::Value> =
-        serde_yaml::from_str(&fs::read_to_string("./_global.yml").unwrap()).unwrap(); // Defined as variable as it required a type annotation
+    let global_file = fs::read_to_string("./_global.yml");
+    let global: HashMap<String, serde_yaml::Value>;
+    match global_file
+    {
+        Ok(_) => {
+            global =
+            serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
+        }
+        Err(_) => {
+            global =
+            serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
+        }
+    }
+    
 
     /*
     Layouts
@@ -568,9 +602,18 @@ pub fn render_snippets(
 
 /// Creates a Liquid parser
 pub fn create_liquid_parser() -> liquid::Parser {
-    // let mut partial = liquid::partials::InMemorySource::new();
-    // partial.add("hello.txt", "A");
-    // let partial_compiler = liquid::partials::EagerCompiler::new(partial);
+    let mut partial = liquid::partials::InMemorySource::new();
+    let snippets = fs::read_dir("./snippets");
+    if snippets.is_ok()
+    {
+        for snippet in snippets.unwrap() {
+            let unwrapped_snippet = snippet.unwrap();
+            let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
+            let path = &unwrapped_snippet.path();
+            partial.add(file_name, &fs::read_to_string(path).unwrap());
+        }
+    }
+    let partial_compiler = liquid::partials::EagerCompiler::new(partial);
     liquid::ParserBuilder::with_stdlib()
         .tag(liquid_lib::jekyll::IncludeTag)
         .filter(liquid_lib::jekyll::ArrayToSentenceString)
@@ -581,7 +624,7 @@ pub fn create_liquid_parser() -> liquid::Parser {
         .filter(liquid_lib::jekyll::Unshift)
         .filter(liquid_lib::shopify::Pluralize)
         .filter(liquid_lib::extra::DateInTz)
-        // .partials(partial_compiler)
+        .partials(partial_compiler)
         .build()
         .unwrap()
 }
