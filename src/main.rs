@@ -17,7 +17,7 @@
 mod lib;
 
 use actix_web::HttpServer;
-use clap::{crate_version, clap_app, ArgMatches};
+use clap::{clap_app, crate_version, ArgMatches};
 use glob::glob;
 use lazy_static::lazy_static;
 use notify::{raw_watcher, RecursiveMode, Watcher};
@@ -73,8 +73,10 @@ fn main() {
             build(build_matches);
         }
         Some(("serve", serve_matches)) => {
-          let rt = actix_rt::System::new();
-          rt.block_on(async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) });
+            let rt = actix_rt::System::new();
+            rt.block_on(
+                async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
+            );
         }
         None => println!("Dokkoo {}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
@@ -132,16 +134,26 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 #[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
     env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
-    HttpServer::new(|| {
-      match Path::new("./output/index.html").is_file()
-      {
-        true => {
-          actix_web::App::new().service(actix_files::Files::new("/", "./output").prefer_utf8(true).use_hidden_files().use_etag(true).use_last_modified(true).show_files_listing().redirect_to_slash_directory().index_file("index.html"))
-        }
-        false => {
-          actix_web::App::new().service(actix_files::Files::new("/", "./output").prefer_utf8(true).use_hidden_files().use_etag(true).use_last_modified(true).show_files_listing().redirect_to_slash_directory())
-        }
-      }
+    HttpServer::new(|| match Path::new("./output/index.html").is_file() {
+        true => actix_web::App::new().service(
+            actix_files::Files::new("/", "./output")
+                .prefer_utf8(true)
+                .use_hidden_files()
+                .use_etag(true)
+                .use_last_modified(true)
+                .show_files_listing()
+                .redirect_to_slash_directory()
+                .index_file("index.html"),
+        ),
+        false => actix_web::App::new().service(
+            actix_files::Files::new("/", "./output")
+                .prefer_utf8(true)
+                .use_hidden_files()
+                .use_etag(true)
+                .use_last_modified(true)
+                .show_files_listing()
+                .redirect_to_slash_directory(),
+        ),
     })
     .bind("127.0.0.1:8080")
     .unwrap()
@@ -225,11 +237,11 @@ fn build_loop(
 }
 
 /// Write a file to the filesystem
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `path` - The path to write the file to
-/// 
+///
 /// * `text_to_write` - The data to write to the filesystem
 #[inline(always)]
 fn write_file(path: &str, text_to_write: String) {

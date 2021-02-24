@@ -384,17 +384,13 @@ pub fn render(
 ) -> String {
     match only_context {
         true => {
-            let template = create_liquid_parser()
-                .parse(text_to_render)
-                .unwrap();
+            let template = create_liquid_parser().parse(text_to_render).unwrap();
             template
                 .render(&get_contexts(page, collections, None))
                 .unwrap()
         }
         false => {
-            let template = create_liquid_parser()
-                .parse(text_to_render)
-                .unwrap();
+            let template = create_liquid_parser().parse(text_to_render).unwrap();
 
             render_markdown(
                 template
@@ -571,8 +567,7 @@ pub fn render_snippets(
 }
 
 /// Creates a Liquid parser
-pub fn create_liquid_parser() -> liquid::Parser
-{
+pub fn create_liquid_parser() -> liquid::Parser {
     // let mut partial = liquid::partials::InMemorySource::new();
     // partial.add("hello.txt", "A");
     // let partial_compiler = liquid::partials::EagerCompiler::new(partial);
