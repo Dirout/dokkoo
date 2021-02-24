@@ -17,8 +17,7 @@
 mod lib;
 
 use actix_web::HttpServer;
-use clap::{crate_version, load_yaml, App, ArgMatches};
-use futures::join;
+use clap::{crate_version, clap_app, ArgMatches};
 use glob::glob;
 use lazy_static::lazy_static;
 use notify::{raw_watcher, RecursiveMode, Watcher};
@@ -33,15 +32,33 @@ use std::sync::mpsc::channel;
 use stopwatch::Stopwatch;
 
 lazy_static! {
-    static ref MATCHES: ArgMatches = App::from(load_yaml!("cli.yaml"))
-        .version(crate_version!())
+    /// The command-line interface (CLI) of Dokkoo
+    static ref MATCHES: ArgMatches = clap_app!(Dokkoo =>
+            (version: crate_version!())
+            (author: "Emil Sayahi")
+            (about: "Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.")
+            (@subcommand show =>
+                (about: "Shows information regarding the usage and handling of this software")
+                (@arg warranty: -w --warranty "Prints warranty information")
+                (@arg conditions: -c --conditions "Prints conditions information")
+            )
+            (@subcommand build =>
+              (about: "Outputs a Mokk")
+              (@arg PATH: +required +takes_value "Path to a Mokk")
+            )
+            (@subcommand serve =>
+              (about: "Outputs a Mokk")
+              (@arg PATH: +required +takes_value "Path to a Mokk")
+            )
+        )
         .get_matches();
 }
 
+/// The main function of Dokkoo's CLI
 fn main() {
     println!(
         "
-    Dokkoo  Copyright (C) 2020  Emil Sayahi
+    Dokkoo  Copyright (C) 2020, 2021  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
@@ -56,14 +73,19 @@ fn main() {
             build(build_matches);
         }
         Some(("serve", serve_matches)) => {
-            let mut sys = actix_rt::System::new("Dokkoo Serving System");
-            sys.block_on(async move { join!(void_host(serve_matches), serve_mokk(serve_matches)) });
+          let rt = actix_rt::System::new();
+          rt.block_on(async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) });
         }
-        None => println!("Dokkoo v{}", crate_version!()),
+        None => println!("Dokkoo {}", crate_version!()),
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
 }
 
+/// Handle changes to the Mokk while serving
+///
+/// # Arguments
+///
+/// * `PATH` - Path to a Mokk (required)
 async fn serve_mokk(matches: &clap::ArgMatches) {
     let mut collections = build(matches);
 
@@ -78,8 +100,6 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
     watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
     watcher.unwatch(format!("{}/output", path_str)).unwrap(); // Ignore the output folder
-    watcher.unwatch(format!("{}/layouts", path_str)).unwrap(); // Ignore the layouts folder
-    watcher.unwatch(format!("{}/snippets", path_str)).unwrap(); // Ignore the snippets folder
 
     // Ignore .git folder
     let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
@@ -91,7 +111,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
         match receiver.recv() {
             Ok(event) => {
                 let file = &event.path.unwrap();
-                if file.extension().unwrap() == "mokkf" {
+                if file.extension().is_some() && file.extension().unwrap() == "mokkf" {
                     let page = lib::get_page_object(format!("{}", file.display()), &collections);
                     let output_path = format!("{}/output/{}", path_str, page.url);
                     let compile_page = lib::compile(page, collections);
@@ -99,26 +119,35 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
                     write_file(&output_path, compile_page.0); // Create output path, write to file
                 }
             } // Compile file on receiving of notification
-            Err(e) => println!("{:#?}", e), // Show errors in processing Mokk
+            Err(e) => eprintln!("{:#?}", e), // Show errors in processing Mokk
         }
     }
 }
 
-/// Avoid warning when using `host()`, as that returns a `Result<()>`
+/// Host the local server when serving
+///
+/// # Arguments
+///
+/// * `PATH` - Path to a Mokk (required)
 #[inline(always)]
-async fn void_host(matches: &clap::ArgMatches) {
+async fn host(matches: &clap::ArgMatches) {
     env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
-    host().await.unwrap();
-}
-
-#[inline(always)]
-async fn host() -> std::io::Result<()> {
     HttpServer::new(|| {
-        actix_web::App::new().service(actix_files::Files::new("/", "./output").show_files_listing())
+      match Path::new("./output/index.html").is_file()
+      {
+        true => {
+          actix_web::App::new().service(actix_files::Files::new("/", "./output").prefer_utf8(true).use_hidden_files().use_etag(true).use_last_modified(true).show_files_listing().redirect_to_slash_directory().index_file("index.html"))
+        }
+        false => {
+          actix_web::App::new().service(actix_files::Files::new("/", "./output").prefer_utf8(true).use_hidden_files().use_etag(true).use_last_modified(true).show_files_listing().redirect_to_slash_directory())
+        }
+      }
     })
-    .bind("127.0.0.1:8080")?
+    .bind("127.0.0.1:8080")
+    .unwrap()
     .run()
     .await
+    .unwrap()
 }
 
 /// Outputs a Mokk
@@ -195,6 +224,13 @@ fn build_loop(
     collections
 }
 
+/// Write a file to the filesystem
+/// 
+/// # Arguments
+/// 
+/// * `path` - The path to write the file to
+/// 
+/// * `text_to_write` - The data to write to the filesystem
 #[inline(always)]
 fn write_file(path: &str, text_to_write: String) {
     fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
