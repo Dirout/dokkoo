@@ -752,6 +752,44 @@
 <span id="749">749</span>
 <span id="750">750</span>
 <span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
     This file is part of Dokkoo.
@@ -998,10 +1036,32 @@ File:
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="ident">DateTime</span>::<span class="ident">parse_from_rfc3339</span>(<span class="ident">date</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)</span>
-            <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span>
-                <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// TODO: Figure out a way to not have to get copy of Global context in get_page, save on memory</span>
+            <span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
+            <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span>;
+            <span class="kw">match</span> <span class="ident">global_file</span>
+            {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">global</span> <span class="op">=</span>
+                    <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+                }
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">global</span> <span class="op">=</span>
+                    <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+                }
+            }
+            <span class="kw">let</span> <span class="ident">locale_key</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get</span>(<span class="string">&quot;locale&quot;</span>);
+            <span class="kw">let</span> <span class="ident">locale_value</span>;
+            <span class="kw">match</span> <span class="ident">locale_key</span>
+            {
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">locale_value</span> <span class="op">=</span> <span class="ident">locale_key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
+                }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">locale_value</span> <span class="op">=</span> <span class="string">&quot;en_US&quot;</span>;
+                }
+            }
             <span class="kw">let</span> <span class="ident">locale</span>: <span class="ident">chrono</span>::<span class="ident">Locale</span> <span class="op">=</span>
-                <span class="ident">chrono</span>::<span class="ident">Locale</span>::<span class="ident">try_from</span>(<span class="ident">global</span>.<span class="ident">get</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Get locale from Global context</span>
+                <span class="ident">chrono</span>::<span class="ident">Locale</span>::<span class="ident">try_from</span>(<span class="ident">locale_value</span>).<span class="ident">unwrap</span>(); <span class="comment">// Get locale from Global context</span>
 
             <span class="comment">// Define our Page</span>
             <span class="ident">page</span> <span class="op">=</span> <span class="ident">Page</span> {
@@ -1066,8 +1126,20 @@ File:
     <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">snippet_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Object</span> {
-    <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+    <span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
+    <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span>;
+    <span class="kw">match</span> <span class="ident">global_file</span>
+    {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">global</span> <span class="op">=</span>
+            <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+        }
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">global</span> <span class="op">=</span>
+            <span class="ident">serde_yaml</span>::<span class="ident">from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+        }
+    }
+    
 
     <span class="comment">/*
     Layouts
@@ -1139,17 +1211,13 @@ File:
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">only_context</span> {
         <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>()
-                .<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
-                .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>().<span class="ident">parse</span>(<span class="ident">text_to_render</span>).<span class="ident">unwrap</span>();
             <span class="ident">template</span>
                 .<span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">get_contexts</span>(<span class="ident">page</span>, <span class="ident">collections</span>, <span class="prelude-val">None</span>))
                 .<span class="ident">unwrap</span>()
         }
         <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>()
-                .<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
-                .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>().<span class="ident">parse</span>(<span class="ident">text_to_render</span>).<span class="ident">unwrap</span>();
 
             <span class="ident">render_markdown</span>(
                 <span class="ident">template</span>
@@ -1326,11 +1394,19 @@ File:
 }
 
 <span class="doccomment">/// Creates a Liquid parser</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">liquid</span>::<span class="ident">Parser</span>
-{
-    <span class="comment">// let mut partial = liquid::partials::InMemorySource::new();</span>
-    <span class="comment">// partial.add(&quot;hello.txt&quot;, &quot;A&quot;);</span>
-    <span class="comment">// let partial_compiler = liquid::partials::EagerCompiler::new(partial);</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">liquid</span>::<span class="ident">Parser</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">liquid</span>::<span class="ident">partials</span>::<span class="ident">InMemorySource</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="ident">snippets</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_dir</span>(<span class="string">&quot;./snippets&quot;</span>);
+    <span class="kw">if</span> <span class="ident">snippets</span>.<span class="ident">is_ok</span>()
+    {
+        <span class="kw">for</span> <span class="ident">snippet</span> <span class="kw">in</span> <span class="ident">snippets</span>.<span class="ident">unwrap</span>() {
+            <span class="kw">let</span> <span class="ident">unwrapped_snippet</span> <span class="op">=</span> <span class="ident">snippet</span>.<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">file_name</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">path</span>();
+            <span class="ident">partial</span>.<span class="ident">add</span>(<span class="ident">file_name</span>, <span class="kw-2">&amp;</span><span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>());
+        }
+    }
+    <span class="kw">let</span> <span class="ident">partial_compiler</span> <span class="op">=</span> <span class="ident">liquid</span>::<span class="ident">partials</span>::<span class="ident">EagerCompiler</span>::<span class="ident">new</span>(<span class="ident">partial</span>);
     <span class="ident">liquid</span>::<span class="ident">ParserBuilder</span>::<span class="ident">with_stdlib</span>()
         .<span class="ident">tag</span>(<span class="ident">liquid_lib</span>::<span class="ident">jekyll</span>::<span class="ident">IncludeTag</span>)
         .<span class="ident">filter</span>(<span class="ident">liquid_lib</span>::<span class="ident">jekyll</span>::<span class="ident">ArrayToSentenceString</span>)
@@ -1341,7 +1417,7 @@ File:
         .<span class="ident">filter</span>(<span class="ident">liquid_lib</span>::<span class="ident">jekyll</span>::<span class="ident">Unshift</span>)
         .<span class="ident">filter</span>(<span class="ident">liquid_lib</span>::<span class="ident">shopify</span>::<span class="ident">Pluralize</span>)
         .<span class="ident">filter</span>(<span class="ident">liquid_lib</span>::<span class="ident">extra</span>::<span class="ident">DateInTz</span>)
-        <span class="comment">// .partials(partial_compiler)</span>
+        .<span class="ident">partials</span>(<span class="ident">partial_compiler</span>)
         .<span class="ident">build</span>()
         .<span class="ident">unwrap</span>()
 }
