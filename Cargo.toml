@@ -39,8 +39,8 @@ doc = false
 
 [dependencies]
 actix-files = "0.6.0-beta.2"
-actix-rt = "2.0.2"
-actix-web = "4.0.0-beta.2"
+actix-rt = "2.1.0"
+actix-web = "4.0.0-beta.3"
 chrono = { version = "0.4.19", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["suggestions", "color", "wrap_help"] }
 futures = "0.3.13"
