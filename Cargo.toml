@@ -21,8 +21,8 @@ categories = ["command-line-utilities", "parser-implementations", "text-processi
 exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "renovate.json", "/azure-pipelines.yml", "/snapcraft.yaml"]
 license = "AGPL-3.0-or-later"
 description = "Mokk (Macro Output Key Kit) implementation written in Rust."
-repository = "https://github.com/MadeByEmil/dokkoo"
-homepage = "https://github.com/MadeByEmil/dokkoo"
+repository = "https://github.com/Dirout/dokkoo"
+homepage = "https://github.com/Dirout/dokkoo"
 readme = "README"
 
 [lib]
