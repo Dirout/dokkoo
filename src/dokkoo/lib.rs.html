@@ -863,7 +863,7 @@ File:
     <span class="kw">pub</span> <span class="ident">minute</span>: <span class="ident">String</span>,
     <span class="doccomment">/// Second of the minute (00..59)</span>
     <span class="kw">pub</span> <span class="ident">second</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// A File&#39;s date-time metadata, formatted per RFC 3339 spec.</span>
+    <span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard</span>
     <span class="kw">pub</span> <span class="ident">rfc_3339</span>: <span class="ident">String</span>,
 }
 
@@ -881,19 +881,19 @@ File:
     <span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml</span>::<span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A File&#39;s contents following the frontmatter</span>
     <span class="kw">pub</span> <span class="ident">content</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// Data representing the output path of a File</span>
+    <span class="doccomment">/// Data representing the output path of a File.</span>
     <span class="doccomment">/// This is defined in a File&#39;s frontmatter</span>
     <span class="kw">pub</span> <span class="ident">permalink</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// A File&#39;s date-time metadata, formatted per RFC 3339 spec.</span>
+    <span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard.</span>
     <span class="doccomment">/// This is defined in a File&#39;s frontmatter</span>
     <span class="kw">pub</span> <span class="ident">date</span>: <span class="ident">Date</span>,
     <span class="doccomment">/// Path to the File, not including the File itself</span>
     <span class="kw">pub</span> <span class="ident">directory</span>: <span class="ident">String</span>,
     <span class="doccomment">/// The File&#39;s base filename</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// Rendered permalink</span>
+    <span class="doccomment">/// The output path of a file; a processed `permalink` value</span>
     <span class="kw">pub</span> <span class="ident">url</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// Whether a File is intended to be marked-up in Markdown</span>
+    <span class="doccomment">/// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)</span>
     <span class="kw">pub</span> <span class="ident">markdown</span>: <span class="ident">bool</span>,
 }
 
@@ -939,7 +939,7 @@ File:
     }
 }
 
-<span class="doccomment">/// Returns a tuple with a File&#39;s frontmatter and contents, in that order.</span>
+<span class="doccomment">/// Returns a tuple with a File&#39;s frontmatter and contents, in that order</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
@@ -970,7 +970,7 @@ File:
     (<span class="ident">frontmatter</span>, <span class="ident">contents</span>)
 }
 
-<span class="doccomment">/// Returns an object with a Page&#39;s context.</span>
+<span class="doccomment">/// Returns an object with a Page&#39;s context</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
@@ -1120,7 +1120,7 @@ File:
     <span class="ident">page</span>
 }
 
-<span class="doccomment">/// Returns a Liquid object with a Page&#39;s Liquid contexts.</span>
+<span class="doccomment">/// Returns a Liquid object with a Page&#39;s Liquid contexts</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
@@ -1196,7 +1196,7 @@ File:
     <span class="ident">contexts</span>
 }
 
-<span class="doccomment">/// Returns a String with a &amp;str&#39;s File rendered.</span>
+<span class="doccomment">/// Returns a String with a &amp;str&#39;s File rendered</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
