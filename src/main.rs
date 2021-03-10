@@ -16,7 +16,8 @@
 */
 mod lib;
 
-use actix_web::HttpServer;
+use actix_files::NamedFile;
+use actix_web::{HttpServer, dev::{ServiceRequest, ServiceResponse}};
 use clap::{clap_app, crate_version, ArgMatches};
 use glob::glob;
 use lazy_static::lazy_static;
@@ -135,25 +136,74 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 async fn host(matches: &clap::ArgMatches) {
     env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
     HttpServer::new(|| match Path::new("./output/index.html").is_file() {
-        true => actix_web::App::new().service(
-            actix_files::Files::new("/", "./output")
-                .prefer_utf8(true)
-                .use_hidden_files()
-                .use_etag(true)
-                .use_last_modified(true)
-                .show_files_listing()
-                .redirect_to_slash_directory()
-                .index_file("index.html"),
-        ),
-        false => actix_web::App::new().service(
-            actix_files::Files::new("/", "./output")
-                .prefer_utf8(true)
-                .use_hidden_files()
-                .use_etag(true)
-                .use_last_modified(true)
-                .show_files_listing()
-                .redirect_to_slash_directory(),
-        ),
+        true => match Path::new("./output/404.html").is_file() {
+          true => {
+            actix_web::App::new().service(
+              actix_files::Files::new("/", "./output")
+                  .prefer_utf8(true)
+                  .use_hidden_files()
+                  .use_etag(true)
+                  .use_last_modified(true)
+                  .show_files_listing()
+                  .redirect_to_slash_directory()
+                  .index_file("index.html")
+                  .default_handler(|req: ServiceRequest| {
+                    let (http_req, _payload) = req.into_parts();
+        
+                    async {
+                        let response = NamedFile::open("./output/404.html").unwrap()
+                            .into_response(&http_req);
+                        Ok(ServiceResponse::new(http_req, response))
+                    }
+                }),
+            )
+          }
+          false => {
+            actix_web::App::new().service(
+              actix_files::Files::new("/", "./output")
+                  .prefer_utf8(true)
+                  .use_hidden_files()
+                  .use_etag(true)
+                  .use_last_modified(true)
+                  .show_files_listing()
+                  .redirect_to_slash_directory()
+                  .index_file("index.html").default_handler(|req: ServiceRequest| {
+                    let (http_req, _payload) = req.into_parts();
+        
+                    async {
+                        let response = NamedFile::open("./output/404.html").unwrap()
+                            .into_response(&http_req);
+                        Ok(ServiceResponse::new(http_req, response))
+                    }
+                }),
+            )
+          }
+        }
+        false => match Path::new("./output/404.html").is_file()
+        {
+          true => {
+            actix_web::App::new().service(
+              actix_files::Files::new("/", "./output")
+                  .prefer_utf8(true)
+                  .use_hidden_files()
+                  .use_etag(true)
+                  .use_last_modified(true)
+                  .show_files_listing()
+                  .redirect_to_slash_directory(),
+            )
+          }
+          false => {
+            actix_web::App::new().service(
+              actix_files::Files::new("/", "./output")
+                  .prefer_utf8(true)
+                  .use_hidden_files()
+                  .use_etag(true)
+                  .use_last_modified(true)
+                  .show_files_listing()
+                  .redirect_to_slash_directory(),
+            )
+          }
+        }
     })
     .bind("127.0.0.1:8080")
     .unwrap()
