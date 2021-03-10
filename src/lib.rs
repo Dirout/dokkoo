@@ -23,36 +23,14 @@ use chrono::DateTime;
 use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-/// User-specified data regarding a Mokk File
-pub struct Document {
-    /// A File's contextual data, represented as YAML at the head/front of the file
-    pub frontmatter: HashMap<String, serde_yaml::Value>,
-    /// A File's contents following the frontmatter
-    pub content: String,
-    /// Data representing the output path of a File
-    /// This is defined in a File's frontmatter
-    pub permalink: String,
-    /// A File's date-time metadata, formatted per RFC 3339 spec.
-    /// This is defined in a File's frontmatter
-    pub date: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-/// Generated data regarding a Mokk File
-pub struct Page {
-    /// A Page's Document
-    pub document: Document,
-    /// Path to the File, not including the File itself
-    pub directory: String,
-    /// The File's base filename
-    pub name: String,
-    pub url: String, // Rendered permalink
+/// A File's date-time metadata
+pub struct Date {
     /// Year with four digits
     pub year: String,
     /// Year without the century (00..99)
@@ -87,6 +65,38 @@ pub struct Page {
     pub minute: String,
     /// Second of the minute (00..59)
     pub second: String,
+    /// A File's date-time metadata, formatted per RFC 3339 spec.
+    pub rfc_3339: String,
+}
+
+/// Handle conversion of a Date object into a string of characters
+impl fmt::Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.rfc_3339)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Generated data regarding a Mokk File
+pub struct Page {
+    /// A File's contextual data, represented as YAML at the head/front of the file
+    pub data: HashMap<String, serde_yaml::Value>,
+    /// A File's contents following the frontmatter
+    pub content: String,
+    /// Data representing the output path of a File
+    /// This is defined in a File's frontmatter
+    pub permalink: String,
+    /// A File's date-time metadata, formatted per RFC 3339 spec.
+    /// This is defined in a File's frontmatter
+    pub date: Date,
+    /// Path to the File, not including the File itself
+    pub directory: String,
+    /// The File's base filename
+    pub name: String,
+    /// Rendered permalink
+    pub url: String,
+    /// Whether a File is intended to be marked-up in Markdown
+    pub markdown: bool,
 }
 
 /// Returns an expanded permalink value, for when shorthand is used
@@ -97,33 +107,33 @@ pub struct Page {
 ///
 /// # Shorthand
 ///
-/// * `date` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.document.frontmatter.title }}.html`
+/// * `date` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html`
 ///
-/// * `pretty` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.document.frontmatter.title }}.html`
+/// * `pretty` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html`
 ///
-/// * `ordinal` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.document.frontmatter.title }}.html`
+/// * `ordinal` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.data.title }}.html`
 ///
-/// * `weekdate` → `/{{ page.document.frontmatter.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.document.frontmatter.title }}.html`
+/// * `weekdate` → `/{{ page.data.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.data.title }}.html`
 ///
-/// * `none` → `/{{ page.document.frontmatter.collection }}/{{ page.document.frontmatter.title }}.html`
+/// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
 #[inline(always)]
 pub fn get_permalink(permalink: &str) -> String {
     match &*permalink {
         "date" => {
-            "/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.document.frontmatter.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html".to_owned()
         }
         "pretty" => {
-            "/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.document.frontmatter.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html".to_owned()
         }
         "ordinal" => {
-            "/{{ page.document.frontmatter.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.document.frontmatter.title }}.html"
+            "/{{ page.data.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.data.title }}.html"
                 .to_owned()
         }
         "weekdate" => {
-            "/{{ page.document.frontmatter.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.document.frontmatter.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.data.title }}.html".to_owned()
         }
         "none" => {
-            "/{{ page.document.frontmatter.collection }}/{{ page.document.frontmatter.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.data.title }}.html".to_owned()
         }
         _ => {
             permalink.to_string()
@@ -177,9 +187,10 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
         serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as HashMap (collection of key-value pairs)
     let permalink = frontmatter.get("permalink"); // Get the key-value pair of the 'permalink' key from the frontmatter
     let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
+    let markdown = frontmatter.get("markdown"); // Get the key-value pair of the 'markdown' key from the frontmatter
 
     let permalink_string: String;
-    let date_string: String;
+    let markdown_bool: bool;
 
     match permalink {
         Some(_) => {
@@ -190,61 +201,22 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
         }
     }
 
-    match date {
+    match markdown {
         Some(_) => {
-            date_string = date.unwrap().as_str().unwrap().to_string();
+            markdown_bool = markdown.unwrap().as_bool().unwrap();
         }
         None => {
-            date_string = String::new();
+            markdown_bool = true;
         }
     }
 
-    // Plug the variables collected above into our Page's Document (see definitions of Page and Document, in this sourcecode file, for clarification as to their roles)
-    let document = Document {
-        frontmatter: serde_yaml::from_str(&split_page.0).unwrap(),
-        content: split_page.1,
-        permalink: permalink_string,
-        date: date_string,
-    };
-
-    let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
-    let mut page: Page;
-    match &document.date[..] {
-        "" => {
-            // Define our Page
-            page = Page {
-                document,
-                directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
-                name: page_path_io
-                    .file_stem()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_owned(),
-                url: String::new(),
-                year: String::new(),
-                short_year: String::new(),
-                month: String::new(),
-                i_month: String::new(),
-                short_month: String::new(),
-                long_month: String::new(),
-                day: String::new(),
-                i_day: String::new(),
-                y_day: String::new(),
-                w_year: String::new(),
-                week: String::new(),
-                w_day: String::new(),
-                short_day: String::new(),
-                long_day: String::new(),
-                hour: String::new(),
-                minute: String::new(),
-                second: String::new(),
-            };
-        }
-        _ => {
+    let date_object;
+    match date {
+        Some(_) => {
             let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
             let global_file = fs::read_to_string("./_global.yml");
             let global: HashMap<String, serde_yaml::Value>;
+
             match global_file {
                 Ok(_) => {
                     global = serde_yaml::from_str(&global_file.unwrap()).unwrap();
@@ -255,8 +227,10 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     // Defined as variable as it required a type annotation
                 }
             }
+
             let locale_key = global.get("locale");
             let locale_value;
+
             match locale_key {
                 Some(_) => {
                     locale_value = locale_key.unwrap().as_str().unwrap();
@@ -265,19 +239,10 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     locale_value = "en_US";
                 }
             }
+            
             let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
-            // Define our Page
-            page = Page {
-                document,
-                directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
-                name: page_path_io
-                    .file_stem()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_owned(),
-                url: String::new(),
+            date_object = Date {
                 year: format!("{}", datetime.unwrap().format_localized("%Y", locale)),
                 short_year: format!("{}", datetime.unwrap().format_localized("%y", locale)),
                 month: format!("{}", datetime.unwrap().format_localized("%m", locale)),
@@ -295,11 +260,53 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                 hour: format!("{}", datetime.unwrap().format_localized("%H", locale)),
                 minute: format!("{}", datetime.unwrap().format_localized("%M", locale)),
                 second: format!("{}", datetime.unwrap().format_localized("%S", locale)),
-            };
+                rfc_3339: date.unwrap().as_str().unwrap().to_string(),
+            }
+        }
+        None => {
+            date_object = Date {
+                year: String::new(),
+                short_year: String::new(),
+                month: String::new(),
+                i_month: String::new(),
+                short_month: String::new(),
+                long_month: String::new(),
+                day: String::new(),
+                i_day: String::new(),
+                y_day: String::new(),
+                w_year: String::new(),
+                week: String::new(),
+                w_day: String::new(),
+                short_day: String::new(),
+                long_day: String::new(),
+                hour: String::new(),
+                minute: String::new(),
+                second: String::new(),
+                rfc_3339: String::new(),
+            }
         }
     }
 
-    match &page.document.permalink[..] {
+    let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
+    
+    // Define our Page
+    let mut page = Page {
+        data: serde_yaml::from_str(&split_page.0).unwrap(),
+        content: split_page.1,
+        permalink: permalink_string,
+        date: date_object,
+        directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+        name: page_path_io
+            .file_stem()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned(),
+        url: String::new(),
+        markdown: markdown_bool,
+    };
+
+    match &page.permalink[..] {
         "" => {}
         _ => {
             // Render the URL once the Page metadata has been generated
@@ -344,7 +351,7 @@ pub fn get_contexts(
     /*
     Layouts
     */
-    let layout_name = page.document.frontmatter.get("layout");
+    let layout_name = page.data.get("layout");
     let layout: HashMap<String, serde_yaml::Value>;
 
     // Import layout context if Page has a layout
@@ -419,11 +426,18 @@ pub fn render(
         false => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
 
-            render_markdown(
-                template
-                    .render(&get_contexts(page, collections, None))
-                    .unwrap(),
-            )
+            if page.markdown
+            {
+                render_markdown(
+                    template
+                        .render(&get_contexts(page, collections, None))
+                        .unwrap(),
+                )
+            }
+            else
+            {
+                template.render(&get_contexts(page, collections, None)).unwrap()
+            }
         }
     }
 }
@@ -441,15 +455,15 @@ pub fn compile(
     mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
-    page.document.content = render_snippets(&page, &page.document.content, &collections); // Embeddable page - page with only snippets rendered
-    let layout_name = &page.document.frontmatter.get("layout");
-    let collection_name = &page.document.frontmatter.get("collection");
+    page.content = render_snippets(&page, &page.content, &collections); // Embeddable page - page with only snippets rendered
+    let layout_name = &page.data.get("layout");
+    let collection_name = &page.data.get("collection");
 
     // If Page has a layout, render with layout(s)
     // Otherwise, render with Document's contents
     match layout_name {
         None => {
-            compiled_page = render(&page, &page.document.content, false, &collections);
+            compiled_page = render(&page, &page.content, false, &collections);
         }
         Some(_) => {
             let layout_object = get_page_object(
@@ -503,7 +517,7 @@ pub fn render_layouts(
     // Take layout's text, render it with sub's context
     let rendered: String;
 
-    let super_layout = layout.document.frontmatter.get("layout");
+    let super_layout = layout.data.get("layout");
     match super_layout {
         Some(_) => {
             let super_layout_object = get_page_object(
@@ -516,7 +530,7 @@ pub fn render_layouts(
             rendered = render_layouts(&layout, super_layout_object, collections);
         }
         None => {
-            rendered = render(&sub, &layout.document.content, true, collections);
+            rendered = render(&sub, &layout.content, true, collections);
         }
     }
 
