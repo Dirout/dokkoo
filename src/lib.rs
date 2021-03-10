@@ -65,7 +65,7 @@ pub struct Date {
     pub minute: String,
     /// Second of the minute (00..59)
     pub second: String,
-    /// A File's date-time metadata, formatted per RFC 3339 spec.
+    /// A File's date-time metadata, formatted per the RFC 3339 standard
     pub rfc_3339: String,
 }
 
@@ -83,19 +83,19 @@ pub struct Page {
     pub data: HashMap<String, serde_yaml::Value>,
     /// A File's contents following the frontmatter
     pub content: String,
-    /// Data representing the output path of a File
+    /// Data representing the output path of a File.
     /// This is defined in a File's frontmatter
     pub permalink: String,
-    /// A File's date-time metadata, formatted per RFC 3339 spec.
+    /// A File's date-time metadata, formatted per the RFC 3339 standard.
     /// This is defined in a File's frontmatter
     pub date: Date,
     /// Path to the File, not including the File itself
     pub directory: String,
     /// The File's base filename
     pub name: String,
-    /// Rendered permalink
+    /// The output path of a file; a processed `permalink` value
     pub url: String,
-    /// Whether a File is intended to be marked-up in Markdown
+    /// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
     pub markdown: bool,
 }
 
@@ -141,7 +141,7 @@ pub fn get_permalink(permalink: &str) -> String {
     }
 }
 
-/// Returns a tuple with a File's frontmatter and contents, in that order.
+/// Returns a tuple with a File's frontmatter and contents, in that order
 ///
 /// # Arguments
 ///
@@ -172,7 +172,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
     (frontmatter, contents)
 }
 
-/// Returns an object with a Page's context.
+/// Returns an object with a Page's context
 ///
 /// # Arguments
 ///
@@ -322,7 +322,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
     page
 }
 
-/// Returns a Liquid object with a Page's Liquid contexts.
+/// Returns a Liquid object with a Page's Liquid contexts
 ///
 /// # Arguments
 ///
@@ -398,7 +398,7 @@ pub fn get_contexts(
     contexts
 }
 
-/// Returns a String with a &str's File rendered.
+/// Returns a String with a &str's File rendered
 ///
 /// # Arguments
 ///
