@@ -45,11 +45,12 @@ lazy_static! {
             )
             (@subcommand build =>
               (about: "Outputs a Mokk")
-              (@arg PATH: +required +takes_value "Path to a Mokk")
+              (@arg PATH: -p --path +required +takes_value "Path to a Mokk")
             )
             (@subcommand serve =>
               (about: "Outputs a Mokk")
-              (@arg PATH: +required +takes_value "Path to a Mokk")
+              (@arg PATH: --path +required +takes_value "Path to a Mokk")
+              (@arg PORT: --port +required +takes_value "Port to serve a Mokk on")
             )
         )
         .get_matches();
@@ -94,9 +95,10 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 
     let path = env::current_dir().unwrap();
     let path_str = path.to_str().unwrap();
+    let port = matches.value_of("PORT").unwrap();
     println!(
-        "\nServing at http://127.0.0.1:8080 from {}/output\nChanges will be served … ",
-        path.to_str().unwrap()
+        "\nServing at http://127.0.0.1:{} from {}/output\nChanges will be served … ",
+        port, path.to_str().unwrap()
     );
 
     let (sender, receiver) = channel(); // Open a channel to receive notifications
@@ -135,6 +137,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 #[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
     env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
+    let port = matches.value_of("PORT").unwrap();
     HttpServer::new(|| match Path::new("./output/index.html").is_file() {
         true => match Path::new("./output/404.html").is_file() {
           true => {
@@ -167,15 +170,7 @@ async fn host(matches: &clap::ArgMatches) {
                   .use_last_modified(true)
                   .show_files_listing()
                   .redirect_to_slash_directory()
-                  .index_file("index.html").default_handler(|req: ServiceRequest| {
-                    let (http_req, _payload) = req.into_parts();
-        
-                    async {
-                        let response = NamedFile::open("./output/404.html").unwrap()
-                            .into_response(&http_req);
-                        Ok(ServiceResponse::new(http_req, response))
-                    }
-                }),
+                  .index_file("index.html"),
             )
           }
         }
@@ -189,7 +184,16 @@ async fn host(matches: &clap::ArgMatches) {
                   .use_etag(true)
                   .use_last_modified(true)
                   .show_files_listing()
-                  .redirect_to_slash_directory(),
+                  .redirect_to_slash_directory()
+                  .default_handler(|req: ServiceRequest| {
+                    let (http_req, _payload) = req.into_parts();
+        
+                    async {
+                        let response = NamedFile::open("./output/404.html").unwrap()
+                            .into_response(&http_req);
+                        Ok(ServiceResponse::new(http_req, response))
+                    }
+                }),
             )
           }
           false => {
@@ -205,7 +209,7 @@ async fn host(matches: &clap::ArgMatches) {
           }
         }
     })
-    .bind("127.0.0.1:8080")
+    .bind(format!("127.0.0.1:{}", port))
     .unwrap()
     .run()
     .await
