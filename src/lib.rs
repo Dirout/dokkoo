@@ -23,10 +23,10 @@ use chrono::DateTime;
 use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fmt};
 use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
+use std::{collections::HashMap, fmt};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 /// A File's date-time metadata
@@ -239,7 +239,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                     locale_value = "en_US";
                 }
             }
-            
+
             let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
             date_object = Date {
@@ -288,7 +288,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
     }
 
     let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
-    
+
     // Define our Page
     let mut page = Page {
         data: serde_yaml::from_str(&split_page.0).unwrap(),
@@ -426,17 +426,16 @@ pub fn render(
         false => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
 
-            if page.markdown
-            {
+            if page.markdown {
                 render_markdown(
                     template
                         .render(&get_contexts(page, collections, None))
                         .unwrap(),
                 )
-            }
-            else
-            {
-                template.render(&get_contexts(page, collections, None)).unwrap()
+            } else {
+                template
+                    .render(&get_contexts(page, collections, None))
+                    .unwrap()
             }
         }
     }
