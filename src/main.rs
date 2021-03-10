@@ -17,7 +17,10 @@
 mod lib;
 
 use actix_files::NamedFile;
-use actix_web::{HttpServer, dev::{ServiceRequest, ServiceResponse}};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    HttpServer,
+};
 use clap::{clap_app, crate_version, ArgMatches};
 use glob::glob;
 use lazy_static::lazy_static;
@@ -98,7 +101,8 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     let port = matches.value_of("PORT").unwrap();
     println!(
         "\nServing at http://127.0.0.1:{} from {}/output\nChanges will be served … ",
-        port, path.to_str().unwrap()
+        port,
+        path.to_str().unwrap()
     );
 
     let (sender, receiver) = channel(); // Open a channel to receive notifications
@@ -140,74 +144,67 @@ async fn host(matches: &clap::ArgMatches) {
     let port = matches.value_of("PORT").unwrap();
     HttpServer::new(|| match Path::new("./output/index.html").is_file() {
         true => match Path::new("./output/404.html").is_file() {
-          true => {
-            actix_web::App::new().service(
-              actix_files::Files::new("/", "./output")
-                  .prefer_utf8(true)
-                  .use_hidden_files()
-                  .use_etag(true)
-                  .use_last_modified(true)
-                  .show_files_listing()
-                  .redirect_to_slash_directory()
-                  .index_file("index.html")
-                  .default_handler(|req: ServiceRequest| {
-                    let (http_req, _payload) = req.into_parts();
-        
-                    async {
-                        let response = NamedFile::open("./output/404.html").unwrap()
-                            .into_response(&http_req);
-                        Ok(ServiceResponse::new(http_req, response))
-                    }
-                }),
-            )
-          }
-          false => {
-            actix_web::App::new().service(
-              actix_files::Files::new("/", "./output")
-                  .prefer_utf8(true)
-                  .use_hidden_files()
-                  .use_etag(true)
-                  .use_last_modified(true)
-                  .show_files_listing()
-                  .redirect_to_slash_directory()
-                  .index_file("index.html"),
-            )
-          }
-        }
-        false => match Path::new("./output/404.html").is_file()
-        {
-          true => {
-            actix_web::App::new().service(
-              actix_files::Files::new("/", "./output")
-                  .prefer_utf8(true)
-                  .use_hidden_files()
-                  .use_etag(true)
-                  .use_last_modified(true)
-                  .show_files_listing()
-                  .redirect_to_slash_directory()
-                  .default_handler(|req: ServiceRequest| {
-                    let (http_req, _payload) = req.into_parts();
-        
-                    async {
-                        let response = NamedFile::open("./output/404.html").unwrap()
-                            .into_response(&http_req);
-                        Ok(ServiceResponse::new(http_req, response))
-                    }
-                }),
-            )
-          }
-          false => {
-            actix_web::App::new().service(
-              actix_files::Files::new("/", "./output")
-                  .prefer_utf8(true)
-                  .use_hidden_files()
-                  .use_etag(true)
-                  .use_last_modified(true)
-                  .show_files_listing()
-                  .redirect_to_slash_directory(),
-            )
-          }
-        }
+            true => actix_web::App::new().service(
+                actix_files::Files::new("/", "./output")
+                    .prefer_utf8(true)
+                    .use_hidden_files()
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .show_files_listing()
+                    .redirect_to_slash_directory()
+                    .index_file("index.html")
+                    .default_handler(|req: ServiceRequest| {
+                        let (http_req, _payload) = req.into_parts();
+
+                        async {
+                            let response = NamedFile::open("./output/404.html")
+                                .unwrap()
+                                .into_response(&http_req);
+                            Ok(ServiceResponse::new(http_req, response))
+                        }
+                    }),
+            ),
+            false => actix_web::App::new().service(
+                actix_files::Files::new("/", "./output")
+                    .prefer_utf8(true)
+                    .use_hidden_files()
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .show_files_listing()
+                    .redirect_to_slash_directory()
+                    .index_file("index.html"),
+            ),
+        },
+        false => match Path::new("./output/404.html").is_file() {
+            true => actix_web::App::new().service(
+                actix_files::Files::new("/", "./output")
+                    .prefer_utf8(true)
+                    .use_hidden_files()
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .show_files_listing()
+                    .redirect_to_slash_directory()
+                    .default_handler(|req: ServiceRequest| {
+                        let (http_req, _payload) = req.into_parts();
+
+                        async {
+                            let response = NamedFile::open("./output/404.html")
+                                .unwrap()
+                                .into_response(&http_req);
+                            Ok(ServiceResponse::new(http_req, response))
+                        }
+                    }),
+            ),
+            false => actix_web::App::new().service(
+                actix_files::Files::new("/", "./output")
+                    .prefer_utf8(true)
+                    .use_hidden_files()
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .show_files_listing()
+                    .redirect_to_slash_directory(),
+            ),
+        },
     })
     .bind(format!("127.0.0.1:{}", port))
     .unwrap()
