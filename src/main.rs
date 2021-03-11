@@ -48,12 +48,12 @@ lazy_static! {
             )
             (@subcommand build =>
               (about: "Outputs a Mokk")
-              (@arg PATH: -p --path +required +takes_value "Path to a Mokk")
+              (@arg PATH: +required +takes_value "Path to a Mokk")
             )
             (@subcommand serve =>
               (about: "Outputs a Mokk")
-              (@arg PATH: --path +required +takes_value "Path to a Mokk")
-              (@arg PORT: --port +required +takes_value "Port to serve a Mokk on")
+              (@arg PATH: +required +takes_value "Path to a Mokk")
+              (@arg PORT: +required +takes_value "Port to serve a Mokk on")
             )
         )
         .get_matches();
