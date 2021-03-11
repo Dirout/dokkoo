@@ -424,7 +424,7 @@ pub fn compile(
     mut page: Page,
     mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
-    let mut compiled_page = String::new();
+    let compiled_page;
     let layout_name = &page.data.get("layout");
     let collection_name = &page.data.get("collection");
 
@@ -432,7 +432,9 @@ pub fn compile(
     // Otherwise, render with Page's contents
     page.content = render(&page, &page.content, !page.markdown, &collections);
     match layout_name {
-        None => {}
+        None => {
+            compiled_page = page.content.to_owned();
+        }
         Some(_) => {
             let layout_object = get_page_object(
                 format!(
