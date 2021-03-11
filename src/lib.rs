@@ -334,10 +334,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 ///
 /// * `conditions` - Prints conditions information
 #[inline(always)]
-pub fn get_contexts(
-    page: &Page,
-    collections: &HashMap<String, Vec<Page>>,
-) -> Object {
+pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Object {
     let global_file = fs::read_to_string("./_global.yml");
     let global: HashMap<String, serde_yaml::Value>;
     match global_file {
@@ -406,23 +403,15 @@ pub fn render(
     match only_context {
         true => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
-            template
-                .render(&get_contexts(page, collections))
-                .unwrap()
+            template.render(&get_contexts(page, collections)).unwrap()
         }
         false => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
 
             if page.markdown {
-                render_markdown(
-                    template
-                        .render(&get_contexts(page, collections))
-                        .unwrap(),
-                )
+                render_markdown(template.render(&get_contexts(page, collections)).unwrap())
             } else {
-                template
-                    .render(&get_contexts(page, collections))
-                    .unwrap()
+                template.render(&get_contexts(page, collections)).unwrap()
             }
         }
     }
