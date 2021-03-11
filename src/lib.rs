@@ -67,6 +67,8 @@ pub struct Date {
     pub second: String,
     /// A File's date-time metadata, formatted per the RFC 3339 standard
     pub rfc_3339: String,
+    /// A File's date-time metadata, formatted per the RFC 2822 standard
+    pub rfc_2822: String,
 }
 
 /// Handle conversion of a Date object into a string of characters
@@ -107,30 +109,30 @@ pub struct Page {
 ///
 /// # Shorthand
 ///
-/// * `date` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html`
+/// * `date` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html`
 ///
-/// * `pretty` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html`
+/// * `pretty` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html`
 ///
-/// * `ordinal` → `/{{ page.data.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.data.title }}.html`
+/// * `ordinal` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html`
 ///
-/// * `weekdate` → `/{{ page.data.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.data.title }}.html`
+/// * `weekdate` → `/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html`
 ///
 /// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
 #[inline(always)]
 pub fn get_permalink(permalink: &str) -> String {
     match &*permalink {
         "date" => {
-            "/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html".to_owned()
         }
         "pretty" => {
-            "/{{ page.data.collection }}/{{ page.year }}/{{ page.month }}/{{ page.day }}/{{ page.data.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html".to_owned()
         }
         "ordinal" => {
-            "/{{ page.data.collection }}/{{ page.year }}/{{ page.y_day }}/{{ page.data.title }}.html"
+            "/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html"
                 .to_owned()
         }
         "weekdate" => {
-            "/{{ page.data.collection }}/{{ page.year }}/W{{ page.week }}/{{ page.short_day }}/{{ page.data.title }}.html".to_owned()
+            "/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html".to_owned()
         }
         "none" => {
             "/{{ page.data.collection }}/{{ page.data.title }}.html".to_owned()
@@ -260,7 +262,8 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                 hour: format!("{}", datetime.unwrap().format_localized("%H", locale)),
                 minute: format!("{}", datetime.unwrap().format_localized("%M", locale)),
                 second: format!("{}", datetime.unwrap().format_localized("%S", locale)),
-                rfc_3339: date.unwrap().as_str().unwrap().to_string(),
+                rfc_3339: datetime.unwrap().to_rfc3339(),
+                rfc_2822: datetime.unwrap().to_rfc2822(),
             }
         }
         None => {
@@ -283,6 +286,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
                 minute: String::new(),
                 second: String::new(),
                 rfc_3339: String::new(),
+                rfc_2822: String::new(),
             }
         }
     }
@@ -329,13 +333,10 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `conditions` - Prints conditions information
-///
-/// * `snippet_context` - An optional context for rendering snippets, giving them a context from their call arguments
 #[inline(always)]
 pub fn get_contexts(
     page: &Page,
     collections: &HashMap<String, Vec<Page>>,
-    snippet_context: Option<&HashMap<&str, serde_yaml::Value>>,
 ) -> Object {
     let global_file = fs::read_to_string("./_global.yml");
     let global: HashMap<String, serde_yaml::Value>;
@@ -374,26 +375,12 @@ pub fn get_contexts(
         }
     }
 
-    let contexts;
-    match snippet_context {
-        Some(_) => {
-            contexts = object!({
-                "global": global,
-                "page": page,
-                "layout": layout,
-                "collections": collections,
-                "snippet": snippet_context.unwrap()
-            });
-        }
-        None => {
-            contexts = object!({
-                "global": global,
-                "page": page,
-                "layout": layout,
-                "collections": collections,
-            });
-        }
-    }
+    let contexts = object!({
+        "global": global,
+        "page": page,
+        "layout": layout,
+        "collections": collections,
+    });
 
     contexts
 }
@@ -420,7 +407,7 @@ pub fn render(
         true => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
             template
-                .render(&get_contexts(page, collections, None))
+                .render(&get_contexts(page, collections))
                 .unwrap()
         }
         false => {
@@ -429,12 +416,12 @@ pub fn render(
             if page.markdown {
                 render_markdown(
                     template
-                        .render(&get_contexts(page, collections, None))
+                        .render(&get_contexts(page, collections))
                         .unwrap(),
                 )
             } else {
                 template
-                    .render(&get_contexts(page, collections, None))
+                    .render(&get_contexts(page, collections))
                     .unwrap()
             }
         }
@@ -450,11 +437,10 @@ pub fn render(
 /// * `collections` - Collection store of this build
 #[inline(always)]
 pub fn compile(
-    mut page: Page,
+    page: Page,
     mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
     let compiled_page;
-    page.content = render_snippets(&page, &page.content, &collections); // Embeddable page - page with only snippets rendered
     let layout_name = &page.data.get("layout");
     let collection_name = &page.data.get("collection");
 
@@ -473,8 +459,7 @@ pub fn compile(
                 &collections,
             );
             let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
-            let layouts_and_snippets = render_snippets(&page, &layouts, &collections); // Render snippets that come with layout
-            compiled_page = render(&page, &layouts_and_snippets, false, &collections);
+            compiled_page = render(&page, &layouts, false, &collections);
             // Final render, to capture whatever layouts & snippets introduce
         }
     }
@@ -536,76 +521,6 @@ pub fn render_layouts(
     rendered
 }
 
-/// Render all snippets throughout a '.mokkf' file together
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file's context as a Page
-///
-/// * `text_to_parse` - The text to be parsed
-///
-/// * `collections` - Collection store of this build
-#[inline]
-pub fn render_snippets(
-    page: &Page,
-    text_to_parse: &str,
-    collections: &HashMap<String, Vec<Page>>,
-) -> String {
-    let mut snippet_calls: Vec<String> = vec![];
-    let mut brace_count = 0;
-    let mut parsing_str: String = String::new();
-    let mut parsed_str = text_to_parse.to_owned();
-
-    for character in text_to_parse.chars() {
-        match character {
-            '{' => {
-                if brace_count == 0 {
-                    brace_count += 1;
-                    parsing_str.push(character);
-                    continue;
-                }
-            }
-            '}' => {
-                if brace_count == 1 {
-                    brace_count = 0;
-                    parsing_str.push(character);
-                    if parsing_str.contains("{! snippet ") {
-                        snippet_calls.push(parsing_str);
-                    }
-                    parsing_str = String::new();
-                    continue;
-                }
-            }
-            _ => {
-                if brace_count == 1 {
-                    parsing_str.push(character);
-                    continue;
-                }
-            }
-        }
-    }
-
-    for snippet_call in &snippet_calls {
-        let call_portions = get_snippet_call_portions(snippet_call.to_owned());
-        let snippet_path = format!("./snippets/{}", call_portions[2]);
-
-        let keys = get_snippet_keys(&call_portions);
-        let values = get_snippet_values(&call_portions, &keys);
-        let mut snippet_context: HashMap<&str, serde_yaml::Value> = HashMap::new();
-
-        for i in 0..keys.len() {
-            snippet_context.insert(&keys[i], serde_yaml::from_str(&values[i]).unwrap());
-        }
-
-        parsed_str = parsed_str.replace(
-            snippet_call,
-            &render_snippet(page, snippet_path, &snippet_context, collections),
-        );
-    }
-
-    parsed_str
-}
-
 /// Creates a Liquid parser
 pub fn create_liquid_parser() -> liquid::Parser {
     let mut partial = liquid::partials::InMemorySource::new();
@@ -632,145 +547,6 @@ pub fn create_liquid_parser() -> liquid::Parser {
         .partials(partial_compiler)
         .build()
         .unwrap()
-}
-
-/// Render an individual snippet call
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file's context as a Page
-///
-/// * `snippet_path` - The path to the snippet being called
-///
-/// * `snippet_context` - The context passed within the snippet call
-///
-/// * `collections` - Collection store of this build
-#[inline]
-pub fn render_snippet(
-    page: &Page,
-    snippet_path: String,
-    snippet_context: &HashMap<&str, serde_yaml::Value>,
-    collections: &HashMap<String, Vec<Page>>,
-) -> String {
-    let template = create_liquid_parser()
-        .parse(&fs::read_to_string(snippet_path).unwrap())
-        .unwrap();
-
-    template
-        .render(&get_contexts(page, collections, Some(snippet_context)))
-        .unwrap()
-}
-
-/// Get the portions of a snippet call; seperate the call by spaces
-///
-/// # Arguments
-///
-/// * `snippet_call` - The snippet call to be cut up
-#[inline]
-pub fn get_snippet_call_portions(snippet_call: String) -> Vec<String> {
-    let mut call_portions: Vec<String> = vec![];
-    let mut current_argument: String = String::new();
-
-    for character in snippet_call.chars() {
-        match character {
-            ' ' => {
-                call_portions.push(current_argument);
-                current_argument = String::new();
-                continue;
-            }
-            _ => {
-                current_argument.push(character);
-                continue;
-            }
-        }
-    }
-
-    call_portions
-}
-
-/// Get the keys of a snippet call's arguments, should they exist
-///
-/// # Arguments
-///
-/// * `call_portions` - A snippet call, seperated into multiple portions by spaces
-#[inline]
-pub fn get_snippet_keys(call_portions: &[String]) -> Vec<String> {
-    let mut keys: Vec<String> = vec![];
-    let mut current_key: String = String::new();
-
-    for call_argument in call_portions.iter().skip(3) {
-        // Skip three places, so as to just look at the actual argument portions
-        for character in call_argument.chars() {
-            match character {
-                '=' => {
-                    keys.push(current_key);
-                    current_key = String::new();
-                    break;
-                }
-                _ => {
-                    current_key.push(character);
-                    continue;
-                }
-            }
-        }
-    }
-
-    keys
-}
-
-/// Get the values of a snippet call's arguments, should they exist
-///
-/// # Arguments
-///
-/// * `call_portions` - A snippet call, seperated into multiple portions by spaces
-///
-/// * `keys` - The keys of a snippet call's arguments
-#[inline]
-pub fn get_snippet_values(call_portions: &[String], keys: &[String]) -> Vec<String> {
-    let mut values: Vec<String> = vec![];
-    let mut current_value: String = String::new();
-    let mut portions_by_space: Vec<usize> = vec![]; // Indices of portions of the argument separated by spaces
-
-    for i in 0..keys.len() {
-        // Skip if this portion of the arguments has been processed as a part of a quoted value
-        if portions_by_space.contains(&(i + 3)) {
-            continue;
-        }
-
-        current_value = format!("{}{}", current_value, call_portions[i + 3]); // Append this portion of the arguments to the current_value
-        current_value = current_value.replace(&format!("{}=", &keys[i]), ""); // Get value by removing key
-
-        let start_of_current_value = current_value.chars().next().unwrap();
-
-        // If value is in quotes, get all pieces of argument it's in, regardless of space-character separators
-        if start_of_current_value == '"' {
-            for (j, _) in call_portions.iter().enumerate().skip(i + 4) {
-                // 'i + 4' comes from 'i + 3' and 'i + 1'; the '+ 3' offset handles the initial portions of the call, allowing us to reach the call arguments
-                if call_portions[j].contains('=') {
-                    portions_by_space.push(j);
-                    break;
-                } else {
-                    current_value = format!("{} {}", current_value, call_portions[j]);
-                    continue;
-                }
-            }
-        }
-
-        let end_of_current_value = current_value
-            .chars()
-            .nth(current_value.chars().count() - 1)
-            .unwrap(); // Define here, as above can modify current_value
-                       // Remove quotes around current_value
-        if start_of_current_value == '"' && end_of_current_value == '"' {
-            current_value.remove(0);
-            current_value.remove(current_value.len() - 1);
-        }
-
-        values.push(current_value);
-        current_value = String::new();
-    }
-
-    values
 }
 
 /// Render Markdown as HTML
