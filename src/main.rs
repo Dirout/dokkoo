@@ -108,7 +108,12 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     let (sender, receiver) = channel(); // Open a channel to receive notifications
     let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
     watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
-    watcher.unwatch(format!("{}/output", path_str)).unwrap(); // Ignore the output folder
+
+    // Ignore the output folder
+    let ignore_output_folder = watcher.unwatch(format!("{}/output", path_str));
+    if ignore_output_folder.is_ok() {
+      ignore_output_folder.unwrap();
+    }
 
     // Ignore .git folder
     let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
