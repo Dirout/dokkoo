@@ -17,7 +17,7 @@
 /*
 lib.rs - Handling Mokk Files (.mokkf)
 File:
-    Term for either a Document or a Page
+    Term for a document or page written in accordance to the Mokk specification
 */
 use chrono::DateTime;
 use liquid::*;
@@ -441,7 +441,7 @@ pub fn render(
     }
 }
 
-/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises), returns compiled HTML
+/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises)
 ///
 /// # Arguments
 ///
