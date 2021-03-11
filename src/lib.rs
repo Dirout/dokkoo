@@ -407,12 +407,11 @@ pub fn render(
         }
         false => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
-
-            if page.markdown {
-                render_markdown(template.render(&get_contexts(page, collections)).unwrap())
-            } else {
-                template.render(&get_contexts(page, collections)).unwrap()
-            }
+            render_markdown(
+                template
+                    .render(&get_contexts(page, collections))
+                    .unwrap()
+            )
         }
     }
 }
@@ -426,19 +425,18 @@ pub fn render(
 /// * `collections` - Collection store of this build
 #[inline(always)]
 pub fn compile(
-    page: Page,
+    mut page: Page,
     mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
-    let compiled_page;
+    let mut compiled_page = String::new();
     let layout_name = &page.data.get("layout");
     let collection_name = &page.data.get("collection");
 
     // If Page has a layout, render with layout(s)
-    // Otherwise, render with Document's contents
+    // Otherwise, render with Page's contents
+    page.content = render(&page, &page.content, !page.markdown, &collections);
     match layout_name {
-        None => {
-            compiled_page = render(&page, &page.content, false, &collections);
-        }
+        None => { }
         Some(_) => {
             let layout_object = get_page_object(
                 format!(
@@ -448,7 +446,7 @@ pub fn compile(
                 &collections,
             );
             let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
-            compiled_page = render(&page, &layouts, false, &collections);
+            compiled_page = render(&page, &layouts, true, &collections);
             // Final render, to capture whatever layouts & snippets introduce
         }
     }
@@ -503,7 +501,7 @@ pub fn render_layouts(
             rendered = render_layouts(&layout, super_layout_object, collections);
         }
         None => {
-            rendered = render(&sub, &layout.content, true, collections);
+            rendered = render(&sub, &layout.content, !layout.markdown, collections);
         }
     }
 
