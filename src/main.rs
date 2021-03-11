@@ -112,7 +112,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
     // Ignore the output folder
     let ignore_output_folder = watcher.unwatch(format!("{}/output", path_str));
     if ignore_output_folder.is_ok() {
-      ignore_output_folder.unwrap();
+        ignore_output_folder.unwrap();
     }
 
     // Ignore .git folder
