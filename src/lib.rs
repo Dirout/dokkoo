@@ -407,11 +407,7 @@ pub fn render(
         }
         false => {
             let template = create_liquid_parser().parse(text_to_render).unwrap();
-            render_markdown(
-                template
-                    .render(&get_contexts(page, collections))
-                    .unwrap()
-            )
+            render_markdown(template.render(&get_contexts(page, collections)).unwrap())
         }
     }
 }
@@ -436,7 +432,7 @@ pub fn compile(
     // Otherwise, render with Page's contents
     page.content = render(&page, &page.content, !page.markdown, &collections);
     match layout_name {
-        None => { }
+        None => {}
         Some(_) => {
             let layout_object = get_page_object(
                 format!(
