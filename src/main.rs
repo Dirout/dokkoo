@@ -156,7 +156,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 async fn host(matches: &clap::ArgMatches) {
     let path = matches
         .value_of("PATH")
-        .with_context(|| format!("No path to a Mokk was given"))
+        .with_context(|| "No path to a Mokk was given".to_string())
         .unwrap();
     env::set_current_dir(path)
         .with_context(|| format!("Could not read a Mokk at {}", path))
@@ -241,7 +241,7 @@ async fn host(matches: &clap::ArgMatches) {
 fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
     let path = matches
         .value_of("PATH")
-        .with_context(|| format!("No path to a Mokk was given"))
+        .with_context(|| "No path to a Mokk was given".to_string())
         .unwrap();
     let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
 
