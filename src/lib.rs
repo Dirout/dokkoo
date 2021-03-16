@@ -19,7 +19,7 @@ lib.rs - Handling Mokk Files (.mokkf)
 File:
     Term for a document or page written in accordance to the Mokk specification
 */
-use anyhow::{Context};
+use anyhow::Context;
 use chrono::DateTime;
 use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
@@ -403,12 +403,44 @@ pub fn render(
 ) -> String {
     match only_context {
         true => {
-            let template = create_liquid_parser().parse(text_to_render).with_context(|| format!("Could not parse the Mokk file at {}/{}.mokkf", page.directory, page.name)).unwrap();
-            template.render(&get_contexts(page, collections)).with_context(|| format!("Could not render the Mokk file at {}/{}.mokkf", page.directory, page.name)).unwrap()
+            let template = create_liquid_parser()
+                .parse(text_to_render)
+                .with_context(|| {
+                    format!(
+                        "Could not parse the Mokk file at {}/{}.mokkf",
+                        page.directory, page.name
+                    )
+                })
+                .unwrap();
+            template
+                .render(&get_contexts(page, collections))
+                .with_context(|| {
+                    format!(
+                        "Could not render the Mokk file at {}/{}.mokkf",
+                        page.directory, page.name
+                    )
+                })
+                .unwrap()
         }
         false => {
-            let template = create_liquid_parser().parse(text_to_render).with_context(|| format!("Could not parse the Mokk file at {}/{}.mokkf", page.directory, page.name)).unwrap();
-            let liquid_render = template.render(&get_contexts(page, collections)).with_context(|| format!("Could not render the Mokk file at {}/{}.mokkf", page.directory, page.name)).unwrap();
+            let template = create_liquid_parser()
+                .parse(text_to_render)
+                .with_context(|| {
+                    format!(
+                        "Could not parse the Mokk file at {}/{}.mokkf",
+                        page.directory, page.name
+                    )
+                })
+                .unwrap();
+            let liquid_render = template
+                .render(&get_contexts(page, collections))
+                .with_context(|| {
+                    format!(
+                        "Could not render the Mokk file at {}/{}.mokkf",
+                        page.directory, page.name
+                    )
+                })
+                .unwrap();
             render_markdown(liquid_render)
         }
     }
