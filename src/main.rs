@@ -16,6 +16,7 @@
 */
 mod lib;
 
+use anyhow::{Context};
 use actix_files::NamedFile;
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
@@ -23,6 +24,7 @@ use actix_web::{
 };
 use clap::{clap_app, crate_version, ArgMatches};
 use glob::glob;
+use human_panic::setup_panic;
 use lazy_static::lazy_static;
 use notify::{raw_watcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
@@ -61,6 +63,13 @@ lazy_static! {
 
 /// The main function of Dokkoo's CLI
 fn main() {
+    setup_panic!(Metadata {
+      name: std::borrow::Cow::Borrowed("Dokkoo"),
+      version: env!("CARGO_PKG_VERSION").into(),
+      authors: "Emil Sayahi <limesayahi@gmail.com>".into(),
+      homepage: "https://github.com/Dirout/dokkoo".into(),
+    });
+
     println!(
         "
     Dokkoo  Copyright (C) 2020, 2021  Emil Sayahi
@@ -145,7 +154,8 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 /// * `PATH` - Path to a Mokk (required)
 #[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
-    env::set_current_dir(matches.value_of("PATH").unwrap()).unwrap();
+    let path = matches.value_of("PATH").with_context(|| format!("No path to a Mokk was given")).unwrap();
+    env::set_current_dir(path).with_context(|| format!("Could not read a Mokk at {}", path)).unwrap();
     let port = matches.value_of("PORT").unwrap();
     HttpServer::new(|| match Path::new("./output/index.html").is_file() {
         true => match Path::new("./output/404.html").is_file() {
@@ -224,14 +234,14 @@ async fn host(matches: &clap::ArgMatches) {
 ///
 /// * `PATH` - Path to a Mokk (required)
 fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
-    let path = matches.value_of("PATH").unwrap();
+    let path = matches.value_of("PATH").with_context(|| format!("No path to a Mokk was given")).unwrap();
     let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
 
     // Sort files into vectors of path buffers; for when we compile root files last
     let mut root_files: Vec<PathBuf> = vec![];
     let mut files: Vec<PathBuf> = vec![];
 
-    env::set_current_dir(path).unwrap(); // Set working directory to one passed to subcommand
+    env::set_current_dir(path).with_context(|| format!("Could not read a Mokk at {}", path)).unwrap(); // Set working directory to one passed to subcommand
 
     for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {
         let file = entry.unwrap();
