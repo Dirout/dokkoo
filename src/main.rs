@@ -37,6 +37,14 @@ use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use stopwatch::Stopwatch;
 
+#[cfg(not(target_env = "msvc"))]
+use jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+/// The global memory allocator
+static GLOBAL: Jemalloc = Jemalloc;
+
 lazy_static! {
     /// The command-line interface (CLI) of Dokkoo
     static ref MATCHES: ArgMatches = clap_app!(Dokkoo =>
