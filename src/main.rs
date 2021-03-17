@@ -14,6 +14,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
+#![feature(panic_info_message)]
 mod lib;
 
 use actix_files::NamedFile;
@@ -24,7 +25,6 @@ use actix_web::{
 use anyhow::Context;
 use clap::{clap_app, crate_version, ArgMatches};
 use glob::glob;
-use human_panic::setup_panic;
 use lazy_static::lazy_static;
 use notify::{raw_watcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
@@ -63,12 +63,9 @@ lazy_static! {
 
 /// The main function of Dokkoo's CLI
 fn main() {
-    setup_panic!(Metadata {
-        name: std::borrow::Cow::Borrowed("Dokkoo"),
-        version: env!("CARGO_PKG_VERSION").into(),
-        authors: "Emil Sayahi <limesayahi@gmail.com>".into(),
-        homepage: "https://github.com/Dirout/dokkoo".into(),
-    });
+    std::panic::set_hook(Box::new(|e| {
+        println!("{}\nDefined in: {}:{}:{}", format!("{}", e.message().unwrap()).replace("called `Result::unwrap()` on an `Err` value", "Error"), e.location().unwrap().file(), e.location().unwrap().line(), e.location().unwrap().column());
+    }));
 
     println!(
         "
