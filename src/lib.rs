@@ -29,7 +29,7 @@ use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, fmt};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, PartialOrd, Clone, Default, Debug, Serialize, Deserialize)]
 /// A File's date-time metadata
 pub struct Date {
     /// Year with four digits
@@ -79,7 +79,7 @@ impl fmt::Display for Date {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Default, Debug, Serialize, Deserialize)]
 /// Generated data regarding a Mokk File
 pub struct Page {
     /// A File's contextual data, represented as YAML at the head/front of the file
