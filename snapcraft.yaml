@@ -19,3 +19,7 @@ parts:
 apps:
   dokkoo:
     command: bin/dokkoo
+    plugs:
+          - home
+          - network
+          - network-bind

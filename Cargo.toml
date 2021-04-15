@@ -12,11 +12,12 @@
 #
 #    You should have received a copy of the GNU Affero General Public License
 #    along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
+cargo-features = ["strip"]
 [package]
 name = "dokkoo"
 version = "0.3.0"
 authors = ["Emil Sayahi <limesayahi@gmail.com>"]
-edition = "2018"
+edition = "2021"
 categories = ["command-line-utilities", "parser-implementations", "text-processing"]
 exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "renovate.json", "/azure-pipelines.yml", "/snapcraft.yaml", "/rust-toolchain"]
 license = "AGPL-3.0-or-later"
@@ -58,6 +59,9 @@ serde = "1.0.123"
 serde_yaml = "0.8.17"
 stopwatch = "0.0.7"
 
+[build]
+rustflags = ["-C", "link-arg=-fuse-ld=lld", "target-cpu=native", "-Z", "strip=symbols", "build-std", "control-flow-guard", "unstable-options"]
+
 [profile.release]
 codegen-units = 1
 opt-level = 3
@@ -68,6 +72,7 @@ lto = true
 incremental = false
 rpath = false
 panic = 'abort'
+strip = "symbols"
 
 [profile.release.build-override]
 opt-level = 3
