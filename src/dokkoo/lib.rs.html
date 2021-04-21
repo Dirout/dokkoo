@@ -590,6 +590,14 @@
 <span id="587">587</span>
 <span id="588">588</span>
 <span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
     This file is part of Dokkoo.
@@ -621,8 +629,9 @@ File:
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">fmt</span>};
+<span class="kw">use</span> <span class="ident">derive_more</span>::{<span class="ident">Mul</span>, <span class="ident">Div</span>, <span class="ident">Rem</span>, <span class="ident">Shr</span>, <span class="ident">Shl</span>, <span class="ident">Constructor</span>, <span class="ident">From</span>, <span class="ident">Into</span>, <span class="ident">Error</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">From</span>, <span class="ident">Into</span>, <span class="ident">Error</span>, <span class="ident">Mul</span>, <span class="ident">Div</span>, <span class="ident">Rem</span>, <span class="ident">Shr</span>, <span class="ident">Shl</span>, <span class="ident">Constructor</span>)]</span>
 <span class="doccomment">/// A File&#39;s date-time metadata</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Date</span> {
     <span class="doccomment">/// Year with four digits</span>
@@ -672,7 +681,7 @@ File:
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">From</span>, <span class="ident">Into</span>, <span class="ident">Error</span>, <span class="ident">Mul</span>, <span class="ident">Div</span>, <span class="ident">Rem</span>, <span class="ident">Shr</span>, <span class="ident">Shl</span>, <span class="ident">Constructor</span>)]</span>
 <span class="doccomment">/// Generated data regarding a Mokk File</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Page</span> {
     <span class="doccomment">/// A File&#39;s contextual data, represented as YAML at the head/front of the file</span>
@@ -693,6 +702,13 @@ File:
     <span class="kw">pub</span> <span class="ident">url</span>: <span class="ident">String</span>,
     <span class="doccomment">/// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)</span>
     <span class="kw">pub</span> <span class="ident">markdown</span>: <span class="ident">bool</span>,
+}
+
+<span class="doccomment">/// Handle conversion of a Page object into a string of characters</span>
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Page</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>)
+    }
 }
 
 <span class="doccomment">/// Returns an expanded permalink value, for when shorthand is used</span>
