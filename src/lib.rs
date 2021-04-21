@@ -28,8 +28,9 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, fmt};
+use derive_more::{Mul, Div, Rem, Shr, Shl, Constructor, From, Into, Error};
 
-#[derive(Eq, PartialEq, PartialOrd, Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, PartialOrd, Clone, Default, Debug, Serialize, Deserialize, From, Into, Error, Mul, Div, Rem, Shr, Shl, Constructor)]
 /// A File's date-time metadata
 pub struct Date {
     /// Year with four digits
@@ -79,7 +80,7 @@ impl fmt::Display for Date {
     }
 }
 
-#[derive(Eq, PartialEq, Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Default, Debug, Serialize, Deserialize, From, Into, Error, Mul, Div, Rem, Shr, Shl, Constructor)]
 /// Generated data regarding a Mokk File
 pub struct Page {
     /// A File's contextual data, represented as YAML at the head/front of the file
@@ -100,6 +101,13 @@ pub struct Page {
     pub url: String,
     /// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
     pub markdown: bool,
+}
+
+/// Handle conversion of a Page object into a string of characters
+impl fmt::Display for Page {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:#?}", self)
+    }
 }
 
 /// Returns an expanded permalink value, for when shorthand is used
