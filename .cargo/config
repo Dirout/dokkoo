@@ -19,7 +19,7 @@ rustflags = ["-C", "target-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-o
 rustflags = ["-C", "target-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options", "-Z", "tune-cpu=native"]
 
 [target.x86_64-pc-windows-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
+rustflags = ["-C", "link-arg=-fuse-ld=bfd", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
 
 [target.aarch64-unknown-linux-gnu]
 rustflags = ["-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
