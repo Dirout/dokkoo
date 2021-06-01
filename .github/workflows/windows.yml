@@ -24,6 +24,7 @@ jobs:
       - name: Prepare Dokkoo for upload
         run: |
           cd ./target/x86_64-pc-windows-gnu/release/
+          dir
           tar -czvf x86_64-dokkoo.win32.zip `
           dokkoo.exe `
           dokkoo.dll `
