@@ -18,11 +18,11 @@ rustflags = ["-C", "target-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-o
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "target-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options", "-Z", "tune-cpu=native"]
 
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "control-flow-guard", "-Z", "unstable-options"]
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
 
 [target.aarch64-unknown-linux-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
+rustflags = ["-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
 
 [target.x86_64-unknown-linux-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
+rustflags = ["-C", "target-cpu=native", "-Z", "tune-cpu=native", "-Z", "strip=symbols", "-Z", "unstable-options"]
