@@ -62,9 +62,6 @@ serde = "1.0.125"
 serde_yaml = "0.8.17"
 stopwatch = "0.0.7"
 
-[build]
-rustflags = ["-C", "link-arg=-fuse-ld=lld", "target-cpu=native", "-Z", "strip=symbols", "build-std", "control-flow-guard", "unstable-options"]
-
 [profile.release]
 codegen-units = 1
 opt-level = 3

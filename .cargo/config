@@ -1,0 +1,2 @@
+[build]
+rustflags = ["-C", "link-arg=-fuse-ld=lld", "target-cpu=native", "tune-cpu=native", "-Z", "strip=symbols", "build-std", "control-flow-guard", "unstable-options"]
