@@ -44,7 +44,7 @@ actix-http = "=3.0.0-beta.5"
 actix-rt = "2.2.0"
 actix-service = "=2.0.0-beta.5"
 actix-web = "=4.0.0-beta.5"
-anyhow = "1.0.40"
+anyhow = "1.0.41"
 chrono = { version = "0.4.19", features = ["unstable-locales"] }
 clap = { version = "3.0.0-beta.2", features = ["suggestions", "color", "wrap_help"] }
 derive_more = { version = "0.99.13", features = ["convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
