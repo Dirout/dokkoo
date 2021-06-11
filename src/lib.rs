@@ -541,7 +541,7 @@ pub fn render_layouts(
             rendered = render_layouts(&layout, super_layout_object, collections);
         }
         None => {
-            rendered = render(&sub, &layout.content, !layout.markdown, collections);
+            rendered = render(sub, &layout.content, !layout.markdown, collections);
         }
     }
 
