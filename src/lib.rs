@@ -21,6 +21,7 @@ File:
 */
 use anyhow::Context;
 use chrono::DateTime;
+use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
 use serde::{Deserialize, Serialize};
@@ -28,9 +29,26 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, fmt};
-use derive_more::{Mul, Div, Rem, Shr, Shl, Constructor, From, Into, Error};
 
-#[derive(Eq, PartialEq, PartialOrd, Clone, Default, Debug, Serialize, Deserialize, From, Into, Error, Mul, Div, Rem, Shr, Shl, Constructor)]
+#[derive(
+    Eq,
+    PartialEq,
+    PartialOrd,
+    Clone,
+    Default,
+    Debug,
+    Serialize,
+    Deserialize,
+    From,
+    Into,
+    Error,
+    Mul,
+    Div,
+    Rem,
+    Shr,
+    Shl,
+    Constructor,
+)]
 /// A File's date-time metadata
 pub struct Date {
     /// Year with four digits
@@ -80,7 +98,24 @@ impl fmt::Display for Date {
     }
 }
 
-#[derive(Eq, PartialEq, Clone, Default, Debug, Serialize, Deserialize, From, Into, Error, Mul, Div, Rem, Shr, Shl, Constructor)]
+#[derive(
+    Eq,
+    PartialEq,
+    Clone,
+    Default,
+    Debug,
+    Serialize,
+    Deserialize,
+    From,
+    Into,
+    Error,
+    Mul,
+    Div,
+    Rem,
+    Shr,
+    Shl,
+    Constructor,
+)]
 /// Generated data regarding a Mokk File
 pub struct Page {
     /// A File's contextual data, represented as YAML at the head/front of the file
