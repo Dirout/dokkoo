@@ -725,7 +725,7 @@ File:
 
 <span class="doccomment">/// Handle conversion of a Date object into a string of characters</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Date</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">rfc_3339</span>)
     }
 }
@@ -772,7 +772,7 @@ File:
 
 <span class="doccomment">/// Handle conversion of a Page object into a string of characters</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Page</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>)
     }
 }
@@ -795,25 +795,25 @@ File:
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_permalink</span>(<span class="ident">permalink</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_permalink</span>(<span class="ident">permalink</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">permalink</span> {
-        <span class="string">&quot;date&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;date&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
         }
-        <span class="string">&quot;pretty&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;pretty&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html&quot;</span>.<span class="ident">to_owned</span>()
         }
-        <span class="string">&quot;ordinal&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;ordinal&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html&quot;</span>
                 .<span class="ident">to_owned</span>()
         }
-        <span class="string">&quot;weekdate&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;weekdate&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
         }
-        <span class="string">&quot;none&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;none&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">_</span> =&gt; {
             <span class="ident">permalink</span>.<span class="ident">to_string</span>()
         }
     }
@@ -825,16 +825,16 @@ File:
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `page_text` - The `.mokkf` file&#39;s data as a `String`</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_frontmatter</span>(<span class="ident">page_text</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">String</span>, <span class="ident">String</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_frontmatter</span>(<span class="ident">page_text</span>: <span class="ident">String</span>) -&gt; (<span class="ident">String</span>, <span class="ident">String</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">begin</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frontmatter</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">page_text</span>.<span class="ident">lines</span>() {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="ident">line</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;---&quot;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="ident">line</span> <span class="op">==</span> <span class="string">&quot;---&quot;</span> {
             <span class="ident">begin</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="ident">line</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;---&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">end</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="ident">line</span> <span class="op">==</span> <span class="string">&quot;---&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">end</span> {
             <span class="ident">end</span> <span class="op">=</span> <span class="bool-val">true</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">end</span> {
             <span class="ident">frontmatter</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}\n&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>));
@@ -858,7 +858,7 @@ File:
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `conditions` - Prints conditions information</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_page_object</span>(<span class="ident">page_path</span>: <span class="ident">String</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Page</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_page_object</span>(<span class="ident">page_path</span>: <span class="ident">String</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Page</span> {
     <span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context</span>
     <span class="kw">let</span> <span class="ident">split_page</span> <span class="op">=</span> <span class="ident">split_frontmatter</span>(<span class="ident">fs::read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">page_path</span>).<span class="ident">unwrap</span>()); <span class="comment">// See file::split_frontmatter</span>
     <span class="kw">let</span> <span class="ident">frontmatter</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span> <span class="op">=</span>
@@ -871,36 +871,36 @@ File:
     <span class="kw">let</span> <span class="ident">markdown_bool</span>: <span class="ident">bool</span>;
 
     <span class="kw">match</span> <span class="ident">permalink</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="ident">permalink_string</span> <span class="op">=</span> <span class="ident">permalink</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>();
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">permalink_string</span> <span class="op">=</span> <span class="ident">String::new</span>();
         }
     }
 
     <span class="kw">match</span> <span class="ident">markdown</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="ident">markdown_bool</span> <span class="op">=</span> <span class="ident">markdown</span>.<span class="ident">unwrap</span>().<span class="ident">as_bool</span>().<span class="ident">unwrap</span>();
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">markdown_bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
     }
 
     <span class="kw">let</span> <span class="ident">date_object</span>;
     <span class="kw">match</span> <span class="ident">date</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="ident">DateTime::parse_from_rfc3339</span>(<span class="ident">date</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)</span>
             <span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
             <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span>;
 
             <span class="kw">match</span> <span class="ident">global_file</span> {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
                     <span class="comment">// Defined as variable as it required a type annotation</span>
                 }
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                     <span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>();
                     <span class="comment">// Defined as variable as it required a type annotation</span>
                 }
@@ -910,10 +910,10 @@ File:
             <span class="kw">let</span> <span class="ident">locale_value</span>;
 
             <span class="kw">match</span> <span class="ident">locale_key</span> {
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                     <span class="ident">locale_value</span> <span class="op">=</span> <span class="ident">locale_key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="ident">locale_value</span> <span class="op">=</span> <span class="string">&quot;en_US&quot;</span>;
                 }
             }
@@ -942,7 +942,7 @@ File:
                 <span class="ident">rfc_2822</span>: <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">to_rfc2822</span>(),
             }
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">date_object</span> <span class="op">=</span> <span class="ident">Date</span> {
                 <span class="ident">year</span>: <span class="ident">String::new</span>(),
                 <span class="ident">short_year</span>: <span class="ident">String::new</span>(),
@@ -987,8 +987,8 @@ File:
     };
 
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">permalink</span>[..] {
-        <span class="string">&quot;&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;&quot;</span> =&gt; {}
+        <span class="kw">_</span> =&gt; {
             <span class="comment">// Render the URL once the Page metadata has been generated</span>
             <span class="ident">page</span>.<span class="ident">url</span> <span class="op">=</span> <span class="ident">render</span>(
                 <span class="kw-2">&amp;</span><span class="ident">page</span>,
@@ -1010,14 +1010,14 @@ File:
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `conditions` - Prints conditions information</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_contexts</span>(<span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Object</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_contexts</span>(<span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Object</span> {
     <span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
     <span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span>;
     <span class="kw">match</span> <span class="ident">global_file</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
             <span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
         }
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
             <span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
         }
     }
@@ -1030,10 +1030,10 @@ File:
 
     <span class="comment">// Import layout context if Page has a layout</span>
     <span class="kw">match</span> <span class="ident">layout_name</span> {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">layout</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         }
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="ident">layout</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(
                 <span class="kw-2">&amp;</span><span class="ident">split_frontmatter</span>(
                     <span class="ident">fs::read_to_string</span>(<span class="macro">format!</span>(
@@ -1075,9 +1075,9 @@ File:
     <span class="ident">text_to_render</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">only_context</span>: <span class="ident">bool</span>,
     <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+) -&gt; <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">only_context</span> {
-        <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="bool-val">true</span> =&gt; {
             <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>()
                 .<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
                 .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1097,7 +1097,7 @@ File:
                 })
                 .<span class="ident">unwrap</span>()
         }
-        <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="bool-val">false</span> =&gt; {
             <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="ident">create_liquid_parser</span>()
                 .<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
                 .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1132,7 +1132,7 @@ File:
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile</span>(
     <span class="kw-2">mut</span> <span class="ident">page</span>: <span class="ident">Page</span>,
     <span class="kw-2">mut</span> <span class="ident">collections</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">String</span>, <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+) -&gt; (<span class="ident">String</span>, <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">compiled_page</span>;
     <span class="kw">let</span> <span class="ident">layout_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
     <span class="kw">let</span> <span class="ident">collection_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;collection&quot;</span>);
@@ -1141,10 +1141,10 @@ File:
     <span class="comment">// Otherwise, render with Page&#39;s contents</span>
     <span class="ident">page</span>.<span class="ident">content</span> <span class="op">=</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">content</span>, <span class="op">!</span><span class="ident">page</span>.<span class="ident">markdown</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>);
     <span class="kw">match</span> <span class="ident">layout_name</span> {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">compiled_page</span> <span class="op">=</span> <span class="ident">page</span>.<span class="ident">content</span>.<span class="ident">to_owned</span>();
         }
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
                 <span class="macro">format!</span>(
                     <span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
@@ -1160,14 +1160,14 @@ File:
 
     <span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries</span>
     <span class="kw">match</span> <span class="ident">collection_name</span> {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {}
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">collection_name_str</span> <span class="op">=</span> <span class="ident">collection_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
             <span class="kw">match</span> <span class="ident">collections</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">collection_name_str</span>.<span class="ident">to_string</span>()) {
-                <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="bool-val">true</span> =&gt; {
                     (<span class="kw-2">*</span><span class="ident">collections</span>.<span class="ident">get_mut</span>(<span class="ident">collection_name_str</span>).<span class="ident">unwrap</span>()).<span class="ident">push</span>(<span class="ident">page</span>);
                 }
-                <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="bool-val">false</span> =&gt; {
                     <span class="ident">collections</span>.<span class="ident">insert</span>(<span class="ident">collection_name_str</span>.<span class="ident">to_owned</span>(), <span class="macro">vec!</span>[<span class="ident">page</span>]);
                 }
             }
@@ -1191,13 +1191,13 @@ File:
     <span class="ident">sub</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>,
     <span class="ident">layout</span>: <span class="ident">Page</span>,
     <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+) -&gt; <span class="ident">String</span> {
     <span class="comment">// Take layout&#39;s text, render it with sub&#39;s context</span>
     <span class="kw">let</span> <span class="ident">rendered</span>: <span class="ident">String</span>;
 
     <span class="kw">let</span> <span class="ident">super_layout</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
     <span class="kw">match</span> <span class="ident">super_layout</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">super_layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
                 <span class="macro">format!</span>(
                     <span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
@@ -1207,7 +1207,7 @@ File:
             );
             <span class="ident">rendered</span> <span class="op">=</span> <span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>, <span class="ident">super_layout_object</span>, <span class="ident">collections</span>);
         }
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">rendered</span> <span class="op">=</span> <span class="ident">render</span>(<span class="ident">sub</span>, <span class="kw-2">&amp;</span><span class="ident">layout</span>.<span class="ident">content</span>, <span class="op">!</span><span class="ident">layout</span>.<span class="ident">markdown</span>, <span class="ident">collections</span>);
         }
     }
@@ -1216,7 +1216,7 @@ File:
 }
 
 <span class="doccomment">/// Creates a Liquid parser</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">liquid::Parser</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() -&gt; <span class="ident">liquid::Parser</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">liquid::partials::InMemorySource::new</span>();
     <span class="kw">let</span> <span class="ident">snippets</span> <span class="op">=</span> <span class="ident">fs::read_dir</span>(<span class="string">&quot;./snippets&quot;</span>);
     <span class="kw">if</span> <span class="ident">snippets</span>.<span class="ident">is_ok</span>() {
@@ -1249,7 +1249,7 @@ File:
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `text_to_render` - The Markdown text to render into HTML</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_markdown</span>(<span class="ident">text_to_render</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_markdown</span>(<span class="ident">text_to_render</span>: <span class="ident">String</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">markdown_options</span> <span class="op">=</span> <span class="ident">Options::empty</span>();
     <span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_TABLES</span>);
     <span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_FOOTNOTES</span>);
