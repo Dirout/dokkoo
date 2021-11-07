@@ -406,7 +406,7 @@ pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Ob
                 &split_frontmatter(
                     fs::read_to_string(format!(
                         "./layouts/{}.mokkf",
-                        layout_name.unwrap().as_str().unwrap().to_string()
+                        layout_name.unwrap().as_str().unwrap()
                     ))
                     .unwrap(),
                 )
@@ -516,7 +516,7 @@ pub fn compile(
             let layout_object = get_page_object(
                 format!(
                     "./layouts/{}.mokkf",
-                    layout_name.unwrap().as_str().unwrap().to_string()
+                    layout_name.unwrap().as_str().unwrap()
                 ),
                 &collections,
             );
@@ -569,7 +569,7 @@ pub fn render_layouts(
             let super_layout_object = get_page_object(
                 format!(
                     "./layouts/{}.mokkf",
-                    super_layout.unwrap().as_str().unwrap().to_string()
+                    super_layout.unwrap().as_str().unwrap()
                 ),
                 collections,
             );
