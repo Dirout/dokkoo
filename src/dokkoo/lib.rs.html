@@ -1040,7 +1040,7 @@ File:
                 <span class="kw-2">&amp;</span><span class="ident">split_frontmatter</span>(
                     <span class="ident">fs::read_to_string</span>(<span class="macro">format!</span>(
                         <span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-                        <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>()
+                        <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
                     ))
                     .<span class="ident">unwrap</span>(),
                 )
@@ -1150,7 +1150,7 @@ File:
             <span class="kw">let</span> <span class="ident">layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
                 <span class="macro">format!</span>(
                     <span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-                    <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>()
+                    <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
                 ),
                 <span class="kw-2">&amp;</span><span class="ident">collections</span>,
             );
@@ -1203,7 +1203,7 @@ File:
             <span class="kw">let</span> <span class="ident">super_layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
                 <span class="macro">format!</span>(
                     <span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-                    <span class="ident">super_layout</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>()
+                    <span class="ident">super_layout</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
                 ),
                 <span class="ident">collections</span>,
             );
