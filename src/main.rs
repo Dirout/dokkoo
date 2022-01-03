@@ -1,29 +1,29 @@
 /*
-    This file is part of Dokkoo.
+	This file is part of Dokkoo.
 
-    Dokkoo is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	Dokkoo is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    Dokkoo is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+	Dokkoo is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
 #![feature(panic_info_message)]
 mod lib;
 
 use actix_files::NamedFile;
 use actix_web::{
-    dev::{ServiceRequest, ServiceResponse},
-    HttpServer,
+	dev::{ServiceRequest, ServiceResponse},
+	HttpServer,
 };
 use anyhow::Context;
-use clap::{clap_app, crate_version, ArgMatches};
+use clap::{arg, crate_version, App, ArgMatches};
 use glob::glob;
 use lazy_static::lazy_static;
 use notify::{raw_watcher, RecursiveMode, Watcher};
@@ -44,67 +44,48 @@ use mimalloc::MiMalloc;
 static GLOBAL: MiMalloc = MiMalloc;
 
 lazy_static! {
-    /// The command-line interface (CLI) of Dokkoo
-    static ref MATCHES: ArgMatches = clap_app!(Dokkoo =>
-            (version: crate_version!())
-            (author: "Emil Sayahi")
-            (about: "Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.")
-            (@subcommand show =>
-                (about: "Shows information regarding the usage and handling of this software")
-                (@arg warranty: -w --warranty "Prints warranty information")
-                (@arg conditions: -c --conditions "Prints conditions information")
-            )
-            (@subcommand build =>
-              (about: "Outputs a Mokk")
-              (@arg PATH: +required +takes_value "Path to a Mokk")
-            )
-            (@subcommand serve =>
-              (about: "Outputs a Mokk")
-              (@arg PATH: +required +takes_value "Path to a Mokk")
-              (@arg PORT: +required +takes_value "Port to serve a Mokk on")
-            )
-        )
-        .get_matches();
+	/// The command-line interface (CLI) of Dokkoo
+	static ref MATCHES: ArgMatches = App::new("Dokkoo").version(crate_version!()).author("Emil Sayahi").about("Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.").subcommand(App::new("show").about("Shows information regarding the usage and handling of this software").arg(arg!(-w --warranty "Prints warranty information")).arg(arg!(-c --conditions "Prints conditions information"))).subcommand(App::new("build").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true))).subcommand(App::new("serve").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true)).arg(arg!(PORT: "Port to serve a Mokk on").required(true).takes_value(true))).get_matches();
 }
 
 /// The main function of Dokkoo's CLI
 fn main() {
-    std::panic::set_hook(Box::new(|e| {
-        println!(
-            "{}\nDefined in: {}:{}:{}",
-            format!("{}", e.message().unwrap())
-                .replace("called `Result::unwrap()` on an `Err` value", "Error"),
-            e.location().unwrap().file(),
-            e.location().unwrap().line(),
-            e.location().unwrap().column()
-        );
-    }));
+	std::panic::set_hook(Box::new(|e| {
+		println!(
+			"{}\nDefined in: {}:{}:{}",
+			format!("{}", e.message().unwrap())
+				.replace("called `Result::unwrap()` on an `Err` value", "Error"),
+			e.location().unwrap().file(),
+			e.location().unwrap().line(),
+			e.location().unwrap().column()
+		);
+	}));
 
-    println!(
-        "
+	println!(
+		"
     Dokkoo  Copyright (C) 2020, 2021  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
     "
-    );
+	);
 
-    match MATCHES.subcommand() {
-        Some(("show", show_matches)) => {
-            show(show_matches);
-        }
-        Some(("build", build_matches)) => {
-            build(build_matches);
-        }
-        Some(("serve", serve_matches)) => {
-            let rt = actix_rt::System::new();
-            rt.block_on(
-                async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
-            );
-        }
-        None => println!("Dokkoo {}", crate_version!()),
-        _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
-    }
+	match MATCHES.subcommand() {
+		Some(("show", show_matches)) => {
+			show(show_matches);
+		}
+		Some(("build", build_matches)) => {
+			build(build_matches);
+		}
+		Some(("serve", serve_matches)) => {
+			let rt = actix_rt::System::new();
+			rt.block_on(
+				async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
+			);
+		}
+		None => println!("Dokkoo {}", crate_version!()),
+		_ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
+	}
 }
 
 /// Handle changes to the Mokk while serving
@@ -113,48 +94,48 @@ fn main() {
 ///
 /// * `PATH` - Path to a Mokk (required)
 async fn serve_mokk(matches: &clap::ArgMatches) {
-    let mut collections = build(matches);
+	let mut collections = build(matches);
 
-    let path = env::current_dir().unwrap();
-    let path_str = path.to_str().unwrap();
-    let port = matches.value_of("PORT").unwrap();
-    println!(
-        "\nServing at http://127.0.0.1:{} from {}/output\nChanges will be served … ",
-        port,
-        path.to_str().unwrap()
-    );
+	let path = env::current_dir().unwrap();
+	let path_str = path.to_str().unwrap();
+	let port = matches.value_of("PORT").unwrap();
+	println!(
+		"\nServing at http://127.0.0.1:{} from {}/output\nChanges will be served … ",
+		port,
+		path.to_str().unwrap()
+	);
 
-    let (sender, receiver) = channel(); // Open a channel to receive notifications
-    let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
-    watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
+	let (sender, receiver) = channel(); // Open a channel to receive notifications
+	let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
+	watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
 
-    // Ignore the output folder
-    let ignore_output_folder = watcher.unwatch(format!("{}/output", path_str));
-    if ignore_output_folder.is_ok() {
-        ignore_output_folder.unwrap();
-    }
+	// Ignore the output folder
+	let ignore_output_folder = watcher.unwatch(format!("{}/output", path_str));
+	if ignore_output_folder.is_ok() {
+		ignore_output_folder.unwrap();
+	}
 
-    // Ignore .git folder
-    let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
-    if ignore_git_folder.is_ok() {
-        ignore_git_folder.unwrap();
-    }
+	// Ignore .git folder
+	let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
+	if ignore_git_folder.is_ok() {
+		ignore_git_folder.unwrap();
+	}
 
-    loop {
-        match receiver.recv() {
-            Ok(event) => {
-                let file = &event.path.unwrap();
-                if file.extension().is_some() && file.extension().unwrap() == "mokkf" {
-                    let page = lib::get_page_object(format!("{}", file.display()), &collections);
-                    let output_path = format!("{}/output/{}", path_str, page.url);
-                    let compile_page = lib::compile(page, collections);
-                    collections = compile_page.1;
-                    write_file(&output_path, compile_page.0); // Create output path, write to file
-                }
-            } // Compile file on receiving of notification
-            Err(e) => eprintln!("{:#?}", e), // Show errors in processing Mokk
-        }
-    }
+	loop {
+		match receiver.recv() {
+			Ok(event) => {
+				let file = &event.path.unwrap();
+				if file.extension().is_some() && file.extension().unwrap() == "mokkf" {
+					let page = lib::get_page_object(format!("{}", file.display()), &collections);
+					let output_path = format!("{}/output/{}", path_str, page.url);
+					let compile_page = lib::compile(page, collections);
+					collections = compile_page.1;
+					write_file(&output_path, compile_page.0); // Create output path, write to file
+				}
+			} // Compile file on receiving of notification
+			Err(e) => eprintln!("{:#?}", e), // Show errors in processing Mokk
+		}
+	}
 }
 
 /// Host the local server when serving
@@ -164,83 +145,83 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 /// * `PATH` - Path to a Mokk (required)
 #[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
-    let path = matches
-        .value_of("PATH")
-        .with_context(|| "No path to a Mokk was given".to_string())
-        .unwrap();
-    env::set_current_dir(path)
-        .with_context(|| format!("Could not read a Mokk at {}", path))
-        .unwrap();
-    let port = matches.value_of("PORT").unwrap();
-    HttpServer::new(|| match Path::new("./output/index.html").is_file() {
-        true => match Path::new("./output/404.html").is_file() {
-            true => actix_web::App::new().service(
-                actix_files::Files::new("/", "./output")
-                    .prefer_utf8(true)
-                    .use_hidden_files()
-                    .use_etag(true)
-                    .use_last_modified(true)
-                    .show_files_listing()
-                    .redirect_to_slash_directory()
-                    .index_file("index.html")
-                    .default_handler(|req: ServiceRequest| {
-                        let (http_req, _payload) = req.into_parts();
+	let path = matches
+		.value_of("PATH")
+		.with_context(|| "No path to a Mokk was given".to_string())
+		.unwrap();
+	env::set_current_dir(path)
+		.with_context(|| format!("Could not read a Mokk at {}", path))
+		.unwrap();
+	let port = matches.value_of("PORT").unwrap();
+	HttpServer::new(|| match Path::new("./output/index.html").is_file() {
+		true => match Path::new("./output/404.html").is_file() {
+			true => actix_web::App::new().service(
+				actix_files::Files::new("/", "./output")
+					.prefer_utf8(true)
+					.use_hidden_files()
+					.use_etag(true)
+					.use_last_modified(true)
+					.show_files_listing()
+					.redirect_to_slash_directory()
+					.index_file("index.html")
+					.default_handler(|req: ServiceRequest| {
+						let (http_req, _payload) = req.into_parts();
 
-                        async {
-                            let response = NamedFile::open("./output/404.html")
-                                .unwrap()
-                                .into_response(&http_req);
-                            Ok(ServiceResponse::new(http_req, response))
-                        }
-                    }),
-            ),
-            false => actix_web::App::new().service(
-                actix_files::Files::new("/", "./output")
-                    .prefer_utf8(true)
-                    .use_hidden_files()
-                    .use_etag(true)
-                    .use_last_modified(true)
-                    .show_files_listing()
-                    .redirect_to_slash_directory()
-                    .index_file("index.html"),
-            ),
-        },
-        false => match Path::new("./output/404.html").is_file() {
-            true => actix_web::App::new().service(
-                actix_files::Files::new("/", "./output")
-                    .prefer_utf8(true)
-                    .use_hidden_files()
-                    .use_etag(true)
-                    .use_last_modified(true)
-                    .show_files_listing()
-                    .redirect_to_slash_directory()
-                    .default_handler(|req: ServiceRequest| {
-                        let (http_req, _payload) = req.into_parts();
+						async {
+							let response = NamedFile::open("./output/404.html")
+								.unwrap()
+								.into_response(&http_req);
+							Ok(ServiceResponse::new(http_req, response))
+						}
+					}),
+			),
+			false => actix_web::App::new().service(
+				actix_files::Files::new("/", "./output")
+					.prefer_utf8(true)
+					.use_hidden_files()
+					.use_etag(true)
+					.use_last_modified(true)
+					.show_files_listing()
+					.redirect_to_slash_directory()
+					.index_file("index.html"),
+			),
+		},
+		false => match Path::new("./output/404.html").is_file() {
+			true => actix_web::App::new().service(
+				actix_files::Files::new("/", "./output")
+					.prefer_utf8(true)
+					.use_hidden_files()
+					.use_etag(true)
+					.use_last_modified(true)
+					.show_files_listing()
+					.redirect_to_slash_directory()
+					.default_handler(|req: ServiceRequest| {
+						let (http_req, _payload) = req.into_parts();
 
-                        async {
-                            let response = NamedFile::open("./output/404.html")
-                                .unwrap()
-                                .into_response(&http_req);
-                            Ok(ServiceResponse::new(http_req, response))
-                        }
-                    }),
-            ),
-            false => actix_web::App::new().service(
-                actix_files::Files::new("/", "./output")
-                    .prefer_utf8(true)
-                    .use_hidden_files()
-                    .use_etag(true)
-                    .use_last_modified(true)
-                    .show_files_listing()
-                    .redirect_to_slash_directory(),
-            ),
-        },
-    })
-    .bind(format!("127.0.0.1:{}", port))
-    .unwrap()
-    .run()
-    .await
-    .unwrap()
+						async {
+							let response = NamedFile::open("./output/404.html")
+								.unwrap()
+								.into_response(&http_req);
+							Ok(ServiceResponse::new(http_req, response))
+						}
+					}),
+			),
+			false => actix_web::App::new().service(
+				actix_files::Files::new("/", "./output")
+					.prefer_utf8(true)
+					.use_hidden_files()
+					.use_etag(true)
+					.use_last_modified(true)
+					.show_files_listing()
+					.redirect_to_slash_directory(),
+			),
+		},
+	})
+	.bind(format!("127.0.0.1:{}", port))
+	.unwrap()
+	.run()
+	.await
+	.unwrap()
 }
 
 /// Outputs a Mokk
@@ -249,40 +230,40 @@ async fn host(matches: &clap::ArgMatches) {
 ///
 /// * `PATH` - Path to a Mokk (required)
 fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
-    let path = matches
-        .value_of("PATH")
-        .with_context(|| "No path to a Mokk was given".to_string())
-        .unwrap();
-    let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
+	let path = matches
+		.value_of("PATH")
+		.with_context(|| "No path to a Mokk was given".to_string())
+		.unwrap();
+	let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
 
-    // Sort files into vectors of path buffers; for when we compile root files last
-    let mut root_files: Vec<PathBuf> = vec![];
-    let mut files: Vec<PathBuf> = vec![];
+	// Sort files into vectors of path buffers; for when we compile root files last
+	let mut root_files: Vec<PathBuf> = vec![];
+	let mut files: Vec<PathBuf> = vec![];
 
-    env::set_current_dir(path)
-        .with_context(|| format!("Could not read a Mokk at {}", path))
-        .unwrap(); // Set working directory to one passed to subcommand
+	env::set_current_dir(path)
+		.with_context(|| format!("Could not read a Mokk at {}", path))
+		.unwrap(); // Set working directory to one passed to subcommand
 
-    for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {
-        let file = entry.unwrap();
-        files.push(file);
-    }
+	for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {
+		let file = entry.unwrap();
+		files.push(file);
+	}
 
-    for entry in glob(&format!("{}/*.mokkf", path)).unwrap() {
-        let file = entry.unwrap();
-        root_files.push(file);
-    }
+	for entry in glob(&format!("{}/*.mokkf", path)).unwrap() {
+		let file = entry.unwrap();
+		root_files.push(file);
+	}
 
-    files.append(&mut root_files); // Make root files the last ones to compile on the list
+	files.append(&mut root_files); // Make root files the last ones to compile on the list
 
-    let mut timer = Stopwatch::start_new(); // Start the stopwatch
-    collections = build_loop(files, path, collections);
+	let mut timer = Stopwatch::start_new(); // Start the stopwatch
+	collections = build_loop(files, path, collections);
 
-    // Show how long it took to build
-    timer.stop();
-    println!("Built in {} seconds.", (timer.elapsed_ms() as f32 / 1000.0));
+	// Show how long it took to build
+	timer.stop();
+	println!("Built in {} seconds.", (timer.elapsed_ms() as f32 / 1000.0));
 
-    collections
+	collections
 }
 
 /// The primary logic loop of the build process
@@ -296,30 +277,30 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
 /// * `collections` - Collection store of this build
 #[inline(always)]
 fn build_loop(
-    file_list: Vec<PathBuf>,
-    path: &str,
-    mut collections: HashMap<String, Vec<lib::Page>>,
+	file_list: Vec<PathBuf>,
+	path: &str,
+	mut collections: HashMap<String, Vec<lib::Page>>,
 ) -> HashMap<String, Vec<lib::Page>> {
-    for file in file_list {
-        let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
-        let file_root_str = file_root.to_str().unwrap();
-        let file_root_str_length = file_root_str.len();
-        if file.is_dir()
-            || (file_root_str_length >= 7 && &file_root_str[0..7] == "layouts")
-            || (file_root_str_length >= 9 && &file_root_str[0..9] == "snippets")
-        {
-            continue;
-        }
+	for file in file_list {
+		let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
+		let file_root_str = file_root.to_str().unwrap();
+		let file_root_str_length = file_root_str.len();
+		if file.is_dir()
+			|| (file_root_str_length >= 7 && &file_root_str[0..7] == "layouts")
+			|| (file_root_str_length >= 9 && &file_root_str[0..9] == "snippets")
+		{
+			continue;
+		}
 
-        let page = lib::get_page_object(format!("{}", file.display()), &collections);
-        let output_path = format!("{}/output/{}", path, page.url);
+		let page = lib::get_page_object(format!("{}", file.display()), &collections);
+		let output_path = format!("{}/output/{}", path, page.url);
 
-        let compile_page = lib::compile(page, collections); // Compile the current Page
-        collections = compile_page.1; // Get updated collections store as result of compilation
+		let compile_page = lib::compile(page, collections); // Compile the current Page
+		collections = compile_page.1; // Get updated collections store as result of compilation
 
-        write_file(&output_path, compile_page.0); // Create output path, write to file
-    }
-    collections
+		write_file(&output_path, compile_page.0); // Create output path, write to file
+	}
+	collections
 }
 
 /// Write a file to the filesystem
@@ -331,11 +312,11 @@ fn build_loop(
 /// * `text_to_write` - The data to write to the filesystem
 #[inline(always)]
 fn write_file(path: &str, text_to_write: String) {
-    fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
-    let file = File::create(&path).unwrap(); // Create file which we will write to
-    let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
-    write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
-    buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
+	fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
+	let file = File::create(&path).unwrap(); // Create file which we will write to
+	let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
+	write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
+	buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
 }
 
 /// Shows information regarding the usage and handling of this software
@@ -346,10 +327,10 @@ fn write_file(path: &str, text_to_write: String) {
 ///
 /// * `conditions` - Prints conditions information
 fn show(matches: &clap::ArgMatches) {
-    if matches.is_present("warranty") {
-        // "dokkoo show -w" was run
-        println!(
-            "
+	if matches.is_present("warranty") {
+		// "dokkoo show -w" was run
+		println!(
+			"
     15. Disclaimer of Warranty.
 
     THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
@@ -382,11 +363,11 @@ fn show(matches: &clap::ArgMatches) {
   Program, unless a warranty or assumption of liability accompanies a
   copy of the Program in return for a fee.
   "
-        );
-    } else if matches.is_present("conditions") {
-        // "dokkoo show -c" was run
-        println!(
-            "
+		);
+	} else if matches.is_present("conditions") {
+		// "dokkoo show -c" was run
+		println!(
+			"
         TERMS AND CONDITIONS
 
         0. Definitions.
@@ -949,6 +930,6 @@ fn show(matches: &clap::ArgMatches) {
       
                           END OF TERMS AND CONDITIONS
       "
-        );
-    }
+		);
+	}
 }
