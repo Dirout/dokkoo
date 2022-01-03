@@ -18,10 +18,9 @@
 #![cfg_attr(feature = "dox", feature(doc_cfg))]
 #![allow(clippy::needless_doctest_main)]
 #![doc(
-    html_logo_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png",
-    html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
+	html_logo_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png",
+	html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
 )]
-
 #![feature(panic_info_message)]
 mod lib;
 
