@@ -64,7 +64,7 @@ fn main() {
 
 	println!(
 		"
-    Dokkoo  Copyright (C) 2020, 2021  Emil Sayahi
+    Dokkoo  Copyright (C) 2020, 2021, 2022  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
