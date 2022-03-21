@@ -32,7 +32,7 @@ jobs:
           libdokkoo.dylib \
           libdokkoo.a
       - name: Upload Dokkoo build artifacts to GitHub
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: aarch64-dokkoo.osx
           path: ./target/aarch64-apple-darwin/release/aarch64-dokkoo.osx.tar

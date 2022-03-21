@@ -27,7 +27,7 @@ jobs:
           command: deb
           args: --separate-debug-symbols -- --all-features --target x86_64-unknown-linux-gnu
       - name: Upload Dokkoo build artifact to GitHub
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: x86_64-dokkoo.deb.gnu+linux
           path: ./target/debian/dokkoo_*_amd64.deb
