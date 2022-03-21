@@ -58,7 +58,7 @@ mimalloc = { version = "0.1.28", default-features = false }
 notify = "4.0.17"
 pathdiff = "0.2.1"
 pulldown-cmark = { version = "0.9.1", default-features = false, features = ["simd"] }
-serde = "1.0.133"
+serde = "1.0.136"
 serde_yaml = "0.8.23"
 stopwatch = "0.0.7"
 
