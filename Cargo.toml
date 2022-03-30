@@ -51,7 +51,7 @@ derive_more = { version = "0.99.17", features = ["convert_case", "generate-parsi
 futures = "0.3.21"
 glob = "0.3.0"
 lazy_static = "1.4.0"
-liquid = "0.24.0"
+liquid = "0.25.0"
 liquid-core = "0.24.1"
 liquid-lib = { version = "0.24.0", features = ["stdlib", "jekyll", "shopify", "extra"] }
 mimalloc = { version = "0.1.28", default-features = false }
