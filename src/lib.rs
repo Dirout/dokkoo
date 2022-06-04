@@ -14,12 +14,6 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
-#![cfg_attr(feature = "dox", feature(doc_cfg))]
-#![allow(clippy::needless_doctest_main)]
-#![doc(
-	html_logo_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png",
-	html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
-)]
 /*
 lib.rs - Handling Mokk Files (.mokkf)
 File:

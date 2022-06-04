@@ -14,7 +14,12 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#![cfg_attr(feature = "dox", feature(doc_cfg))]
+#![allow(clippy::needless_doctest_main)]
+#![doc(
+	html_logo_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png",
+	html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
+)]
 #![feature(panic_info_message)]
 mod lib;
 
@@ -24,9 +29,10 @@ use actix_web::{
 	HttpServer,
 };
 use anyhow::Context;
-use clap::{arg, crate_version, App, ArgMatches};
+use clap::{arg, crate_version, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
+use mimalloc::MiMalloc;
 use notify::{raw_watcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::env;
@@ -38,19 +44,21 @@ use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use stopwatch::Stopwatch;
 
-use mimalloc::MiMalloc;
-
 #[global_allocator]
 /// The global memory allocator
 static GLOBAL: MiMalloc = MiMalloc;
 
 lazy_static! {
 	/// The command-line interface (CLI) of Dokkoo
-	static ref MATCHES: ArgMatches = App::new("Dokkoo").version(crate_version!()).author("Emil Sayahi").about("Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.").subcommand(App::new("show").about("Shows information regarding the usage and handling of this software").arg(arg!(-w --warranty "Prints warranty information")).arg(arg!(-c --conditions "Prints conditions information"))).subcommand(App::new("build").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true))).subcommand(App::new("serve").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true)).arg(arg!(PORT: "Port to serve a Mokk on").required(true).takes_value(true))).get_matches();
+	static ref MATCHES: ArgMatches = Command::new("Dokkoo").version(crate_version!()).author("Emil Sayahi").about("Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.").subcommand(Command::new("show").about("Shows information regarding the usage and handling of this software").arg(arg!(-w --warranty "Prints warranty information")).arg(arg!(-c --conditions "Prints conditions information"))).subcommand(Command::new("build").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true))).subcommand(Command::new("serve").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true)).arg(arg!(PORT: "Port to serve a Mokk on").required(true).takes_value(true))).get_matches_from(wild::args());
 }
 
 /// The main function of Dokkoo's CLI
 fn main() {
+	let stdout = std::io::stdout();
+	let lock = stdout.lock();
+	let mut buf_out = BufWriter::new(lock);
+
 	std::panic::set_hook(Box::new(|e| {
 		println!(
 			"{}\nDefined in: {}:{}:{}",
@@ -62,14 +70,16 @@ fn main() {
 		);
 	}));
 
-	println!(
+	writeln!(
+		buf_out,
 		"
     Dokkoo  Copyright (C) 2020, 2021, 2022  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
     "
-	);
+	)
+	.unwrap();
 
 	match MATCHES.subcommand() {
 		Some(("show", show_matches)) => {
@@ -84,7 +94,7 @@ fn main() {
 				async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
 			);
 		}
-		None => println!("Dokkoo {}", crate_version!()),
+		None => writeln!(buf_out, "Dokkoo {}", crate_version!()).unwrap(),
 		_ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
 	}
 }
@@ -95,16 +105,25 @@ fn main() {
 ///
 /// * `PATH` - Path to a Mokk (required)
 async fn serve_mokk(matches: &clap::ArgMatches) {
+	let stdout = std::io::stdout();
+	let stdout_lock = stdout.lock();
+	let mut buf_stdout = BufWriter::new(stdout_lock);
+	let stderr = std::io::stderr();
+	let stderr_lock = stderr.lock();
+	let mut buf_stderr = BufWriter::new(stderr_lock);
+
 	let mut collections = build(matches);
 
 	let path = env::current_dir().unwrap();
 	let path_str = path.to_str().unwrap();
 	let port = matches.value_of("PORT").unwrap();
-	println!(
-		"\nServing at http://127.0.0.1:{} from {}/output\nChanges will be served … ",
+	writeln!(
+		buf_stdout,
+		"\nServing on http://127.0.0.1:{} from {}/output\nChanges will be served … ",
 		port,
 		path.to_str().unwrap()
-	);
+	)
+	.unwrap();
 
 	let (sender, receiver) = channel(); // Open a channel to receive notifications
 	let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
@@ -134,7 +153,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 					write_file(&output_path, compile_page.0); // Create output path, write to file
 				}
 			} // Compile file on receiving of notification
-			Err(e) => eprintln!("{:#?}", e), // Show errors in processing Mokk
+			Err(e) => writeln!(buf_stderr, "{:#?}", e).unwrap(), // Show errors in processing Mokk
 		}
 	}
 }
@@ -231,6 +250,10 @@ async fn host(matches: &clap::ArgMatches) {
 ///
 /// * `PATH` - Path to a Mokk (required)
 fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
+	let stdout = std::io::stdout();
+	let lock = stdout.lock();
+	let mut buf_out = BufWriter::new(lock);
+
 	let path = matches
 		.value_of("PATH")
 		.with_context(|| "No path to a Mokk was given".to_string())
@@ -262,7 +285,12 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
 
 	// Show how long it took to build
 	timer.stop();
-	println!("Built in {} seconds.", (timer.elapsed_ms() as f32 / 1000.0));
+	writeln!(
+		buf_out,
+		"Built in {} seconds.",
+		(timer.elapsed_ms() as f32 / 1000.0)
+	)
+	.unwrap();
 
 	collections
 }
@@ -328,9 +356,14 @@ fn write_file(path: &str, text_to_write: String) {
 ///
 /// * `conditions` - Prints conditions information
 fn show(matches: &clap::ArgMatches) {
+	let stdout = std::io::stdout();
+	let lock = stdout.lock();
+	let mut buf_out = BufWriter::new(lock);
+
 	if matches.is_present("warranty") {
 		// "dokkoo show -w" was run
-		println!(
+		writeln!(
+			buf_out,
 			"
     15. Disclaimer of Warranty.
 
@@ -364,10 +397,12 @@ fn show(matches: &clap::ArgMatches) {
   Program, unless a warranty or assumption of liability accompanies a
   copy of the Program in return for a fee.
   "
-		);
+		)
+		.unwrap();
 	} else if matches.is_present("conditions") {
 		// "dokkoo show -c" was run
-		println!(
+		writeln!(
+			buf_out,
 			"
         TERMS AND CONDITIONS
 
@@ -931,6 +966,7 @@ fn show(matches: &clap::ArgMatches) {
       
                           END OF TERMS AND CONDITIONS
       "
-		);
+		)
+		.unwrap();
 	}
 }
