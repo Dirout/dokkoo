@@ -1,3 +1,3 @@
-var N = null;var sourcesIndex = {};
+var sourcesIndex = {};
 sourcesIndex["dokkoo"] = {"name":"","files":["lib.rs"]};
 createSourceSidebar();
