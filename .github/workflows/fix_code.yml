@@ -22,6 +22,11 @@ jobs:
         with:
           command: fix
           args: --edition --edition-idioms
+      - name: Apply lints
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features --fix -- -D warnings
       - name: Commit changes to code, if any
         run: |
           git config --global user.name 'Dokkoo'
