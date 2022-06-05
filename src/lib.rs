@@ -26,6 +26,7 @@ use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
+use std::fmt::Write;
 use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, fmt};
@@ -205,9 +206,11 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 		} else if begin && line == "---" && !end {
 			end = true;
 		} else if begin && !end {
-			frontmatter.push_str(&format!("{}\n", &line));
+			//frontmatter.push_str(&format!("{}\n", &line));
+			writeln!(frontmatter, "{}", &line).unwrap();
 		} else {
-			contents.push_str(&format!("{}\n", &line));
+			//contents.push_str(&format!("{}\n", &line));
+			writeln!(contents, "{}", &line).unwrap();
 		}
 	}
 
@@ -235,60 +238,42 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 	let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
 	let markdown = frontmatter.get("markdown"); // Get the key-value pair of the 'markdown' key from the frontmatter
 
-	let permalink_string: String;
-	let markdown_bool: bool;
+	let permalink_string: String = match permalink {
+		Some(_) => permalink.unwrap().as_str().unwrap().to_string(),
+		None => String::new(),
+	};
 
-	match permalink {
-		Some(_) => {
-			permalink_string = permalink.unwrap().as_str().unwrap().to_string();
-		}
-		None => {
-			permalink_string = String::new();
-		}
-	}
+	let markdown_bool: bool = match markdown {
+		Some(_) => markdown.unwrap().as_bool().unwrap(),
+		None => true,
+	};
 
-	match markdown {
-		Some(_) => {
-			markdown_bool = markdown.unwrap().as_bool().unwrap();
-		}
-		None => {
-			markdown_bool = true;
-		}
-	}
-
-	let date_object;
-	match date {
+	let date_object = match date {
 		Some(_) => {
 			let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 			let global_file = fs::read_to_string("./_global.yml");
-			let global: HashMap<String, serde_yaml::Value>;
 
-			match global_file {
+			let global: HashMap<String, serde_yaml::Value> = match global_file {
 				Ok(_) => {
-					global = serde_yaml::from_str(&global_file.unwrap()).unwrap();
+					serde_yaml::from_str(&global_file.unwrap()).unwrap()
 					// Defined as variable as it required a type annotation
 				}
 				Err(_) => {
-					global = serde_yaml::from_str("locale: \"en_US\"").unwrap();
+					serde_yaml::from_str("locale: \"en_US\"").unwrap()
 					// Defined as variable as it required a type annotation
 				}
-			}
+			};
 
 			let locale_key = global.get("locale");
-			let locale_value;
 
-			match locale_key {
-				Some(_) => {
-					locale_value = locale_key.unwrap().as_str().unwrap();
-				}
-				None => {
-					locale_value = "en_US";
-				}
-			}
+			let locale_value = match locale_key {
+				Some(_) => locale_key.unwrap().as_str().unwrap(),
+				None => "en_US",
+			};
 
 			let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
-			date_object = Date {
+			Date {
 				year: format!("{}", datetime.unwrap().format_localized("%Y", locale)),
 				short_year: format!("{}", datetime.unwrap().format_localized("%y", locale)),
 				month: format!("{}", datetime.unwrap().format_localized("%m", locale)),
@@ -310,30 +295,28 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 				rfc_2822: datetime.unwrap().to_rfc2822(),
 			}
 		}
-		None => {
-			date_object = Date {
-				year: String::new(),
-				short_year: String::new(),
-				month: String::new(),
-				i_month: String::new(),
-				short_month: String::new(),
-				long_month: String::new(),
-				day: String::new(),
-				i_day: String::new(),
-				y_day: String::new(),
-				w_year: String::new(),
-				week: String::new(),
-				w_day: String::new(),
-				short_day: String::new(),
-				long_day: String::new(),
-				hour: String::new(),
-				minute: String::new(),
-				second: String::new(),
-				rfc_3339: String::new(),
-				rfc_2822: String::new(),
-			}
-		}
-	}
+		None => Date {
+			year: String::new(),
+			short_year: String::new(),
+			month: String::new(),
+			i_month: String::new(),
+			short_month: String::new(),
+			long_month: String::new(),
+			day: String::new(),
+			i_day: String::new(),
+			y_day: String::new(),
+			w_year: String::new(),
+			week: String::new(),
+			w_day: String::new(),
+			short_day: String::new(),
+			long_day: String::new(),
+			hour: String::new(),
+			minute: String::new(),
+			second: String::new(),
+			rfc_3339: String::new(),
+			rfc_2822: String::new(),
+		},
+	};
 
 	let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
 
@@ -380,41 +363,35 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 #[inline(always)]
 pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Object {
 	let global_file = fs::read_to_string("./_global.yml");
-	let global: HashMap<String, serde_yaml::Value>;
-	match global_file {
+	let global: HashMap<String, serde_yaml::Value> = match global_file {
 		Ok(_) => {
-			global = serde_yaml::from_str(&global_file.unwrap()).unwrap(); // Defined as variable as it required a type annotation
+			serde_yaml::from_str(&global_file.unwrap()).unwrap() // Defined as variable as it required a type annotation
 		}
 		Err(_) => {
-			global = serde_yaml::from_str("locale: \"en_US\"").unwrap(); // Defined as variable as it required a type annotation
+			serde_yaml::from_str("locale: \"en_US\"").unwrap() // Defined as variable as it required a type annotation
 		}
-	}
+	};
 
 	/*
 	Layouts
 	*/
 	let layout_name = page.data.get("layout");
-	let layout: HashMap<String, serde_yaml::Value>;
 
 	// Import layout context if Page has a layout
-	match layout_name {
-		None => {
-			layout = HashMap::new();
-		}
-		Some(_) => {
-			layout = serde_yaml::from_str(
-				&split_frontmatter(
-					fs::read_to_string(format!(
-						"./layouts/{}.mokkf",
-						layout_name.unwrap().as_str().unwrap()
-					))
-					.unwrap(),
-				)
-				.0,
+	let layout: HashMap<String, serde_yaml::Value> = match layout_name {
+		None => HashMap::new(),
+		Some(_) => serde_yaml::from_str(
+			&split_frontmatter(
+				fs::read_to_string(format!(
+					"./layouts/{}.mokkf",
+					layout_name.unwrap().as_str().unwrap()
+				))
+				.unwrap(),
 			)
-			.unwrap();
-		}
-	}
+			.0,
+		)
+		.unwrap(),
+	};
 
 	let contexts = object!({
 		"global": global,
@@ -501,27 +478,24 @@ pub fn compile(
 	mut page: Page,
 	mut collections: HashMap<String, Vec<Page>>,
 ) -> (String, HashMap<String, Vec<Page>>) {
-	let compiled_page;
 	let layout_name = &page.data.get("layout");
 	let collection_name = &page.data.get("collection");
 
 	// If Page has a layout, render with layout(s)
 	// Otherwise, render with Page's contents
 	page.content = render(&page, &page.content, !page.markdown, &collections);
-	match layout_name {
-		None => {
-			compiled_page = page.content.to_owned();
-		}
+	let compiled_page = match layout_name {
+		None => page.content.to_owned(),
 		Some(_) => {
 			let layout_object = get_page_object(
 				format!("./layouts/{}.mokkf", layout_name.unwrap().as_str().unwrap()),
 				&collections,
 			);
 			let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
-			compiled_page = render(&page, &layouts, true, &collections);
+			render(&page, &layouts, true, &collections)
 			// Final render, to capture whatever layouts & snippets introduce
 		}
-	}
+	};
 
 	// When within a collection, append embeddable page to list of collection's entries
 	match collection_name {
@@ -558,10 +532,9 @@ pub fn render_layouts(
 	collections: &HashMap<String, Vec<Page>>,
 ) -> String {
 	// Take layout's text, render it with sub's context
-	let rendered: String;
 
 	let super_layout = layout.data.get("layout");
-	match super_layout {
+	let rendered: String = match super_layout {
 		Some(_) => {
 			let super_layout_object = get_page_object(
 				format!(
@@ -570,12 +543,10 @@ pub fn render_layouts(
 				),
 				collections,
 			);
-			rendered = render_layouts(&layout, super_layout_object, collections);
+			render_layouts(&layout, super_layout_object, collections)
 		}
-		None => {
-			rendered = render(sub, &layout.content, !layout.markdown, collections);
-		}
-	}
+		None => render(sub, &layout.content, !layout.markdown, collections),
+	};
 
 	rendered
 }
@@ -584,8 +555,8 @@ pub fn render_layouts(
 pub fn create_liquid_parser() -> liquid::Parser {
 	let mut partial = liquid::partials::InMemorySource::new();
 	let snippets = fs::read_dir("./snippets");
-	if snippets.is_ok() {
-		for snippet in snippets.unwrap() {
+	if let Ok(s) = snippets {
+		for snippet in s {
 			let unwrapped_snippet = snippet.unwrap();
 			let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
 			let path = &unwrapped_snippet.path();
