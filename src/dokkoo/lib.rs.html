@@ -605,35 +605,6 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -662,6 +633,7 @@ File:
 <span class="kw">use</span> <span class="ident">pulldown_cmark</span>::{<span class="ident">html</span>, <span class="ident">Options</span>, <span class="ident">Parser</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">fmt</span>};
@@ -841,9 +813,11 @@ File:
 		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="ident">line</span> <span class="op">==</span> <span class="string">&quot;---&quot;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">end</span> {
 			<span class="ident">end</span> <span class="op">=</span> <span class="bool-val">true</span>;
 		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">end</span> {
-			<span class="ident">frontmatter</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}\n&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>));
+			<span class="comment">//frontmatter.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));</span>
+			<span class="macro">writeln!</span>(<span class="ident">frontmatter</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>).<span class="ident">unwrap</span>();
 		} <span class="kw">else</span> {
-			<span class="ident">contents</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}\n&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>));
+			<span class="comment">//contents.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));</span>
+			<span class="macro">writeln!</span>(<span class="ident">contents</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>).<span class="ident">unwrap</span>();
 		}
 	}
 
@@ -871,60 +845,42 @@ File:
 	<span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">frontmatter</span>.<span class="ident">get</span>(<span class="string">&quot;date&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;date&#39; key from the frontmatter</span>
 	<span class="kw">let</span> <span class="ident">markdown</span> <span class="op">=</span> <span class="ident">frontmatter</span>.<span class="ident">get</span>(<span class="string">&quot;markdown&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;markdown&#39; key from the frontmatter</span>
 
-	<span class="kw">let</span> <span class="ident">permalink_string</span>: <span class="ident">String</span>;
-	<span class="kw">let</span> <span class="ident">markdown_bool</span>: <span class="ident">bool</span>;
+	<span class="kw">let</span> <span class="ident">permalink_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">permalink</span> {
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">permalink</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+		<span class="prelude-val">None</span> =&gt; <span class="ident">String::new</span>(),
+	};
 
-	<span class="kw">match</span> <span class="ident">permalink</span> {
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">permalink_string</span> <span class="op">=</span> <span class="ident">permalink</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>();
-		}
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">permalink_string</span> <span class="op">=</span> <span class="ident">String::new</span>();
-		}
-	}
+	<span class="kw">let</span> <span class="ident">markdown_bool</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">markdown</span> {
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">markdown</span>.<span class="ident">unwrap</span>().<span class="ident">as_bool</span>().<span class="ident">unwrap</span>(),
+		<span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,
+	};
 
-	<span class="kw">match</span> <span class="ident">markdown</span> {
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">markdown_bool</span> <span class="op">=</span> <span class="ident">markdown</span>.<span class="ident">unwrap</span>().<span class="ident">as_bool</span>().<span class="ident">unwrap</span>();
-		}
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">markdown_bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
-		}
-	}
-
-	<span class="kw">let</span> <span class="ident">date_object</span>;
-	<span class="kw">match</span> <span class="ident">date</span> {
+	<span class="kw">let</span> <span class="ident">date_object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">date</span> {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
 			<span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="ident">DateTime::parse_from_rfc3339</span>(<span class="ident">date</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)</span>
 			<span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
-			<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span>;
 
-			<span class="kw">match</span> <span class="ident">global_file</span> {
+			<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">global_file</span> {
 				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-					<span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+					<span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>()
 					<span class="comment">// Defined as variable as it required a type annotation</span>
 				}
 				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-					<span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>();
+					<span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>()
 					<span class="comment">// Defined as variable as it required a type annotation</span>
 				}
-			}
+			};
 
 			<span class="kw">let</span> <span class="ident">locale_key</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get</span>(<span class="string">&quot;locale&quot;</span>);
-			<span class="kw">let</span> <span class="ident">locale_value</span>;
 
-			<span class="kw">match</span> <span class="ident">locale_key</span> {
-				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-					<span class="ident">locale_value</span> <span class="op">=</span> <span class="ident">locale_key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
-				}
-				<span class="prelude-val">None</span> =&gt; {
-					<span class="ident">locale_value</span> <span class="op">=</span> <span class="string">&quot;en_US&quot;</span>;
-				}
-			}
+			<span class="kw">let</span> <span class="ident">locale_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">locale_key</span> {
+				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">locale_key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>(),
+				<span class="prelude-val">None</span> =&gt; <span class="string">&quot;en_US&quot;</span>,
+			};
 
 			<span class="kw">let</span> <span class="ident">locale</span>: <span class="ident">chrono::Locale</span> <span class="op">=</span> <span class="ident">chrono::Locale::try_from</span>(<span class="ident">locale_value</span>).<span class="ident">unwrap</span>(); <span class="comment">// Get locale from Global context</span>
 
-			<span class="ident">date_object</span> <span class="op">=</span> <span class="ident">Date</span> {
+			<span class="ident">Date</span> {
 				<span class="ident">year</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%Y&quot;</span>, <span class="ident">locale</span>)),
 				<span class="ident">short_year</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%y&quot;</span>, <span class="ident">locale</span>)),
 				<span class="ident">month</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%m&quot;</span>, <span class="ident">locale</span>)),
@@ -946,30 +902,28 @@ File:
 				<span class="ident">rfc_2822</span>: <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">to_rfc2822</span>(),
 			}
 		}
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">date_object</span> <span class="op">=</span> <span class="ident">Date</span> {
-				<span class="ident">year</span>: <span class="ident">String::new</span>(),
-				<span class="ident">short_year</span>: <span class="ident">String::new</span>(),
-				<span class="ident">month</span>: <span class="ident">String::new</span>(),
-				<span class="ident">i_month</span>: <span class="ident">String::new</span>(),
-				<span class="ident">short_month</span>: <span class="ident">String::new</span>(),
-				<span class="ident">long_month</span>: <span class="ident">String::new</span>(),
-				<span class="ident">day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">i_day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">y_day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">w_year</span>: <span class="ident">String::new</span>(),
-				<span class="ident">week</span>: <span class="ident">String::new</span>(),
-				<span class="ident">w_day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">short_day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">long_day</span>: <span class="ident">String::new</span>(),
-				<span class="ident">hour</span>: <span class="ident">String::new</span>(),
-				<span class="ident">minute</span>: <span class="ident">String::new</span>(),
-				<span class="ident">second</span>: <span class="ident">String::new</span>(),
-				<span class="ident">rfc_3339</span>: <span class="ident">String::new</span>(),
-				<span class="ident">rfc_2822</span>: <span class="ident">String::new</span>(),
-			}
-		}
-	}
+		<span class="prelude-val">None</span> =&gt; <span class="ident">Date</span> {
+			<span class="ident">year</span>: <span class="ident">String::new</span>(),
+			<span class="ident">short_year</span>: <span class="ident">String::new</span>(),
+			<span class="ident">month</span>: <span class="ident">String::new</span>(),
+			<span class="ident">i_month</span>: <span class="ident">String::new</span>(),
+			<span class="ident">short_month</span>: <span class="ident">String::new</span>(),
+			<span class="ident">long_month</span>: <span class="ident">String::new</span>(),
+			<span class="ident">day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">i_day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">y_day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">w_year</span>: <span class="ident">String::new</span>(),
+			<span class="ident">week</span>: <span class="ident">String::new</span>(),
+			<span class="ident">w_day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">short_day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">long_day</span>: <span class="ident">String::new</span>(),
+			<span class="ident">hour</span>: <span class="ident">String::new</span>(),
+			<span class="ident">minute</span>: <span class="ident">String::new</span>(),
+			<span class="ident">second</span>: <span class="ident">String::new</span>(),
+			<span class="ident">rfc_3339</span>: <span class="ident">String::new</span>(),
+			<span class="ident">rfc_2822</span>: <span class="ident">String::new</span>(),
+		},
+	};
 
 	<span class="kw">let</span> <span class="ident">page_path_io</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">page_path</span>[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)</span>
 
@@ -1016,41 +970,35 @@ File:
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_contexts</span>(<span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Object</span> {
 	<span class="kw">let</span> <span class="ident">global_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
-	<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span>;
-	<span class="kw">match</span> <span class="ident">global_file</span> {
+	<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">global_file</span> {
 		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+			<span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>() <span class="comment">// Defined as variable as it required a type annotation</span>
 		}
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">global</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>(); <span class="comment">// Defined as variable as it required a type annotation</span>
+			<span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>() <span class="comment">// Defined as variable as it required a type annotation</span>
 		}
-	}
+	};
 
 	<span class="comment">/*
 	Layouts
 	*/</span>
 	<span class="kw">let</span> <span class="ident">layout_name</span> <span class="op">=</span> <span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">let</span> <span class="ident">layout</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span>;
 
 	<span class="comment">// Import layout context if Page has a layout</span>
-	<span class="kw">match</span> <span class="ident">layout_name</span> {
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">layout</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-		}
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">layout</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(
-				<span class="kw-2">&amp;</span><span class="ident">split_frontmatter</span>(
-					<span class="ident">fs::read_to_string</span>(<span class="macro">format!</span>(
-						<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-						<span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
-					))
-					.<span class="ident">unwrap</span>(),
-				)
-				.<span class="number">0</span>,
+	<span class="kw">let</span> <span class="ident">layout</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">serde_yaml::Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">layout_name</span> {
+		<span class="prelude-val">None</span> =&gt; <span class="ident">HashMap::new</span>(),
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">serde_yaml::from_str</span>(
+			<span class="kw-2">&amp;</span><span class="ident">split_frontmatter</span>(
+				<span class="ident">fs::read_to_string</span>(<span class="macro">format!</span>(
+					<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
+					<span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
+				))
+				.<span class="ident">unwrap</span>(),
 			)
-			.<span class="ident">unwrap</span>();
-		}
-	}
+			.<span class="number">0</span>,
+		)
+		.<span class="ident">unwrap</span>(),
+	};
 
 	<span class="kw">let</span> <span class="ident">contexts</span> <span class="op">=</span> <span class="macro">object!</span>({
 		<span class="string">&quot;global&quot;</span>: <span class="ident">global</span>,
@@ -1137,27 +1085,24 @@ File:
 	<span class="kw-2">mut</span> <span class="ident">page</span>: <span class="ident">Page</span>,
 	<span class="kw-2">mut</span> <span class="ident">collections</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) -&gt; (<span class="ident">String</span>, <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-	<span class="kw">let</span> <span class="ident">compiled_page</span>;
 	<span class="kw">let</span> <span class="ident">layout_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
 	<span class="kw">let</span> <span class="ident">collection_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;collection&quot;</span>);
 
 	<span class="comment">// If Page has a layout, render with layout(s)</span>
 	<span class="comment">// Otherwise, render with Page&#39;s contents</span>
 	<span class="ident">page</span>.<span class="ident">content</span> <span class="op">=</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">content</span>, <span class="op">!</span><span class="ident">page</span>.<span class="ident">markdown</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>);
-	<span class="kw">match</span> <span class="ident">layout_name</span> {
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">compiled_page</span> <span class="op">=</span> <span class="ident">page</span>.<span class="ident">content</span>.<span class="ident">to_owned</span>();
-		}
+	<span class="kw">let</span> <span class="ident">compiled_page</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">layout_name</span> {
+		<span class="prelude-val">None</span> =&gt; <span class="ident">page</span>.<span class="ident">content</span>.<span class="ident">to_owned</span>(),
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
 			<span class="kw">let</span> <span class="ident">layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
 				<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()),
 				<span class="kw-2">&amp;</span><span class="ident">collections</span>,
 			);
 			<span class="kw">let</span> <span class="ident">layouts</span> <span class="op">=</span> <span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="ident">layout_object</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>); <span class="comment">// Embed page in layout</span>
-			<span class="ident">compiled_page</span> <span class="op">=</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">layouts</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>);
+			<span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">layouts</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>)
 			<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce</span>
 		}
-	}
+	};
 
 	<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries</span>
 	<span class="kw">match</span> <span class="ident">collection_name</span> {
@@ -1194,10 +1139,9 @@ File:
 	<span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">String</span> {
 	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context</span>
-	<span class="kw">let</span> <span class="ident">rendered</span>: <span class="ident">String</span>;
 
 	<span class="kw">let</span> <span class="ident">super_layout</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">match</span> <span class="ident">super_layout</span> {
+	<span class="kw">let</span> <span class="ident">rendered</span>: <span class="ident">String</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">super_layout</span> {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
 			<span class="kw">let</span> <span class="ident">super_layout_object</span> <span class="op">=</span> <span class="ident">get_page_object</span>(
 				<span class="macro">format!</span>(
@@ -1206,12 +1150,10 @@ File:
 				),
 				<span class="ident">collections</span>,
 			);
-			<span class="ident">rendered</span> <span class="op">=</span> <span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>, <span class="ident">super_layout_object</span>, <span class="ident">collections</span>);
+			<span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>, <span class="ident">super_layout_object</span>, <span class="ident">collections</span>)
 		}
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="ident">rendered</span> <span class="op">=</span> <span class="ident">render</span>(<span class="ident">sub</span>, <span class="kw-2">&amp;</span><span class="ident">layout</span>.<span class="ident">content</span>, <span class="op">!</span><span class="ident">layout</span>.<span class="ident">markdown</span>, <span class="ident">collections</span>);
-		}
-	}
+		<span class="prelude-val">None</span> =&gt; <span class="ident">render</span>(<span class="ident">sub</span>, <span class="kw-2">&amp;</span><span class="ident">layout</span>.<span class="ident">content</span>, <span class="op">!</span><span class="ident">layout</span>.<span class="ident">markdown</span>, <span class="ident">collections</span>),
+	};
 
 	<span class="ident">rendered</span>
 }
@@ -1220,8 +1162,8 @@ File:
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() -&gt; <span class="ident">liquid::Parser</span> {
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">liquid::partials::InMemorySource::new</span>();
 	<span class="kw">let</span> <span class="ident">snippets</span> <span class="op">=</span> <span class="ident">fs::read_dir</span>(<span class="string">&quot;./snippets&quot;</span>);
-	<span class="kw">if</span> <span class="ident">snippets</span>.<span class="ident">is_ok</span>() {
-		<span class="kw">for</span> <span class="ident">snippet</span> <span class="kw">in</span> <span class="ident">snippets</span>.<span class="ident">unwrap</span>() {
+	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">snippets</span> {
+		<span class="kw">for</span> <span class="ident">snippet</span> <span class="kw">in</span> <span class="ident">s</span> {
 			<span class="kw">let</span> <span class="ident">unwrapped_snippet</span> <span class="op">=</span> <span class="ident">snippet</span>.<span class="ident">unwrap</span>();
 			<span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">file_name</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
 			<span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">path</span>();
