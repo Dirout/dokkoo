@@ -165,7 +165,7 @@ impl fmt::Display for Page {
 /// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
 #[inline(always)]
 pub fn get_permalink(permalink: &str) -> String {
-	match &*permalink {
+	match permalink {
         "date" => {
             "/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html".to_owned()
         }
