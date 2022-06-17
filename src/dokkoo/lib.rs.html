@@ -772,7 +772,7 @@ File:
 <span class="doccomment">/// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_permalink</span>(<span class="ident">permalink</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-	<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">permalink</span> {
+	<span class="kw">match</span> <span class="ident">permalink</span> {
         <span class="string">&quot;date&quot;</span> =&gt; {
             <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
         }
@@ -1206,5 +1206,5 @@ File:
 	<span class="ident">rendered_markdown</span>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (cacc75c82 2022-06-16)" ></div>
 </body></html>
