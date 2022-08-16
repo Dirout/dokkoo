@@ -613,590 +613,590 @@
 
 	You should have received a copy of the GNU Affero General Public License
 	along with Dokkoo.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
-*/</span>
-<span class="comment">/*
+*/
+/*
 lib.rs - Handling Mokk Files (.mokkf)
 File:
 	Term for a document or page written in accordance to the Mokk specification
-*/</span>
-<span class="kw">use</span> <span class="ident">anyhow::Context</span>;
-<span class="kw">use</span> <span class="ident">chrono::DateTime</span>;
-<span class="kw">use</span> <span class="ident">derive_more</span>::{<span class="ident">Constructor</span>, <span class="ident">Div</span>, <span class="ident">Error</span>, <span class="ident">From</span>, <span class="ident">Into</span>, <span class="ident">Mul</span>, <span class="ident">Rem</span>, <span class="ident">Shl</span>, <span class="ident">Shr</span>};
-<span class="kw">use</span> <span class="ident">liquid</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">pulldown_cmark</span>::{<span class="ident">html</span>, <span class="ident">Options</span>, <span class="ident">Parser</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
-<span class="kw">use</span> <span class="ident">std::fs</span>;
-<span class="kw">use</span> <span class="ident">std::path::Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">fmt</span>};
+*/
+</span><span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>chrono::DateTime;
+<span class="kw">use </span>derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
+<span class="kw">use </span>liquid::<span class="kw-2">*</span>;
+<span class="kw">use </span>pulldown_cmark::{html, Options, Parser};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::fmt::Write;
+<span class="kw">use </span>std::fs;
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::{collections::HashMap, fmt};
 
-<span class="attribute">#[<span class="ident">derive</span>(
-	<span class="ident">Eq</span>,
-	<span class="ident">PartialEq</span>,
-	<span class="ident">PartialOrd</span>,
-	<span class="ident">Clone</span>,
-	<span class="ident">Default</span>,
-	<span class="ident">Debug</span>,
-	<span class="ident">Serialize</span>,
-	<span class="ident">Deserialize</span>,
-	<span class="ident">From</span>,
-	<span class="ident">Into</span>,
-	<span class="ident">Error</span>,
-	<span class="ident">Mul</span>,
-	<span class="ident">Div</span>,
-	<span class="ident">Rem</span>,
-	<span class="ident">Shr</span>,
-	<span class="ident">Shl</span>,
-	<span class="ident">Constructor</span>,
+<span class="attribute">#[derive(
+	Eq,
+	PartialEq,
+	PartialOrd,
+	Clone,
+	Default,
+	Debug,
+	Serialize,
+	Deserialize,
+	From,
+	Into,
+	Error,
+	Mul,
+	Div,
+	Rem,
+	Shr,
+	Shl,
+	Constructor,
 )]</span>
-<span class="doccomment">/// A File&#39;s date-time metadata</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Date</span> {
-	<span class="doccomment">/// Year with four digits</span>
-	<span class="kw">pub</span> <span class="ident">year</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Year without the century (00..99)</span>
-	<span class="kw">pub</span> <span class="ident">short_year</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Month (01..12)</span>
-	<span class="kw">pub</span> <span class="ident">month</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Month without leading zeros</span>
-	<span class="kw">pub</span> <span class="ident">i_month</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Three-letter month abbreviation, e.g. “Jan”</span>
-	<span class="kw">pub</span> <span class="ident">short_month</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Full month name, e.g. “January”</span>
-	<span class="kw">pub</span> <span class="ident">long_month</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Day of the month (01..31)</span>
-	<span class="kw">pub</span> <span class="ident">day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Day of the month without leading zeros</span>
-	<span class="kw">pub</span> <span class="ident">i_day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Ordinal day of the year, with leading zeros. (001..366)</span>
-	<span class="kw">pub</span> <span class="ident">y_day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Week year which may differ from the month year for up to three days at the start of January and end of December</span>
-	<span class="kw">pub</span> <span class="ident">w_year</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Week number of the current year, starting with the first week having a majority of its days in January (01..53)</span>
-	<span class="kw">pub</span> <span class="ident">week</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Day of the week, starting with Monday (1..7)</span>
-	<span class="kw">pub</span> <span class="ident">w_day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Three-letter weekday abbreviation, e.g. “Sun”</span>
-	<span class="kw">pub</span> <span class="ident">short_day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Weekday name, e.g. “Sunday”</span>
-	<span class="kw">pub</span> <span class="ident">long_day</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Hour of the day, 24-hour clock, zero-padded (00..23)</span>
-	<span class="kw">pub</span> <span class="ident">hour</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Minute of the hour (00..59)</span>
-	<span class="kw">pub</span> <span class="ident">minute</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Second of the minute (00..59)</span>
-	<span class="kw">pub</span> <span class="ident">second</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard</span>
-	<span class="kw">pub</span> <span class="ident">rfc_3339</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 2822 standard</span>
-	<span class="kw">pub</span> <span class="ident">rfc_2822</span>: <span class="ident">String</span>,
+<span class="doccomment">/// A File&#39;s date-time metadata
+</span><span class="kw">pub struct </span>Date {
+	<span class="doccomment">/// Year with four digits
+	</span><span class="kw">pub </span>year: String,
+	<span class="doccomment">/// Year without the century (00..99)
+	</span><span class="kw">pub </span>short_year: String,
+	<span class="doccomment">/// Month (01..12)
+	</span><span class="kw">pub </span>month: String,
+	<span class="doccomment">/// Month without leading zeros
+	</span><span class="kw">pub </span>i_month: String,
+	<span class="doccomment">/// Three-letter month abbreviation, e.g. “Jan”
+	</span><span class="kw">pub </span>short_month: String,
+	<span class="doccomment">/// Full month name, e.g. “January”
+	</span><span class="kw">pub </span>long_month: String,
+	<span class="doccomment">/// Day of the month (01..31)
+	</span><span class="kw">pub </span>day: String,
+	<span class="doccomment">/// Day of the month without leading zeros
+	</span><span class="kw">pub </span>i_day: String,
+	<span class="doccomment">/// Ordinal day of the year, with leading zeros. (001..366)
+	</span><span class="kw">pub </span>y_day: String,
+	<span class="doccomment">/// Week year which may differ from the month year for up to three days at the start of January and end of December
+	</span><span class="kw">pub </span>w_year: String,
+	<span class="doccomment">/// Week number of the current year, starting with the first week having a majority of its days in January (01..53)
+	</span><span class="kw">pub </span>week: String,
+	<span class="doccomment">/// Day of the week, starting with Monday (1..7)
+	</span><span class="kw">pub </span>w_day: String,
+	<span class="doccomment">/// Three-letter weekday abbreviation, e.g. “Sun”
+	</span><span class="kw">pub </span>short_day: String,
+	<span class="doccomment">/// Weekday name, e.g. “Sunday”
+	</span><span class="kw">pub </span>long_day: String,
+	<span class="doccomment">/// Hour of the day, 24-hour clock, zero-padded (00..23)
+	</span><span class="kw">pub </span>hour: String,
+	<span class="doccomment">/// Minute of the hour (00..59)
+	</span><span class="kw">pub </span>minute: String,
+	<span class="doccomment">/// Second of the minute (00..59)
+	</span><span class="kw">pub </span>second: String,
+	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard
+	</span><span class="kw">pub </span>rfc_3339: String,
+	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 2822 standard
+	</span><span class="kw">pub </span>rfc_2822: String,
 }
 
-<span class="doccomment">/// Handle conversion of a Date object into a string of characters</span>
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Date</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">rfc_3339</span>)
+<span class="doccomment">/// Handle conversion of a Date object into a string of characters
+</span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Date {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+		<span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.rfc_3339)
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(
-	<span class="ident">Eq</span>,
-	<span class="ident">PartialEq</span>,
-	<span class="ident">Clone</span>,
-	<span class="ident">Default</span>,
-	<span class="ident">Debug</span>,
-	<span class="ident">Serialize</span>,
-	<span class="ident">Deserialize</span>,
-	<span class="ident">From</span>,
-	<span class="ident">Into</span>,
-	<span class="ident">Error</span>,
-	<span class="ident">Mul</span>,
-	<span class="ident">Div</span>,
-	<span class="ident">Rem</span>,
-	<span class="ident">Shr</span>,
-	<span class="ident">Shl</span>,
-	<span class="ident">Constructor</span>,
+<span class="attribute">#[derive(
+	Eq,
+	PartialEq,
+	Clone,
+	Default,
+	Debug,
+	Serialize,
+	Deserialize,
+	From,
+	Into,
+	Error,
+	Mul,
+	Div,
+	Rem,
+	Shr,
+	Shl,
+	Constructor,
 )]</span>
-<span class="doccomment">/// Generated data regarding a Mokk File</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Page</span> {
-	<span class="doccomment">/// A File&#39;s contextual data, represented as YAML at the head/front of the file</span>
-	<span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">serde_yaml::Value</span>&gt;,
-	<span class="doccomment">/// A File&#39;s contents following the frontmatter</span>
-	<span class="kw">pub</span> <span class="ident">content</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Data representing the output path of a File.</span>
-	<span class="doccomment">/// This is defined in a File&#39;s frontmatter</span>
-	<span class="kw">pub</span> <span class="ident">permalink</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard.</span>
-	<span class="doccomment">/// This is defined in a File&#39;s frontmatter</span>
-	<span class="kw">pub</span> <span class="ident">date</span>: <span class="ident">Date</span>,
-	<span class="doccomment">/// Path to the File, not including the File itself</span>
-	<span class="kw">pub</span> <span class="ident">directory</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// The File&#39;s base filename</span>
-	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// The output path of a file; a processed `permalink` value</span>
-	<span class="kw">pub</span> <span class="ident">url</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)</span>
-	<span class="kw">pub</span> <span class="ident">markdown</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Generated data regarding a Mokk File
+</span><span class="kw">pub struct </span>Page {
+	<span class="doccomment">/// A File&#39;s contextual data, represented as YAML at the head/front of the file
+	</span><span class="kw">pub </span>data: HashMap&lt;String, serde_yaml::Value&gt;,
+	<span class="doccomment">/// A File&#39;s contents following the frontmatter
+	</span><span class="kw">pub </span>content: String,
+	<span class="doccomment">/// Data representing the output path of a File.
+	/// This is defined in a File&#39;s frontmatter
+	</span><span class="kw">pub </span>permalink: String,
+	<span class="doccomment">/// A File&#39;s date-time metadata, formatted per the RFC 3339 standard.
+	/// This is defined in a File&#39;s frontmatter
+	</span><span class="kw">pub </span>date: Date,
+	<span class="doccomment">/// Path to the File, not including the File itself
+	</span><span class="kw">pub </span>directory: String,
+	<span class="doccomment">/// The File&#39;s base filename
+	</span><span class="kw">pub </span>name: String,
+	<span class="doccomment">/// The output path of a file; a processed `permalink` value
+	</span><span class="kw">pub </span>url: String,
+	<span class="doccomment">/// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
+	</span><span class="kw">pub </span>markdown: bool,
 }
 
-<span class="doccomment">/// Handle conversion of a Page object into a string of characters</span>
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Page</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>)
+<span class="doccomment">/// Handle conversion of a Page object into a string of characters
+</span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Page {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+		<span class="macro">write!</span>(f, <span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>)
 	}
 }
 
-<span class="doccomment">/// Returns an expanded permalink value, for when shorthand is used</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `permalink` - A string slice that represents the permalink value specified in the File</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Shorthand</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `date` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `pretty` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `ordinal` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `weekdate` → `/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_permalink</span>(<span class="ident">permalink</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-	<span class="kw">match</span> <span class="ident">permalink</span> {
-        <span class="string">&quot;date&quot;</span> =&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
+<span class="doccomment">/// Returns an expanded permalink value, for when shorthand is used
+///
+/// # Arguments
+///
+/// * `permalink` - A string slice that represents the permalink value specified in the File
+///
+/// # Shorthand
+///
+/// * `date` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html`
+///
+/// * `pretty` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html`
+///
+/// * `ordinal` → `/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html`
+///
+/// * `weekdate` → `/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html`
+///
+/// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>get_permalink(permalink: <span class="kw-2">&amp;</span>str) -&gt; String {
+	<span class="kw">match </span>permalink {
+        <span class="string">&quot;date&quot; </span>=&gt; {
+            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html&quot;</span>.to_owned()
         }
-        <span class="string">&quot;pretty&quot;</span> =&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html&quot;</span>.<span class="ident">to_owned</span>()
+        <span class="string">&quot;pretty&quot; </span>=&gt; {
+            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html&quot;</span>.to_owned()
         }
-        <span class="string">&quot;ordinal&quot;</span> =&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html&quot;</span>
-                .<span class="ident">to_owned</span>()
+        <span class="string">&quot;ordinal&quot; </span>=&gt; {
+            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html&quot;
+                </span>.to_owned()
         }
-        <span class="string">&quot;weekdate&quot;</span> =&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
+        <span class="string">&quot;weekdate&quot; </span>=&gt; {
+            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html&quot;</span>.to_owned()
         }
-        <span class="string">&quot;none&quot;</span> =&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.data.title }}.html&quot;</span>.<span class="ident">to_owned</span>()
+        <span class="string">&quot;none&quot; </span>=&gt; {
+            <span class="string">&quot;/{{ page.data.collection }}/{{ page.data.title }}.html&quot;</span>.to_owned()
         }
-        <span class="kw">_</span> =&gt; {
-            <span class="ident">permalink</span>.<span class="ident">to_string</span>()
+        <span class="kw">_ </span>=&gt; {
+            permalink.to_string()
         }
     }
 }
 
-<span class="doccomment">/// Returns a tuple with a File&#39;s frontmatter and contents, in that order</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page_text` - The `.mokkf` file&#39;s data as a `String`</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_frontmatter</span>(<span class="ident">page_text</span>: <span class="ident">String</span>) -&gt; (<span class="ident">String</span>, <span class="ident">String</span>) {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">begin</span> = <span class="bool-val">false</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> = <span class="bool-val">false</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frontmatter</span> = <span class="ident">String::new</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contents</span> = <span class="ident">String::new</span>();
+<span class="doccomment">/// Returns a tuple with a File&#39;s frontmatter and contents, in that order
+///
+/// # Arguments
+///
+/// * `page_text` - The `.mokkf` file&#39;s data as a `String`
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>split_frontmatter(page_text: String) -&gt; (String, String) {
+	<span class="kw">let </span><span class="kw-2">mut </span>begin = <span class="bool-val">false</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>end = <span class="bool-val">false</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>frontmatter = String::new();
+	<span class="kw">let </span><span class="kw-2">mut </span>contents = String::new();
 
-	<span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">page_text</span>.<span class="ident">lines</span>() {
-		<span class="kw">if</span> !<span class="ident">begin</span> &amp;&amp; <span class="ident">line</span> == <span class="string">&quot;---&quot;</span> {
-			<span class="ident">begin</span> = <span class="bool-val">true</span>;
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> &amp;&amp; <span class="ident">line</span> == <span class="string">&quot;---&quot;</span> &amp;&amp; !<span class="ident">end</span> {
-			<span class="ident">end</span> = <span class="bool-val">true</span>;
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">begin</span> &amp;&amp; !<span class="ident">end</span> {
-			<span class="comment">//frontmatter.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));</span>
-			<span class="macro">writeln!</span>(<span class="ident">frontmatter</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>).<span class="ident">unwrap</span>();
-		} <span class="kw">else</span> {
-			<span class="comment">//contents.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));</span>
-			<span class="macro">writeln!</span>(<span class="ident">contents</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">line</span>).<span class="ident">unwrap</span>();
+	<span class="kw">for </span>line <span class="kw">in </span>page_text.lines() {
+		<span class="kw">if </span>!begin &amp;&amp; line == <span class="string">&quot;---&quot; </span>{
+			begin = <span class="bool-val">true</span>;
+		} <span class="kw">else if </span>begin &amp;&amp; line == <span class="string">&quot;---&quot; </span>&amp;&amp; !end {
+			end = <span class="bool-val">true</span>;
+		} <span class="kw">else if </span>begin &amp;&amp; !end {
+			<span class="comment">//frontmatter.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));
+			</span><span class="macro">writeln!</span>(frontmatter, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>line).unwrap();
+		} <span class="kw">else </span>{
+			<span class="comment">//contents.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));
+			</span><span class="macro">writeln!</span>(contents, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>line).unwrap();
 		}
 	}
 
-	<span class="kw">if</span> <span class="ident">frontmatter</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
-		<span class="ident">frontmatter</span> = <span class="string">&quot;empty: true&quot;</span>.<span class="ident">to_owned</span>();
+	<span class="kw">if </span>frontmatter.trim().is_empty() {
+		frontmatter = <span class="string">&quot;empty: true&quot;</span>.to_owned();
 	}
 
-	(<span class="ident">frontmatter</span>, <span class="ident">contents</span>)
+	(frontmatter, contents)
 }
 
-<span class="doccomment">/// Returns an object with a Page&#39;s context</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page_path` - The `.mokkf` file&#39;s path as a `String`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `conditions` - Prints conditions information</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_page_object</span>(<span class="ident">page_path</span>: <span class="ident">String</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;) -&gt; <span class="ident">Page</span> {
-	<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context</span>
-	<span class="kw">let</span> <span class="ident">split_page</span> = <span class="ident">split_frontmatter</span>(<span class="ident">fs::read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">page_path</span>).<span class="ident">unwrap</span>()); <span class="comment">// See file::split_frontmatter</span>
-	<span class="kw">let</span> <span class="ident">frontmatter</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">serde_yaml::Value</span>&gt; =
-		<span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">split_page</span>.<span class="number">0</span>).<span class="ident">unwrap</span>(); <span class="comment">// Parse frontmatter as HashMap (collection of key-value pairs)</span>
-	<span class="kw">let</span> <span class="ident">permalink</span> = <span class="ident">frontmatter</span>.<span class="ident">get</span>(<span class="string">&quot;permalink&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;permalink&#39; key from the frontmatter</span>
-	<span class="kw">let</span> <span class="ident">date</span> = <span class="ident">frontmatter</span>.<span class="ident">get</span>(<span class="string">&quot;date&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;date&#39; key from the frontmatter</span>
-	<span class="kw">let</span> <span class="ident">markdown</span> = <span class="ident">frontmatter</span>.<span class="ident">get</span>(<span class="string">&quot;markdown&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;markdown&#39; key from the frontmatter</span>
+<span class="doccomment">/// Returns an object with a Page&#39;s context
+///
+/// # Arguments
+///
+/// * `page_path` - The `.mokkf` file&#39;s path as a `String`
+///
+/// * `conditions` - Prints conditions information
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>get_page_object(page_path: String, collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Page {
+	<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context
+	</span><span class="kw">let </span>split_page = split_frontmatter(fs::read_to_string(<span class="kw-2">&amp;</span>page_path).unwrap()); <span class="comment">// See file::split_frontmatter
+	</span><span class="kw">let </span>frontmatter: HashMap&lt;String, serde_yaml::Value&gt; =
+		serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>).unwrap(); <span class="comment">// Parse frontmatter as HashMap (collection of key-value pairs)
+	</span><span class="kw">let </span>permalink = frontmatter.get(<span class="string">&quot;permalink&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;permalink&#39; key from the frontmatter
+	</span><span class="kw">let </span>date = frontmatter.get(<span class="string">&quot;date&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;date&#39; key from the frontmatter
+	</span><span class="kw">let </span>markdown = frontmatter.get(<span class="string">&quot;markdown&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;markdown&#39; key from the frontmatter
 
-	<span class="kw">let</span> <span class="ident">permalink_string</span>: <span class="ident">String</span> = <span class="kw">match</span> <span class="ident">permalink</span> {
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">permalink</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
-		<span class="prelude-val">None</span> =&gt; <span class="ident">String::new</span>(),
+	</span><span class="kw">let </span>permalink_string: String = <span class="kw">match </span>permalink {
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; permalink.unwrap().as_str().unwrap().to_string(),
+		<span class="prelude-val">None </span>=&gt; String::new(),
 	};
 
-	<span class="kw">let</span> <span class="ident">markdown_bool</span>: <span class="ident">bool</span> = <span class="kw">match</span> <span class="ident">markdown</span> {
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">markdown</span>.<span class="ident">unwrap</span>().<span class="ident">as_bool</span>().<span class="ident">unwrap</span>(),
-		<span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,
+	<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>markdown {
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; markdown.unwrap().as_bool().unwrap(),
+		<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
 	};
 
-	<span class="kw">let</span> <span class="ident">date_object</span> = <span class="kw">match</span> <span class="ident">date</span> {
+	<span class="kw">let </span>date_object = <span class="kw">match </span>date {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">datetime</span> = <span class="ident">DateTime::parse_from_rfc3339</span>(<span class="ident">date</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)</span>
-			<span class="kw">let</span> <span class="ident">global_file</span> = <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
+			<span class="kw">let </span>datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
+			</span><span class="kw">let </span>global_file = fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">serde_yaml::Value</span>&gt; = <span class="kw">match</span> <span class="ident">global_file</span> {
+			<span class="kw">let </span>global: HashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>global_file {
 				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-					<span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>()
-					<span class="comment">// Defined as variable as it required a type annotation</span>
-				}
+					serde_yaml::from_str(<span class="kw-2">&amp;</span>global_file.unwrap()).unwrap()
+					<span class="comment">// Defined as variable as it required a type annotation
+				</span>}
 				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-					<span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>()
-					<span class="comment">// Defined as variable as it required a type annotation</span>
-				}
+					serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).unwrap()
+					<span class="comment">// Defined as variable as it required a type annotation
+				</span>}
 			};
 
-			<span class="kw">let</span> <span class="ident">locale_key</span> = <span class="ident">global</span>.<span class="ident">get</span>(<span class="string">&quot;locale&quot;</span>);
+			<span class="kw">let </span>locale_key = global.get(<span class="string">&quot;locale&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">locale_value</span> = <span class="kw">match</span> <span class="ident">locale_key</span> {
-				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">locale_key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>(),
-				<span class="prelude-val">None</span> =&gt; <span class="string">&quot;en_US&quot;</span>,
+			<span class="kw">let </span>locale_value = <span class="kw">match </span>locale_key {
+				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; locale_key.unwrap().as_str().unwrap(),
+				<span class="prelude-val">None </span>=&gt; <span class="string">&quot;en_US&quot;</span>,
 			};
 
-			<span class="kw">let</span> <span class="ident">locale</span>: <span class="ident">chrono::Locale</span> = <span class="ident">chrono::Locale::try_from</span>(<span class="ident">locale_value</span>).<span class="ident">unwrap</span>(); <span class="comment">// Get locale from Global context</span>
+			<span class="kw">let </span>locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); <span class="comment">// Get locale from Global context
 
-			<span class="ident">Date</span> {
-				<span class="ident">year</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%Y&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">short_year</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%y&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">month</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%m&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">i_month</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%-m&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">short_month</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%b&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">long_month</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%B&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%d&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">i_day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%-d&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">y_day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%j&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">w_year</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%G&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">week</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%U&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">w_day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%u&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">short_day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%a&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">long_day</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%A&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">hour</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%H&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">minute</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%M&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">second</span>: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">format_localized</span>(<span class="string">&quot;%S&quot;</span>, <span class="ident">locale</span>)),
-				<span class="ident">rfc_3339</span>: <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">to_rfc3339</span>(),
-				<span class="ident">rfc_2822</span>: <span class="ident">datetime</span>.<span class="ident">unwrap</span>().<span class="ident">to_rfc2822</span>(),
+			</span>Date {
+				year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%Y&quot;</span>, locale)),
+				short_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%y&quot;</span>, locale)),
+				month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%m&quot;</span>, locale)),
+				i_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%-m&quot;</span>, locale)),
+				short_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%b&quot;</span>, locale)),
+				long_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%B&quot;</span>, locale)),
+				day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%d&quot;</span>, locale)),
+				i_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%-d&quot;</span>, locale)),
+				y_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%j&quot;</span>, locale)),
+				w_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%G&quot;</span>, locale)),
+				week: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%U&quot;</span>, locale)),
+				w_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%u&quot;</span>, locale)),
+				short_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%a&quot;</span>, locale)),
+				long_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%A&quot;</span>, locale)),
+				hour: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%H&quot;</span>, locale)),
+				minute: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%M&quot;</span>, locale)),
+				second: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.unwrap().format_localized(<span class="string">&quot;%S&quot;</span>, locale)),
+				rfc_3339: datetime.unwrap().to_rfc3339(),
+				rfc_2822: datetime.unwrap().to_rfc2822(),
 			}
 		}
-		<span class="prelude-val">None</span> =&gt; <span class="ident">Date</span> {
-			<span class="ident">year</span>: <span class="ident">String::new</span>(),
-			<span class="ident">short_year</span>: <span class="ident">String::new</span>(),
-			<span class="ident">month</span>: <span class="ident">String::new</span>(),
-			<span class="ident">i_month</span>: <span class="ident">String::new</span>(),
-			<span class="ident">short_month</span>: <span class="ident">String::new</span>(),
-			<span class="ident">long_month</span>: <span class="ident">String::new</span>(),
-			<span class="ident">day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">i_day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">y_day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">w_year</span>: <span class="ident">String::new</span>(),
-			<span class="ident">week</span>: <span class="ident">String::new</span>(),
-			<span class="ident">w_day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">short_day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">long_day</span>: <span class="ident">String::new</span>(),
-			<span class="ident">hour</span>: <span class="ident">String::new</span>(),
-			<span class="ident">minute</span>: <span class="ident">String::new</span>(),
-			<span class="ident">second</span>: <span class="ident">String::new</span>(),
-			<span class="ident">rfc_3339</span>: <span class="ident">String::new</span>(),
-			<span class="ident">rfc_2822</span>: <span class="ident">String::new</span>(),
+		<span class="prelude-val">None </span>=&gt; Date {
+			year: String::new(),
+			short_year: String::new(),
+			month: String::new(),
+			i_month: String::new(),
+			short_month: String::new(),
+			long_month: String::new(),
+			day: String::new(),
+			i_day: String::new(),
+			y_day: String::new(),
+			w_year: String::new(),
+			week: String::new(),
+			w_day: String::new(),
+			short_day: String::new(),
+			long_day: String::new(),
+			hour: String::new(),
+			minute: String::new(),
+			second: String::new(),
+			rfc_3339: String::new(),
+			rfc_2822: String::new(),
 		},
 	};
 
-	<span class="kw">let</span> <span class="ident">page_path_io</span> = <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">page_path</span>[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)</span>
+	<span class="kw">let </span>page_path_io = Path::new(<span class="kw-2">&amp;</span>page_path[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
 
-	<span class="comment">// Define our Page</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">page</span> = <span class="ident">Page</span> {
-		<span class="ident">data</span>: <span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">split_page</span>.<span class="number">0</span>).<span class="ident">unwrap</span>(),
-		<span class="ident">content</span>: <span class="ident">split_page</span>.<span class="number">1</span>,
-		<span class="ident">permalink</span>: <span class="ident">permalink_string</span>,
-		<span class="ident">date</span>: <span class="ident">date_object</span>,
-		<span class="ident">directory</span>: <span class="ident">page_path_io</span>.<span class="ident">parent</span>().<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>(),
-		<span class="ident">name</span>: <span class="ident">page_path_io</span>
-			.<span class="ident">file_stem</span>()
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">to_str</span>()
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">to_owned</span>(),
-		<span class="ident">url</span>: <span class="ident">String::new</span>(),
-		<span class="ident">markdown</span>: <span class="ident">markdown_bool</span>,
+	// Define our Page
+	</span><span class="kw">let </span><span class="kw-2">mut </span>page = Page {
+		data: serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>).unwrap(),
+		content: split_page.<span class="number">1</span>,
+		permalink: permalink_string,
+		date: date_object,
+		directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+		name: page_path_io
+			.file_stem()
+			.unwrap()
+			.to_str()
+			.unwrap()
+			.to_owned(),
+		url: String::new(),
+		markdown: markdown_bool,
 	};
 
-	<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">permalink</span>[..] {
-		<span class="string">&quot;&quot;</span> =&gt; {}
-		<span class="kw">_</span> =&gt; {
-			<span class="comment">// Render the URL once the Page metadata has been generated</span>
-			<span class="ident">page</span>.<span class="ident">url</span> = <span class="ident">render</span>(
-				<span class="kw-2">&amp;</span><span class="ident">page</span>,
-				<span class="kw-2">&amp;</span><span class="ident">get_permalink</span>(<span class="ident">permalink</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()),
+	<span class="kw">match </span><span class="kw-2">&amp;</span>page.permalink[..] {
+		<span class="string">&quot;&quot; </span>=&gt; {}
+		<span class="kw">_ </span>=&gt; {
+			<span class="comment">// Render the URL once the Page metadata has been generated
+			</span>page.url = render(
+				<span class="kw-2">&amp;</span>page,
+				<span class="kw-2">&amp;</span>get_permalink(permalink.unwrap().as_str().unwrap()),
 				<span class="bool-val">true</span>,
-				<span class="ident">collections</span>,
+				collections,
 			);
 		}
 	}
 
-	<span class="ident">page</span>
+	page
 }
 
-<span class="doccomment">/// Returns a Liquid object with a Page&#39;s Liquid contexts</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page` - The `.mokkf` file&#39;s context as a Page</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `conditions` - Prints conditions information</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_contexts</span>(<span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>, <span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;) -&gt; <span class="ident">Object</span> {
-	<span class="kw">let</span> <span class="ident">global_file</span> = <span class="ident">fs::read_to_string</span>(<span class="string">&quot;./_global.yml&quot;</span>);
-	<span class="kw">let</span> <span class="ident">global</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">serde_yaml::Value</span>&gt; = <span class="kw">match</span> <span class="ident">global_file</span> {
+<span class="doccomment">/// Returns a Liquid object with a Page&#39;s Liquid contexts
+///
+/// # Arguments
+///
+/// * `page` - The `.mokkf` file&#39;s context as a Page
+///
+/// * `conditions` - Prints conditions information
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>get_contexts(page: <span class="kw-2">&amp;</span>Page, collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Object {
+	<span class="kw">let </span>global_file = fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>);
+	<span class="kw">let </span>global: HashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>global_file {
 		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">serde_yaml::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">global_file</span>.<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>() <span class="comment">// Defined as variable as it required a type annotation</span>
-		}
+			serde_yaml::from_str(<span class="kw-2">&amp;</span>global_file.unwrap()).unwrap() <span class="comment">// Defined as variable as it required a type annotation
+		</span>}
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-			<span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).<span class="ident">unwrap</span>() <span class="comment">// Defined as variable as it required a type annotation</span>
-		}
+			serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>).unwrap() <span class="comment">// Defined as variable as it required a type annotation
+		</span>}
 	};
 
 	<span class="comment">/*
 	Layouts
-	*/</span>
-	<span class="kw">let</span> <span class="ident">layout_name</span> = <span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
+	*/
+	</span><span class="kw">let </span>layout_name = page.data.get(<span class="string">&quot;layout&quot;</span>);
 
-	<span class="comment">// Import layout context if Page has a layout</span>
-	<span class="kw">let</span> <span class="ident">layout</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">serde_yaml::Value</span>&gt; = <span class="kw">match</span> <span class="ident">layout_name</span> {
-		<span class="prelude-val">None</span> =&gt; <span class="ident">HashMap::new</span>(),
-		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="ident">serde_yaml::from_str</span>(
-			<span class="kw-2">&amp;</span><span class="ident">split_frontmatter</span>(
-				<span class="ident">fs::read_to_string</span>(<span class="macro">format!</span>(
+	<span class="comment">// Import layout context if Page has a layout
+	</span><span class="kw">let </span>layout: HashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>layout_name {
+		<span class="prelude-val">None </span>=&gt; HashMap::new(),
+		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; serde_yaml::from_str(
+			<span class="kw-2">&amp;</span>split_frontmatter(
+				fs::read_to_string(<span class="macro">format!</span>(
 					<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-					<span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
+					layout_name.unwrap().as_str().unwrap()
 				))
-				.<span class="ident">unwrap</span>(),
+				.unwrap(),
 			)
 			.<span class="number">0</span>,
 		)
-		.<span class="ident">unwrap</span>(),
+		.unwrap(),
 	};
 
-	<span class="kw">let</span> <span class="ident">contexts</span> = <span class="macro">object!</span>({
-		<span class="string">&quot;global&quot;</span>: <span class="ident">global</span>,
-		<span class="string">&quot;page&quot;</span>: <span class="ident">page</span>,
-		<span class="string">&quot;layout&quot;</span>: <span class="ident">layout</span>,
-		<span class="string">&quot;collections&quot;</span>: <span class="ident">collections</span>,
+	<span class="kw">let </span>contexts = <span class="macro">object!</span>({
+		<span class="string">&quot;global&quot;</span>: global,
+		<span class="string">&quot;page&quot;</span>: page,
+		<span class="string">&quot;layout&quot;</span>: layout,
+		<span class="string">&quot;collections&quot;</span>: collections,
 	});
 
-	<span class="ident">contexts</span>
+	contexts
 }
 
-<span class="doccomment">/// Returns a String with a &amp;str&#39;s File rendered</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page` - A `.mokkf` file&#39;s context as a Page</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `text_to_render` - The text to be rendered</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `only_context` - Whether or not to only render the contexts of a File</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `collections` - Collection store of this build</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render</span>(
-	<span class="ident">page</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>,
-	<span class="ident">text_to_render</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-	<span class="ident">only_context</span>: <span class="ident">bool</span>,
-	<span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;,
-) -&gt; <span class="ident">String</span> {
-	<span class="kw">match</span> <span class="ident">only_context</span> {
-		<span class="bool-val">true</span> =&gt; {
-			<span class="kw">let</span> <span class="ident">template</span> = <span class="ident">create_liquid_parser</span>()
-				.<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
-				.<span class="ident">with_context</span>(|| {
+<span class="doccomment">/// Returns a String with a &amp;str&#39;s File rendered
+///
+/// # Arguments
+///
+/// * `page` - A `.mokkf` file&#39;s context as a Page
+///
+/// * `text_to_render` - The text to be rendered
+///
+/// * `only_context` - Whether or not to only render the contexts of a File
+///
+/// * `collections` - Collection store of this build
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>render(
+	page: <span class="kw-2">&amp;</span>Page,
+	text_to_render: <span class="kw-2">&amp;</span>str,
+	only_context: bool,
+	collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;,
+) -&gt; String {
+	<span class="kw">match </span>only_context {
+		<span class="bool-val">true </span>=&gt; {
+			<span class="kw">let </span>template = create_liquid_parser()
+				.parse(text_to_render)
+				.with_context(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
-						<span class="ident">page</span>.<span class="ident">directory</span>, <span class="ident">page</span>.<span class="ident">name</span>
+						page.directory, page.name
 					)
 				})
-				.<span class="ident">unwrap</span>();
-			<span class="ident">template</span>
-				.<span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">get_contexts</span>(<span class="ident">page</span>, <span class="ident">collections</span>))
-				.<span class="ident">with_context</span>(|| {
+				.unwrap();
+			template
+				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
+				.with_context(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
-						<span class="ident">page</span>.<span class="ident">directory</span>, <span class="ident">page</span>.<span class="ident">name</span>
+						page.directory, page.name
 					)
 				})
-				.<span class="ident">unwrap</span>()
+				.unwrap()
 		}
-		<span class="bool-val">false</span> =&gt; {
-			<span class="kw">let</span> <span class="ident">template</span> = <span class="ident">create_liquid_parser</span>()
-				.<span class="ident">parse</span>(<span class="ident">text_to_render</span>)
-				.<span class="ident">with_context</span>(|| {
+		<span class="bool-val">false </span>=&gt; {
+			<span class="kw">let </span>template = create_liquid_parser()
+				.parse(text_to_render)
+				.with_context(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
-						<span class="ident">page</span>.<span class="ident">directory</span>, <span class="ident">page</span>.<span class="ident">name</span>
+						page.directory, page.name
 					)
 				})
-				.<span class="ident">unwrap</span>();
-			<span class="kw">let</span> <span class="ident">liquid_render</span> = <span class="ident">template</span>
-				.<span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">get_contexts</span>(<span class="ident">page</span>, <span class="ident">collections</span>))
-				.<span class="ident">with_context</span>(|| {
+				.unwrap();
+			<span class="kw">let </span>liquid_render = template
+				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
+				.with_context(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
-						<span class="ident">page</span>.<span class="ident">directory</span>, <span class="ident">page</span>.<span class="ident">name</span>
+						page.directory, page.name
 					)
 				})
-				.<span class="ident">unwrap</span>();
-			<span class="ident">render_markdown</span>(<span class="ident">liquid_render</span>)
+				.unwrap();
+			render_markdown(liquid_render)
 		}
 	}
 }
 
-<span class="doccomment">/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page` - The `.mokkf` file&#39;s context as a Page</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `collections` - Collection store of this build</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile</span>(
-	<span class="kw-2">mut</span> <span class="ident">page</span>: <span class="ident">Page</span>,
-	<span class="kw-2">mut</span> <span class="ident">collections</span>: <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;,
-) -&gt; (<span class="ident">String</span>, <span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;) {
-	<span class="kw">let</span> <span class="ident">layout_name</span> = <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">let</span> <span class="ident">collection_name</span> = <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;collection&quot;</span>);
+<span class="doccomment">/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises)
+///
+/// # Arguments
+///
+/// * `page` - The `.mokkf` file&#39;s context as a Page
+///
+/// * `collections` - Collection store of this build
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>compile(
+	<span class="kw-2">mut </span>page: Page,
+	<span class="kw-2">mut </span>collections: HashMap&lt;String, Vec&lt;Page&gt;&gt;,
+) -&gt; (String, HashMap&lt;String, Vec&lt;Page&gt;&gt;) {
+	<span class="kw">let </span>layout_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;layout&quot;</span>);
+	<span class="kw">let </span>collection_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;collection&quot;</span>);
 
-	<span class="comment">// If Page has a layout, render with layout(s)</span>
-	<span class="comment">// Otherwise, render with Page&#39;s contents</span>
-	<span class="ident">page</span>.<span class="ident">content</span> = <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">page</span>.<span class="ident">content</span>, !<span class="ident">page</span>.<span class="ident">markdown</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>);
-	<span class="kw">let</span> <span class="ident">compiled_page</span> = <span class="kw">match</span> <span class="ident">layout_name</span> {
-		<span class="prelude-val">None</span> =&gt; <span class="ident">page</span>.<span class="ident">content</span>.<span class="ident">to_owned</span>(),
+	<span class="comment">// If Page has a layout, render with layout(s)
+	// Otherwise, render with Page&#39;s contents
+	</span>page.content = render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, !page.markdown, <span class="kw-2">&amp;</span>collections);
+	<span class="kw">let </span>compiled_page = <span class="kw">match </span>layout_name {
+		<span class="prelude-val">None </span>=&gt; page.content.to_owned(),
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">layout_object</span> = <span class="ident">get_page_object</span>(
-				<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, <span class="ident">layout_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()),
-				<span class="kw-2">&amp;</span><span class="ident">collections</span>,
+			<span class="kw">let </span>layout_object = get_page_object(
+				<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, layout_name.unwrap().as_str().unwrap()),
+				<span class="kw-2">&amp;</span>collections,
 			);
-			<span class="kw">let</span> <span class="ident">layouts</span> = <span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="ident">layout_object</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>); <span class="comment">// Embed page in layout</span>
-			<span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="ident">page</span>, <span class="kw-2">&amp;</span><span class="ident">layouts</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">collections</span>)
-			<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce</span>
-		}
+			<span class="kw">let </span>layouts = render_layouts(<span class="kw-2">&amp;</span>page, layout_object, <span class="kw-2">&amp;</span>collections); <span class="comment">// Embed page in layout
+			</span>render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span>collections)
+			<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce
+		</span>}
 	};
 
-	<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries</span>
-	<span class="kw">match</span> <span class="ident">collection_name</span> {
-		<span class="prelude-val">None</span> =&gt; {}
+	<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries
+	</span><span class="kw">match </span>collection_name {
+		<span class="prelude-val">None </span>=&gt; {}
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">collection_name_str</span> = <span class="ident">collection_name</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>();
-			<span class="kw">match</span> <span class="ident">collections</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">collection_name_str</span>.<span class="ident">to_string</span>()) {
-				<span class="bool-val">true</span> =&gt; {
-					(<span class="kw-2">*</span><span class="ident">collections</span>.<span class="ident">get_mut</span>(<span class="ident">collection_name_str</span>).<span class="ident">unwrap</span>()).<span class="ident">push</span>(<span class="ident">page</span>);
+			<span class="kw">let </span>collection_name_str = collection_name.unwrap().as_str().unwrap();
+			<span class="kw">match </span>collections.contains_key(<span class="kw-2">&amp;</span>collection_name_str.to_string()) {
+				<span class="bool-val">true </span>=&gt; {
+					(<span class="kw-2">*</span>collections.get_mut(collection_name_str).unwrap()).push(page);
 				}
-				<span class="bool-val">false</span> =&gt; {
-					<span class="ident">collections</span>.<span class="ident">insert</span>(<span class="ident">collection_name_str</span>.<span class="ident">to_owned</span>(), <span class="macro">vec!</span>[<span class="ident">page</span>]);
+				<span class="bool-val">false </span>=&gt; {
+					collections.insert(collection_name_str.to_owned(), <span class="macro">vec!</span>[page]);
 				}
 			}
 		}
 	}
 
-	(<span class="ident">compiled_page</span>, <span class="ident">collections</span>)
+	(compiled_page, collections)
 }
 
-<span class="doccomment">/// Render the layout(s) of a post recursively (should a layout have a layout of its own)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `page` - The `.mokkf` file&#39;s context as a Page</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `layout` - The File&#39;s layout&#39;s context as a Page</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `collections` - Collection store of this build</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_layouts</span>(
-	<span class="ident">sub</span>: <span class="kw-2">&amp;</span><span class="ident">Page</span>,
-	<span class="ident">layout</span>: <span class="ident">Page</span>,
-	<span class="ident">collections</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span>&lt;<span class="ident">String</span>, <span class="ident">Vec</span>&lt;<span class="ident">Page</span>&gt;&gt;,
-) -&gt; <span class="ident">String</span> {
-	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context</span>
+<span class="doccomment">/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
+///
+/// # Arguments
+///
+/// * `page` - The `.mokkf` file&#39;s context as a Page
+///
+/// * `layout` - The File&#39;s layout&#39;s context as a Page
+///
+/// * `collections` - Collection store of this build
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>render_layouts(
+	sub: <span class="kw-2">&amp;</span>Page,
+	layout: Page,
+	collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;,
+) -&gt; String {
+	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
 
-	<span class="kw">let</span> <span class="ident">super_layout</span> = <span class="ident">layout</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">let</span> <span class="ident">rendered</span>: <span class="ident">String</span> = <span class="kw">match</span> <span class="ident">super_layout</span> {
+	</span><span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
+	<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">super_layout_object</span> = <span class="ident">get_page_object</span>(
+			<span class="kw">let </span>super_layout_object = get_page_object(
 				<span class="macro">format!</span>(
 					<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-					<span class="ident">super_layout</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">unwrap</span>()
+					super_layout.unwrap().as_str().unwrap()
 				),
-				<span class="ident">collections</span>,
+				collections,
 			);
-			<span class="ident">render_layouts</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>, <span class="ident">super_layout_object</span>, <span class="ident">collections</span>)
+			render_layouts(<span class="kw-2">&amp;</span>layout, super_layout_object, collections)
 		}
-		<span class="prelude-val">None</span> =&gt; <span class="ident">render</span>(<span class="ident">sub</span>, <span class="kw-2">&amp;</span><span class="ident">layout</span>.<span class="ident">content</span>, !<span class="ident">layout</span>.<span class="ident">markdown</span>, <span class="ident">collections</span>),
+		<span class="prelude-val">None </span>=&gt; render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markdown, collections),
 	};
 
-	<span class="ident">rendered</span>
+	rendered
 }
 
-<span class="doccomment">/// Creates a Liquid parser</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_liquid_parser</span>() -&gt; <span class="ident">liquid::Parser</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> = <span class="ident">liquid::partials::InMemorySource::new</span>();
-	<span class="kw">let</span> <span class="ident">snippets</span> = <span class="ident">fs::read_dir</span>(<span class="string">&quot;./snippets&quot;</span>);
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) = <span class="ident">snippets</span> {
-		<span class="kw">for</span> <span class="ident">snippet</span> <span class="kw">in</span> <span class="ident">s</span> {
-			<span class="kw">let</span> <span class="ident">unwrapped_snippet</span> = <span class="ident">snippet</span>.<span class="ident">unwrap</span>();
-			<span class="kw">let</span> <span class="ident">file_name</span> = <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">file_name</span>().<span class="ident">into_string</span>().<span class="ident">unwrap</span>();
-			<span class="kw">let</span> <span class="ident">path</span> = <span class="kw-2">&amp;</span><span class="ident">unwrapped_snippet</span>.<span class="ident">path</span>();
-			<span class="ident">partial</span>.<span class="ident">add</span>(<span class="ident">file_name</span>, <span class="kw-2">&amp;</span><span class="ident">fs::read_to_string</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>());
+<span class="doccomment">/// Creates a Liquid parser
+</span><span class="kw">pub fn </span>create_liquid_parser() -&gt; liquid::Parser {
+	<span class="kw">let </span><span class="kw-2">mut </span>partial = liquid::partials::InMemorySource::new();
+	<span class="kw">let </span>snippets = fs::read_dir(<span class="string">&quot;./snippets&quot;</span>);
+	<span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = snippets {
+		<span class="kw">for </span>snippet <span class="kw">in </span>s {
+			<span class="kw">let </span>unwrapped_snippet = snippet.unwrap();
+			<span class="kw">let </span>file_name = <span class="kw-2">&amp;</span>unwrapped_snippet.file_name().into_string().unwrap();
+			<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.path();
+			partial.add(file_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
 		}
 	}
-	<span class="kw">let</span> <span class="ident">partial_compiler</span> = <span class="ident">liquid::partials::EagerCompiler::new</span>(<span class="ident">partial</span>);
-	<span class="ident">liquid::ParserBuilder::with_stdlib</span>()
-		.<span class="ident">tag</span>(<span class="ident">liquid_lib::jekyll::IncludeTag</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::ArrayToSentenceString</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::Pop</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::Push</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::Shift</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::Slugify</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::jekyll::Unshift</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::shopify::Pluralize</span>)
-		.<span class="ident">filter</span>(<span class="ident">liquid_lib::extra::DateInTz</span>)
-		.<span class="ident">partials</span>(<span class="ident">partial_compiler</span>)
-		.<span class="ident">build</span>()
-		.<span class="ident">unwrap</span>()
+	<span class="kw">let </span>partial_compiler = liquid::partials::EagerCompiler::new(partial);
+	liquid::ParserBuilder::with_stdlib()
+		.tag(liquid_lib::jekyll::IncludeTag)
+		.filter(liquid_lib::jekyll::ArrayToSentenceString)
+		.filter(liquid_lib::jekyll::Pop)
+		.filter(liquid_lib::jekyll::Push)
+		.filter(liquid_lib::jekyll::Shift)
+		.filter(liquid_lib::jekyll::Slugify)
+		.filter(liquid_lib::jekyll::Unshift)
+		.filter(liquid_lib::shopify::Pluralize)
+		.filter(liquid_lib::extra::DateInTz)
+		.partials(partial_compiler)
+		.build()
+		.unwrap()
 }
 
-<span class="doccomment">/// Render Markdown as HTML</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `text_to_render` - The Markdown text to render into HTML</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_markdown</span>(<span class="ident">text_to_render</span>: <span class="ident">String</span>) -&gt; <span class="ident">String</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">markdown_options</span> = <span class="ident">Options::empty</span>();
-	<span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_TABLES</span>);
-	<span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_FOOTNOTES</span>);
-	<span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_STRIKETHROUGH</span>);
-	<span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_TASKLISTS</span>);
-	<span class="ident">markdown_options</span>.<span class="ident">insert</span>(<span class="ident">Options::ENABLE_SMART_PUNCTUATION</span>);
-	<span class="kw">let</span> <span class="ident">markdown_parser</span> = <span class="ident">Parser::new_ext</span>(<span class="kw-2">&amp;</span><span class="ident">text_to_render</span>, <span class="ident">markdown_options</span>);
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rendered_markdown</span> = <span class="ident">String::new</span>();
-	<span class="ident">html::push_html</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rendered_markdown</span>, <span class="ident">markdown_parser</span>);
+<span class="doccomment">/// Render Markdown as HTML
+///
+/// # Arguments
+///
+/// * `text_to_render` - The Markdown text to render into HTML
+</span><span class="attribute">#[inline(always)]</span>
+<span class="kw">pub fn </span>render_markdown(text_to_render: String) -&gt; String {
+	<span class="kw">let </span><span class="kw-2">mut </span>markdown_options = Options::empty();
+	markdown_options.insert(Options::ENABLE_TABLES);
+	markdown_options.insert(Options::ENABLE_FOOTNOTES);
+	markdown_options.insert(Options::ENABLE_STRIKETHROUGH);
+	markdown_options.insert(Options::ENABLE_TASKLISTS);
+	markdown_options.insert(Options::ENABLE_SMART_PUNCTUATION);
+	<span class="kw">let </span>markdown_parser = Parser::new_ext(<span class="kw-2">&amp;</span>text_to_render, markdown_options);
+	<span class="kw">let </span><span class="kw-2">mut </span>rendered_markdown = String::new();
+	html::push_html(<span class="kw-2">&amp;mut </span>rendered_markdown, markdown_parser);
 
-	<span class="ident">rendered_markdown</span>
+	rendered_markdown
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (75b7e52e9 2022-08-13)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>
