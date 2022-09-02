@@ -59,7 +59,7 @@ notify = "4.0.17"
 pathdiff = "0.2.1"
 pulldown-cmark = { version = "0.9.1", default-features = false, features = ["simd"] }
 serde = "1.0.137"
-serde_yaml = "0.9.2"
+serde_yaml = "0.9.11"
 stopwatch = "0.0.7"
 wild = "2.1.0-alpha.2"
 
