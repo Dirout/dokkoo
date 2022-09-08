@@ -558,9 +558,11 @@ pub fn create_liquid_parser() -> liquid::Parser {
 	if let Ok(s) = snippets {
 		for snippet in s {
 			let unwrapped_snippet = snippet.unwrap();
-			let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
-			let path = &unwrapped_snippet.path();
-			partial.add(file_name, &fs::read_to_string(path).unwrap());
+			if unwrapped_snippet.file_type().unwrap().is_file() {
+				let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
+				let path = &unwrapped_snippet.path();
+				partial.add(file_name, &fs::read_to_string(path).unwrap());
+			}
 		}
 	}
 	let partial_compiler = liquid::partials::EagerCompiler::new(partial);

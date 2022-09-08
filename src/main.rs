@@ -21,7 +21,6 @@
 	html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
 )]
 #![feature(panic_info_message)]
-mod lib;
 
 use actix_files::NamedFile;
 use actix_web::{
@@ -33,7 +32,7 @@ use clap::{arg, crate_version, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
 use mimalloc::MiMalloc;
-use notify::{raw_watcher, RecursiveMode, Watcher};
+use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -126,17 +125,17 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 	.unwrap();
 
 	let (sender, receiver) = channel(); // Open a channel to receive notifications
-	let mut watcher = raw_watcher(sender).unwrap(); // Create a watcher
+	let mut watcher = RecommendedWatcher::new(sender, Config::default()).unwrap(); // Create a watcher
 	watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
 
 	// Ignore the output folder
-	let ignore_output_folder = watcher.unwatch(format!("{}/output", path_str));
+	let ignore_output_folder = watcher.unwatch(&Path::new(&format!("{}/output", path_str)));
 	if ignore_output_folder.is_ok() {
 		ignore_output_folder.unwrap();
 	}
 
 	// Ignore .git folder
-	let ignore_git_folder = watcher.unwatch(format!("{}/.git", path_str));
+	let ignore_git_folder = watcher.unwatch(&Path::new(&format!("{}/.git", path_str)));
 	if ignore_git_folder.is_ok() {
 		ignore_git_folder.unwrap();
 	}
@@ -144,13 +143,19 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 	loop {
 		match receiver.recv() {
 			Ok(event) => {
-				let file = &event.path.unwrap();
-				if file.extension().is_some() && file.extension().unwrap() == "mokkf" {
-					let page = lib::get_page_object(format!("{}", file.display()), &collections);
-					let output_path = format!("{}/output/{}", path_str, page.url);
-					let compile_page = lib::compile(page, collections);
-					collections = compile_page.1;
-					write_file(&output_path, compile_page.0); // Create output path, write to file
+				let paths = &event.unwrap().paths;
+				for path in paths {
+					if path.try_exists().unwrap()
+						&& path.extension().is_some()
+						&& path.extension().unwrap() == "mokkf"
+					{
+						let page =
+							dokkoo::get_page_object(format!("{}", path.display()), &collections);
+						let output_path = format!("{}/output/{}", path_str, page.url);
+						let compile_page = dokkoo::compile(page, collections);
+						collections = compile_page.1;
+						write_file(&output_path, compile_page.0); // Create output path, write to file
+					}
 				}
 			} // Compile file on receiving of notification
 			Err(e) => writeln!(buf_stderr, "{:#?}", e).unwrap(), // Show errors in processing Mokk
@@ -249,7 +254,7 @@ async fn host(matches: &clap::ArgMatches) {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
+fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 	let stdout = std::io::stdout();
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
@@ -258,7 +263,7 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
 		.value_of("PATH")
 		.with_context(|| "No path to a Mokk was given".to_string())
 		.unwrap();
-	let mut collections: HashMap<String, Vec<lib::Page>> = HashMap::new(); // Collections store
+	let mut collections: HashMap<String, Vec<dokkoo::Page>> = HashMap::new(); // Collections store
 
 	// Sort files into vectors of path buffers; for when we compile root files last
 	let mut root_files: Vec<PathBuf> = vec![];
@@ -308,8 +313,8 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<lib::Page>> {
 fn build_loop(
 	file_list: Vec<PathBuf>,
 	path: &str,
-	mut collections: HashMap<String, Vec<lib::Page>>,
-) -> HashMap<String, Vec<lib::Page>> {
+	mut collections: HashMap<String, Vec<dokkoo::Page>>,
+) -> HashMap<String, Vec<dokkoo::Page>> {
 	for file in file_list {
 		let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
 		let file_root_str = file_root.to_str().unwrap();
@@ -321,10 +326,10 @@ fn build_loop(
 			continue;
 		}
 
-		let page = lib::get_page_object(format!("{}", file.display()), &collections);
+		let page = dokkoo::get_page_object(format!("{}", file.display()), &collections);
 		let output_path = format!("{}/output/{}", path, page.url);
 
-		let compile_page = lib::compile(page, collections); // Compile the current Page
+		let compile_page = dokkoo::compile(page, collections); // Compile the current Page
 		collections = compile_page.1; // Get updated collections store as result of compilation
 
 		write_file(&output_path, compile_page.0); // Create output path, write to file
