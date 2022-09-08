@@ -616,6 +616,8 @@
 <span id="616">616</span>
 <span id="617">617</span>
 <span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -642,6 +644,7 @@ File:
 <span class="kw">use </span>derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 <span class="kw">use </span>liquid::<span class="kw-2">*</span>;
 <span class="kw">use </span>pulldown_cmark::{html, Options, Parser};
+<span class="kw">use </span>relative_path::RelativePath;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::fmt::Write;
@@ -1188,14 +1191,15 @@ File:
 <span class="doccomment">/// Creates a Liquid parser
 </span><span class="kw">pub fn </span>create_liquid_parser() -&gt; liquid::Parser {
 	<span class="kw">let </span><span class="kw-2">mut </span>partial = liquid::partials::InMemorySource::new();
-	<span class="kw">let </span>snippets = fs::read_dir(<span class="string">&quot;./snippets&quot;</span>);
+	<span class="kw">let </span>snippets = glob::glob(<span class="string">&quot;./snippets/**/*&quot;</span>);
 	<span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = snippets {
 		<span class="kw">for </span>snippet <span class="kw">in </span>s {
 			<span class="kw">let </span>unwrapped_snippet = snippet.unwrap();
-			<span class="kw">if </span>unwrapped_snippet.file_type().unwrap().is_file() {
-				<span class="kw">let </span>file_name = <span class="kw-2">&amp;</span>unwrapped_snippet.file_name().into_string().unwrap();
-				<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.path();
-				partial.add(file_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
+			<span class="kw">if </span>unwrapped_snippet.is_file() {
+				<span class="kw">let </span>relative_path = RelativePath::from_path(<span class="kw-2">&amp;</span>unwrapped_snippet).unwrap();
+				<span class="kw">let </span>snippet_name = relative_path.strip_prefix(<span class="string">&quot;snippets&quot;</span>).unwrap().to_string();
+				<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.as_path();
+				partial.add(snippet_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
 			}
 		}
 	}
