@@ -598,6 +598,8 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -1158,9 +1160,11 @@ File:
 	<span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = snippets {
 		<span class="kw">for </span>snippet <span class="kw">in </span>s {
 			<span class="kw">let </span>unwrapped_snippet = snippet.unwrap();
-			<span class="kw">let </span>file_name = <span class="kw-2">&amp;</span>unwrapped_snippet.file_name().into_string().unwrap();
-			<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.path();
-			partial.add(file_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
+			<span class="kw">if </span>unwrapped_snippet.file_type().unwrap().is_file() {
+				<span class="kw">let </span>file_name = <span class="kw-2">&amp;</span>unwrapped_snippet.file_name().into_string().unwrap();
+				<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.path();
+				partial.add(file_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
+			}
 		}
 	}
 	<span class="kw">let </span>partial_compiler = liquid::partials::EagerCompiler::new(partial);
@@ -1199,4 +1203,4 @@ File:
 	rendered_markdown
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (84f0c3f79 2022-09-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (c2804e6ec 2022-09-07)" ></div></body></html>
