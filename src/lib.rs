@@ -24,6 +24,7 @@ use chrono::DateTime;
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use liquid::*;
 use pulldown_cmark::{html, Options, Parser};
+use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::Write;
@@ -570,14 +571,15 @@ pub fn render_layouts(
 /// Creates a Liquid parser
 pub fn create_liquid_parser() -> liquid::Parser {
 	let mut partial = liquid::partials::InMemorySource::new();
-	let snippets = fs::read_dir("./snippets");
+	let snippets = glob::glob("./snippets/**/*");
 	if let Ok(s) = snippets {
 		for snippet in s {
 			let unwrapped_snippet = snippet.unwrap();
-			if unwrapped_snippet.file_type().unwrap().is_file() {
-				let file_name = &unwrapped_snippet.file_name().into_string().unwrap();
-				let path = &unwrapped_snippet.path();
-				partial.add(file_name, &fs::read_to_string(path).unwrap());
+			if unwrapped_snippet.is_file() {
+				let relative_path = RelativePath::from_path(&unwrapped_snippet).unwrap();
+				let snippet_name = relative_path.strip_prefix("snippets").unwrap().to_string();
+				let path = &unwrapped_snippet.as_path();
+				partial.add(snippet_name, &fs::read_to_string(path).unwrap());
 			}
 		}
 	}

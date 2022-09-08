@@ -72,7 +72,7 @@ fn main() {
 	writeln!(
 		buf_out,
 		"
-    Dokkoo  Copyright (C) 2020, 2021, 2022  Emil Sayahi
+    Dokkoo  Copyright (C) 2020-2022  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
@@ -88,7 +88,7 @@ fn main() {
 			build(build_matches);
 		}
 		Some(("serve", serve_matches)) => {
-			let rt = actix_rt::System::new();
+			let rt = tokio::runtime::Runtime::new().unwrap();
 			rt.block_on(
 				async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
 			);
@@ -104,38 +104,33 @@ fn main() {
 ///
 /// * `PATH` - Path to a Mokk (required)
 async fn serve_mokk(matches: &clap::ArgMatches) {
-	let stdout = std::io::stdout();
-	let stdout_lock = stdout.lock();
-	let mut buf_stdout = BufWriter::new(stdout_lock);
 	let stderr = std::io::stderr();
 	let stderr_lock = stderr.lock();
 	let mut buf_stderr = BufWriter::new(stderr_lock);
 
-	let mut collections = build(matches);
-
 	let path = env::current_dir().unwrap();
 	let path_str = path.to_str().unwrap();
 	let port = matches.value_of("PORT").unwrap();
-	writeln!(
-		buf_stdout,
+	println!(
 		"\nServing on http://127.0.0.1:{} from {}/output\nChanges will be served … ",
 		port,
 		path.to_str().unwrap()
-	)
-	.unwrap();
+	);
+
+	let mut collections = build(matches);
 
 	let (sender, receiver) = channel(); // Open a channel to receive notifications
 	let mut watcher = RecommendedWatcher::new(sender, Config::default()).unwrap(); // Create a watcher
 	watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
 
 	// Ignore the output folder
-	let ignore_output_folder = watcher.unwatch(Path::new(&format!("{}/output", path_str)));
+	let ignore_output_folder = watcher.unwatch(Path::new(&format!("{}/output/", path_str)));
 	if ignore_output_folder.is_ok() {
 		ignore_output_folder.unwrap();
 	}
 
 	// Ignore .git folder
-	let ignore_git_folder = watcher.unwatch(Path::new(&format!("{}/.git", path_str)));
+	let ignore_git_folder = watcher.unwatch(Path::new(&format!("{}/.git/", path_str)));
 	if ignore_git_folder.is_ok() {
 		ignore_git_folder.unwrap();
 	}
