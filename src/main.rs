@@ -129,13 +129,13 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 	watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
 
 	// Ignore the output folder
-	let ignore_output_folder = watcher.unwatch(&Path::new(&format!("{}/output", path_str)));
+	let ignore_output_folder = watcher.unwatch(Path::new(&format!("{}/output", path_str)));
 	if ignore_output_folder.is_ok() {
 		ignore_output_folder.unwrap();
 	}
 
 	// Ignore .git folder
-	let ignore_git_folder = watcher.unwatch(&Path::new(&format!("{}/.git", path_str)));
+	let ignore_git_folder = watcher.unwatch(Path::new(&format!("{}/.git", path_str)));
 	if ignore_git_folder.is_ok() {
 		ignore_git_folder.unwrap();
 	}
@@ -347,7 +347,7 @@ fn build_loop(
 #[inline(always)]
 fn write_file(path: &str, text_to_write: String) {
 	fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
-	let file = File::create(&path).unwrap(); // Create file which we will write to
+	let file = File::create(path).unwrap(); // Create file which we will write to
 	let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
 	write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
 	buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
