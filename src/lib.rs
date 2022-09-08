@@ -533,6 +533,22 @@ pub fn render_layouts(
 ) -> String {
 	// Take layout's text, render it with sub's context
 
+	let merged_sub_page = Page {
+		data: sub
+			.clone()
+			.data
+			.into_iter()
+			.chain(layout.clone().data)
+			.collect(),
+		content: layout.clone().content,
+		date: sub.clone().date,
+		name: sub.clone().name,
+		directory: sub.clone().directory,
+		permalink: sub.clone().permalink,
+		url: sub.clone().url,
+		markdown: layout.markdown,
+	};
+
 	let super_layout = layout.data.get("layout");
 	let rendered: String = match super_layout {
 		Some(_) => {
@@ -543,7 +559,7 @@ pub fn render_layouts(
 				),
 				collections,
 			);
-			render_layouts(&layout, super_layout_object, collections)
+			render_layouts(&merged_sub_page, super_layout_object, collections)
 		}
 		None => render(sub, &layout.content, !layout.markdown, collections),
 	};
