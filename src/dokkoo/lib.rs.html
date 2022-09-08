@@ -600,6 +600,22 @@
 <span id="600">600</span>
 <span id="601">601</span>
 <span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -1135,7 +1151,23 @@ File:
 ) -&gt; String {
 	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
 
-	</span><span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
+	</span><span class="kw">let </span>merged_sub_page = Page {
+		data: sub
+			.clone()
+			.data
+			.into_iter()
+			.chain(layout.clone().data)
+			.collect(),
+		content: layout.clone().content,
+		date: sub.clone().date,
+		name: sub.clone().name,
+		directory: sub.clone().directory,
+		permalink: sub.clone().permalink,
+		url: sub.clone().url,
+		markdown: layout.markdown,
+	};
+
+	<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
 	<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
 			<span class="kw">let </span>super_layout_object = get_page_object(
@@ -1145,7 +1177,7 @@ File:
 				),
 				collections,
 			);
-			render_layouts(<span class="kw-2">&amp;</span>layout, super_layout_object, collections)
+			render_layouts(<span class="kw-2">&amp;</span>merged_sub_page, super_layout_object, collections)
 		}
 		<span class="prelude-val">None </span>=&gt; render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markdown, collections),
 	};
