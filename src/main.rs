@@ -27,10 +27,10 @@ use actix_web::{
 	dev::{ServiceRequest, ServiceResponse},
 	HttpServer,
 };
-use anyhow::Context;
 use clap::{arg, crate_version, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
+use miette::{miette, IntoDiagnostic, WrapErr};
 use mimalloc::MiMalloc;
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
@@ -165,12 +165,17 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 /// * `PATH` - Path to a Mokk (required)
 #[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
-	let path = matches
-		.value_of("PATH")
-		.with_context(|| "No path to a Mokk was given".to_string())
-		.unwrap();
+	let path_buf = std::fs::canonicalize(
+		matches
+			.value_of("PATH")
+			.ok_or(miette!("No path to a Mokk was given"))
+			.unwrap(),
+	)
+	.unwrap();
+	let path = path_buf.to_str().unwrap();
 	env::set_current_dir(path)
-		.with_context(|| format!("Could not read a Mokk at {}", path))
+		.into_diagnostic()
+		.wrap_err_with(|| format!("Could not read a Mokk at {}", path))
 		.unwrap();
 	let port = matches.value_of("PORT").unwrap();
 	HttpServer::new(|| match Path::new("./output/index.html").is_file() {
@@ -254,10 +259,14 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
 
-	let path = matches
-		.value_of("PATH")
-		.with_context(|| "No path to a Mokk was given".to_string())
-		.unwrap();
+	let path_buf = std::fs::canonicalize(
+		matches
+			.value_of("PATH")
+			.ok_or(miette!("No path to a Mokk was given"))
+			.unwrap(),
+	)
+	.unwrap();
+	let path = path_buf.to_str().unwrap();
 	let mut collections: HashMap<String, Vec<dokkoo::Page>> = HashMap::new(); // Collections store
 
 	// Sort files into vectors of path buffers; for when we compile root files last
@@ -265,7 +274,8 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 	let mut files: Vec<PathBuf> = vec![];
 
 	env::set_current_dir(path)
-		.with_context(|| format!("Could not read a Mokk at {}", path))
+		.into_diagnostic()
+		.wrap_err_with(|| format!("Could not read a Mokk at {}", path))
 		.unwrap(); // Set working directory to one passed to subcommand
 
 	for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {

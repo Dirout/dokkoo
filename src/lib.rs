@@ -19,10 +19,10 @@ lib.rs - Handling Mokk Files (.mokkf)
 File:
 	Term for a document or page written in accordance to the Mokk specification
 */
-use anyhow::Context;
 use chrono::DateTime;
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use liquid::*;
+use miette::{IntoDiagnostic, WrapErr};
 use pulldown_cmark::{html, Options, Parser};
 use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
@@ -426,7 +426,8 @@ pub fn render(
 		true => {
 			let template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					format!(
 						"Could not parse the Mokk file at {}/{}.mokkf",
 						page.directory, page.name
@@ -435,7 +436,8 @@ pub fn render(
 				.unwrap();
 			template
 				.render(&get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					format!(
 						"Could not render the Mokk file at {}/{}.mokkf",
 						page.directory, page.name
@@ -446,7 +448,8 @@ pub fn render(
 		false => {
 			let template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					format!(
 						"Could not parse the Mokk file at {}/{}.mokkf",
 						page.directory, page.name
@@ -455,7 +458,8 @@ pub fn render(
 				.unwrap();
 			let liquid_render = template
 				.render(&get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					format!(
 						"Could not render the Mokk file at {}/{}.mokkf",
 						page.directory, page.name
