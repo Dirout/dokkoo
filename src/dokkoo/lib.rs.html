@@ -618,6 +618,10 @@
 <span id="618">618</span>
 <span id="619">619</span>
 <span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -639,10 +643,10 @@ lib.rs - Handling Mokk Files (.mokkf)
 File:
 	Term for a document or page written in accordance to the Mokk specification
 */
-</span><span class="kw">use </span>anyhow::Context;
-<span class="kw">use </span>chrono::DateTime;
+</span><span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 <span class="kw">use </span>liquid::<span class="kw-2">*</span>;
+<span class="kw">use </span>miette::{IntoDiagnostic, WrapErr};
 <span class="kw">use </span>pulldown_cmark::{html, Options, Parser};
 <span class="kw">use </span>relative_path::RelativePath;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -1046,7 +1050,8 @@ File:
 		<span class="bool-val">true </span>=&gt; {
 			<span class="kw">let </span>template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1055,7 +1060,8 @@ File:
 				.unwrap();
 			template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1066,7 +1072,8 @@ File:
 		<span class="bool-val">false </span>=&gt; {
 			<span class="kw">let </span>template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1075,7 +1082,8 @@ File:
 				.unwrap();
 			<span class="kw">let </span>liquid_render = template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1239,4 +1247,4 @@ File:
 	rendered_markdown
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (c2804e6ec 2022-09-07)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>
