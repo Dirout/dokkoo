@@ -15,7 +15,7 @@
 cargo-features = ["strip"]
 [package]
 name = "dokkoo"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Emil Sayahi <limesayahi@gmail.com>"]
 edition = "2021"
 categories = ["command-line-utilities", "parser-implementations", "text-processing"]
