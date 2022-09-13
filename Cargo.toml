@@ -40,11 +40,11 @@ doc = false
 
 [dependencies]
 actix-files = "0.6.2"
-actix-http = "3.2.1"
+actix-http = "3.2.2"
 actix-service = "2.0.2"
-actix-web = "4.1.0"
+actix-web = "4.2.1"
 chrono = { version = "0.4.22", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "3.2.20", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "3.2.21", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.24"
 glob = "0.3.0"
@@ -52,7 +52,7 @@ lazy_static = "1.4.0"
 liquid = "0.26.0"
 liquid-core = "0.26.0"
 liquid-lib = { version = "0.26.0", features = ["all", "stdlib", "jekyll", "shopify", "extra"] }
-miette = { version = "5.3.1", features = ["fancy"] }
+miette = { version = "5.3.0", features = ["fancy"] }
 mimalloc = { version = "0.1.29", default-features = false }
 notify = "5.0.0"
 pathdiff = "0.2.1"
@@ -61,7 +61,7 @@ relative-path = "1.7.2"
 serde = "1.0.144"
 serde_yaml = "0.9.11"
 stopwatch = "0.0.7"
-tokio = { version = "1.21.0", features = ["full"] }
+tokio = { version = "1.21.1", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
