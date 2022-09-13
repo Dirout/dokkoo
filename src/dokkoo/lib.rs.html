@@ -598,6 +598,30 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -619,11 +643,12 @@ lib.rs - Handling Mokk Files (.mokkf)
 File:
 	Term for a document or page written in accordance to the Mokk specification
 */
-</span><span class="kw">use </span>anyhow::Context;
-<span class="kw">use </span>chrono::DateTime;
+</span><span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 <span class="kw">use </span>liquid::<span class="kw-2">*</span>;
+<span class="kw">use </span>miette::{IntoDiagnostic, WrapErr};
 <span class="kw">use </span>pulldown_cmark::{html, Options, Parser};
+<span class="kw">use </span>relative_path::RelativePath;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::fmt::Write;
@@ -1025,7 +1050,8 @@ File:
 		<span class="bool-val">true </span>=&gt; {
 			<span class="kw">let </span>template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1034,7 +1060,8 @@ File:
 				.unwrap();
 			template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1045,7 +1072,8 @@ File:
 		<span class="bool-val">false </span>=&gt; {
 			<span class="kw">let </span>template = create_liquid_parser()
 				.parse(text_to_render)
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not parse the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1054,7 +1082,8 @@ File:
 				.unwrap();
 			<span class="kw">let </span>liquid_render = template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.with_context(|| {
+				.into_diagnostic()
+				.wrap_err_with(|| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Could not render the Mokk file at {}/{}.mokkf&quot;</span>,
 						page.directory, page.name
@@ -1133,7 +1162,23 @@ File:
 ) -&gt; String {
 	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
 
-	</span><span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
+	</span><span class="kw">let </span>merged_sub_page = Page {
+		data: sub
+			.clone()
+			.data
+			.into_iter()
+			.chain(layout.clone().data)
+			.collect(),
+		content: layout.clone().content,
+		date: sub.clone().date,
+		name: sub.clone().name,
+		directory: sub.clone().directory,
+		permalink: sub.clone().permalink,
+		url: sub.clone().url,
+		markdown: layout.markdown,
+	};
+
+	<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
 	<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
 			<span class="kw">let </span>super_layout_object = get_page_object(
@@ -1143,7 +1188,7 @@ File:
 				),
 				collections,
 			);
-			render_layouts(<span class="kw-2">&amp;</span>layout, super_layout_object, collections)
+			render_layouts(<span class="kw-2">&amp;</span>merged_sub_page, super_layout_object, collections)
 		}
 		<span class="prelude-val">None </span>=&gt; render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markdown, collections),
 	};
@@ -1154,13 +1199,16 @@ File:
 <span class="doccomment">/// Creates a Liquid parser
 </span><span class="kw">pub fn </span>create_liquid_parser() -&gt; liquid::Parser {
 	<span class="kw">let </span><span class="kw-2">mut </span>partial = liquid::partials::InMemorySource::new();
-	<span class="kw">let </span>snippets = fs::read_dir(<span class="string">&quot;./snippets&quot;</span>);
+	<span class="kw">let </span>snippets = glob::glob(<span class="string">&quot;./snippets/**/*&quot;</span>);
 	<span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = snippets {
 		<span class="kw">for </span>snippet <span class="kw">in </span>s {
 			<span class="kw">let </span>unwrapped_snippet = snippet.unwrap();
-			<span class="kw">let </span>file_name = <span class="kw-2">&amp;</span>unwrapped_snippet.file_name().into_string().unwrap();
-			<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.path();
-			partial.add(file_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
+			<span class="kw">if </span>unwrapped_snippet.is_file() {
+				<span class="kw">let </span>relative_path = RelativePath::from_path(<span class="kw-2">&amp;</span>unwrapped_snippet).unwrap();
+				<span class="kw">let </span>snippet_name = relative_path.strip_prefix(<span class="string">&quot;snippets&quot;</span>).unwrap().to_string();
+				<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.as_path();
+				partial.add(snippet_name, <span class="kw-2">&amp;</span>fs::read_to_string(path).unwrap());
+			}
 		}
 	}
 	<span class="kw">let </span>partial_compiler = liquid::partials::EagerCompiler::new(partial);
@@ -1199,4 +1247,4 @@ File:
 	rendered_markdown
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (228710758 2022-09-10)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (fa6ee9375 2022-09-12)" ></div></body></html>
