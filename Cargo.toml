@@ -46,7 +46,7 @@ actix-web = "4.2.1"
 chrono = { version = "0.4.22", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
 clap = { version = "3.2.22", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
-futures = "0.3.24"
+futures = "0.3.25"
 glob = "0.3.0"
 lazy_static = "1.4.0"
 liquid = "0.26.0"
