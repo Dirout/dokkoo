@@ -124,13 +124,13 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 	watcher.watch(&path, RecursiveMode::Recursive).unwrap(); // Watch the Mokk
 
 	// Ignore the output folder
-	let ignore_output_folder = watcher.unwatch(Path::new(&format!("{}/output/", path_str)));
+	let ignore_output_folder = watcher.unwatch(Path::new(&format!("{path_str}/output/")));
 	if ignore_output_folder.is_ok() {
 		ignore_output_folder.unwrap();
 	}
 
 	// Ignore .git folder
-	let ignore_git_folder = watcher.unwatch(Path::new(&format!("{}/.git/", path_str)));
+	let ignore_git_folder = watcher.unwatch(Path::new(&format!("{path_str}/.git/")));
 	if ignore_git_folder.is_ok() {
 		ignore_git_folder.unwrap();
 	}
@@ -146,14 +146,14 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 					{
 						let page =
 							dokkoo::get_page_object(format!("{}", path.display()), &collections);
-						let output_path = format!("{}/output/{}", path_str, page.url);
+						let output_path = format!("{path_str}/output/{}", page.url);
 						let compile_page = dokkoo::compile(page, collections);
 						collections = compile_page.1;
 						write_file(&output_path, compile_page.0); // Create output path, write to file
 					}
 				}
 			} // Compile file on receiving of notification
-			Err(e) => writeln!(buf_stderr, "{:#?}", e).unwrap(), // Show errors in processing Mokk
+			Err(e) => writeln!(buf_stderr, "{e:#?}").unwrap(), // Show errors in processing Mokk
 		}
 	}
 }
@@ -175,7 +175,7 @@ async fn host(matches: &clap::ArgMatches) {
 	let path = path_buf.to_str().unwrap();
 	env::set_current_dir(path)
 		.into_diagnostic()
-		.wrap_err_with(|| format!("Could not read a Mokk at {}", path))
+		.wrap_err_with(|| format!("Could not read a Mokk at {path}"))
 		.unwrap();
 	let port = matches.value_of("PORT").unwrap();
 	HttpServer::new(|| match Path::new("./output/index.html").is_file() {
@@ -242,7 +242,7 @@ async fn host(matches: &clap::ArgMatches) {
 			),
 		},
 	})
-	.bind(format!("127.0.0.1:{}", port))
+	.bind(format!("127.0.0.1:{port}"))
 	.unwrap()
 	.run()
 	.await
@@ -275,15 +275,15 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 
 	env::set_current_dir(path)
 		.into_diagnostic()
-		.wrap_err_with(|| format!("Could not read a Mokk at {}", path))
+		.wrap_err_with(|| format!("Could not read a Mokk at {path}"))
 		.unwrap(); // Set working directory to one passed to subcommand
 
-	for entry in glob(&format!("{}/*/*.mokkf", path)).unwrap() {
+	for entry in glob(&format!("{path}/*/*.mokkf")).unwrap() {
 		let file = entry.unwrap();
 		files.push(file);
 	}
 
-	for entry in glob(&format!("{}/*.mokkf", path)).unwrap() {
+	for entry in glob(&format!("{path}/*.mokkf")).unwrap() {
 		let file = entry.unwrap();
 		root_files.push(file);
 	}
@@ -332,7 +332,7 @@ fn build_loop(
 		}
 
 		let page = dokkoo::get_page_object(format!("{}", file.display()), &collections);
-		let output_path = format!("{}/output/{}", path, page.url);
+		let output_path = format!("{path}/output/{}", page.url);
 
 		let compile_page = dokkoo::compile(page, collections); // Compile the current Page
 		collections = compile_page.1; // Get updated collections store as result of compilation
@@ -354,7 +354,7 @@ fn write_file(path: &str, text_to_write: String) {
 	fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
 	let file = File::create(path).unwrap(); // Create file which we will write to
 	let mut buffered_writer = BufWriter::new(file); // Create a buffered writer, allowing us to modify the file we've just created
-	write!(buffered_writer, "{}", text_to_write).unwrap(); // Write String to file
+	write!(buffered_writer, "{text_to_write}").unwrap(); // Write String to file
 	buffered_writer.flush().unwrap(); // Empty out the data in memory after we've written to the file
 }
 
