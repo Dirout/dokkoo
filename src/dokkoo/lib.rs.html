@@ -656,7 +656,7 @@ File:
 <span class="kw">use </span>std::path::Path;
 <span class="kw">use </span>std::{collections::HashMap, fmt};
 
-<span class="attribute">#[derive(
+<span class="attr">#[derive(
 	Eq,
 	PartialEq,
 	PartialOrd,
@@ -724,7 +724,7 @@ File:
 	}
 }
 
-<span class="attribute">#[derive(
+<span class="attr">#[derive(
 	Eq,
 	PartialEq,
 	Clone,
@@ -788,7 +788,7 @@ File:
 /// * `weekdate` → `/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html`
 ///
 /// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>get_permalink(permalink: <span class="kw-2">&amp;</span>str) -&gt; String {
 	<span class="kw">match </span>permalink {
         <span class="string">&quot;date&quot; </span>=&gt; {
@@ -818,7 +818,7 @@ File:
 /// # Arguments
 ///
 /// * `page_text` - The `.mokkf` file&#39;s data as a `String`
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>split_frontmatter(page_text: String) -&gt; (String, String) {
 	<span class="kw">let </span><span class="kw-2">mut </span>begin = <span class="bool-val">false</span>;
 	<span class="kw">let </span><span class="kw-2">mut </span>end = <span class="bool-val">false</span>;
@@ -853,7 +853,7 @@ File:
 /// * `page_path` - The `.mokkf` file&#39;s path as a `String`
 ///
 /// * `conditions` - Prints conditions information
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>get_page_object(page_path: String, collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Page {
 	<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context
 	</span><span class="kw">let </span>split_page = split_frontmatter(fs::read_to_string(<span class="kw-2">&amp;</span>page_path).unwrap()); <span class="comment">// See file::split_frontmatter
@@ -985,7 +985,7 @@ File:
 /// * `page` - The `.mokkf` file&#39;s context as a Page
 ///
 /// * `conditions` - Prints conditions information
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>get_contexts(page: <span class="kw-2">&amp;</span>Page, collections: <span class="kw-2">&amp;</span>HashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Object {
 	<span class="kw">let </span>global_file = fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>);
 	<span class="kw">let </span>global: HashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>global_file {
@@ -1039,7 +1039,7 @@ File:
 /// * `only_context` - Whether or not to only render the contexts of a File
 ///
 /// * `collections` - Collection store of this build
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>render(
 	page: <span class="kw-2">&amp;</span>Page,
 	text_to_render: <span class="kw-2">&amp;</span>str,
@@ -1102,7 +1102,7 @@ File:
 /// * `page` - The `.mokkf` file&#39;s context as a Page
 ///
 /// * `collections` - Collection store of this build
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>compile(
 	<span class="kw-2">mut </span>page: Page,
 	<span class="kw-2">mut </span>collections: HashMap&lt;String, Vec&lt;Page&gt;&gt;,
@@ -1154,7 +1154,7 @@ File:
 /// * `layout` - The File&#39;s layout&#39;s context as a Page
 ///
 /// * `collections` - Collection store of this build
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>render_layouts(
 	sub: <span class="kw-2">&amp;</span>Page,
 	layout: Page,
@@ -1232,7 +1232,7 @@ File:
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-</span><span class="attribute">#[inline(always)]
+</span><span class="attr">#[inline(always)]
 </span><span class="kw">pub fn </span>render_markdown(text_to_render: String) -&gt; String {
 	<span class="kw">let </span><span class="kw-2">mut </span>markdown_options = Options::empty();
 	markdown_options.insert(Options::ENABLE_TABLES);
@@ -1247,4 +1247,4 @@ File:
 	rendered_markdown
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (5e9772042 2022-10-29)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="dokkoo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (215e3cd21 2022-11-03)" ></div></body></html>
