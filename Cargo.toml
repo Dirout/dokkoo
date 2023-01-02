@@ -12,7 +12,6 @@
 #
 #    You should have received a copy of the GNU Affero General Public License
 #    along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
-cargo-features = ["strip"]
 [package]
 name = "dokkoo"
 version = "0.3.3"
@@ -29,7 +28,7 @@ readme = "README"
 [lib]
 name = "dokkoo"
 path = "src/lib.rs"
-crate-type=["rlib", "dylib", "staticlib"]
+crate-type=["rlib", "cdylib", "staticlib"]
 
 [[bin]]
 name = "dokkoo"
@@ -43,8 +42,9 @@ actix-files = "0.6.2"
 actix-http = "3.2.2"
 actix-service = "2.0.2"
 actix-web = "4.2.1"
+ahash = { version = "0.8.2", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.23", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "3.2.23", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "4.0.32", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.25"
 glob = "0.3.0"
@@ -55,12 +55,13 @@ liquid-lib = { version = "0.26.0", features = ["all", "stdlib", "jekyll", "shopi
 miette = { version = "5.5.0", features = ["fancy"] }
 mimalloc = { version = "0.1.32", default-features = false }
 notify = "5.0.0"
+path-clean = "0.1.0"
 pathdiff = "0.2.1"
 pulldown-cmark = { version = "0.9.2", default-features = false, features = ["simd"] }
 relative-path = "1.7.2"
 serde = "1.0.152"
 serde_yaml = "0.9.16"
-stopwatch = "0.0.7"
+ticky = "1.0.1"
 tokio = { version = "1.23.0", features = ["full"] }
 wild = "2.1.0"
 
@@ -90,11 +91,11 @@ assets = [
     ["COPYING", "usr/share/doc/dokkoo/COPYING", "644"],
 ]
 
-[package.metadata.rpm]
-package = "dokkoo"
-
-[package.metadata.rpm.cargo]
-buildflags = ["--release"]
-
-[package.metadata.rpm.targets]
-dokkoo = { path = "/usr/bin/dokkoo" }
+[package.metadata.generate-rpm]
+assets = [
+  { source = "target/release/dokkoo", dest = "/usr/bin/dokkoo", mode = "755" },
+  { source = "target/release/libdokkoo.so", dest = "/usr/lib/libdokkoo.so", mode = "755" },
+  { source = "target/release/libdokkoo.a", dest = "/usr/lib/libdokkoo.a", mode = "755" },
+  { source = "README", dest = "/usr/share/doc/dokkoo/README", mode = "644" },
+  { source = "COPYING", dest = "/usr/share/doc/dokkoo/COPYING", mode = "644" },
+]

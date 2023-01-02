@@ -1,0 +1,31 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+specfile_path: rust-dokkoo.spec
+files_to_sync:
+  - rust-dokkoo.spec
+  - packit.yaml
+upstream_package_name: dokkoo
+upstream_project_url: https://github.com/Dirout/dokkoo
+copy_upstream_release_description: true
+issue_repository: https://github.com/Dirout/dokkoo
+downstream_package_name: rust-dokkoo
+srpm_build_deps:
+  - gcc
+  - rust
+  - cargo
+  - rust-packaging
+jobs:
+  - job: copr_build
+    trigger: commit
+    branch: master
+    targets:
+      - fedora-all
+  - job: tests
+    trigger: pull_request
+    targets:
+      - fedora-all
+  - job: propose_downstream
+    trigger: release
+    dist_git_branches:
+      - fedora-all

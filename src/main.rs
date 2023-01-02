@@ -21,19 +21,20 @@
 	html_favicon_url = "https://github.com/Dirout/dokkoo/raw/master/branding/icon.png"
 )]
 #![feature(panic_info_message)]
+#![warn(clippy::disallowed_types)]
 
 use actix_files::NamedFile;
 use actix_web::{
 	dev::{ServiceRequest, ServiceResponse},
 	HttpServer,
 };
-use clap::{arg, crate_version, ArgMatches, Command};
+use ahash::AHashMap;
+use clap::{arg, crate_version, value_parser, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
 use miette::{miette, IntoDiagnostic, WrapErr};
 use mimalloc::MiMalloc;
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
-use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -41,7 +42,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
-use stopwatch::Stopwatch;
+use ticky::Stopwatch;
 
 #[global_allocator]
 /// The global memory allocator
@@ -49,7 +50,22 @@ static GLOBAL: MiMalloc = MiMalloc;
 
 lazy_static! {
 	/// The command-line interface (CLI) of Dokkoo
-	static ref MATCHES: ArgMatches = Command::new("Dokkoo").version(crate_version!()).author("Emil Sayahi").about("Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.").subcommand(Command::new("show").about("Shows information regarding the usage and handling of this software").arg(arg!(-w --warranty "Prints warranty information")).arg(arg!(-c --conditions "Prints conditions information"))).subcommand(Command::new("build").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true))).subcommand(Command::new("serve").about("Outputs a Mokk").arg(arg!(PATH: "Path to a Mokk").required(true).takes_value(true)).arg(arg!(PORT: "Port to serve a Mokk on").required(true).takes_value(true))).get_matches_from(wild::args());
+	static ref MATCHES: ArgMatches = Command::new("Dokkoo")
+  .version(crate_version!())
+  .author("Emil Sayahi")
+  .about("Dokkoo is a Mokk (Macro Output Key Kit) implementation written in Rust.")
+  .subcommand(Command::new("show")
+	.about("Shows information regarding the usage and handling of this software")
+	.arg(arg!(-w --warranty "Prints warranty information"))
+	.arg(arg!(-c --conditions "Prints conditions information")))
+  .subcommand(Command::new("build")
+	.about("Outputs a Mokk")
+	.arg(arg!(PATH: "Path to a Mokk").required(true).value_parser(value_parser!(PathBuf))))
+  .subcommand(Command::new("serve")
+	.about("Outputs a Mokk")
+	.arg(arg!(PATH: "Path to a Mokk").required(true).value_parser(value_parser!(PathBuf)))
+	.arg(arg!(PORT: "Port to serve a Mokk on").required(true).value_parser(value_parser!(usize))))
+  .get_matches_from(wild::args());
 }
 
 /// The main function of Dokkoo's CLI
@@ -110,7 +126,10 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 
 	let path = env::current_dir().unwrap();
 	let path_str = path.to_str().unwrap();
-	let port = matches.value_of("PORT").unwrap();
+	let port = matches
+		.get_one::<usize>("PORT")
+		.ok_or(miette!("❌ No port was given"))
+		.unwrap();
 	println!(
 		"\nServing on http://127.0.0.1:{} from {}/output\nChanges will be served … ",
 		port,
@@ -163,21 +182,26 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-#[inline(always)]
 async fn host(matches: &clap::ArgMatches) {
-	let path_buf = std::fs::canonicalize(
-		matches
-			.value_of("PATH")
-			.ok_or(miette!("No path to a Mokk was given"))
-			.unwrap(),
-	)
-	.unwrap();
+	let path_buf_input = matches
+		.get_one::<PathBuf>("PATH")
+		.ok_or(miette!("❌ No path was given"))
+		.unwrap();
+	let path_buf = match std::fs::canonicalize(path_buf_input) {
+		Ok(p) => p,
+		Err(_) => std::env::current_dir()
+			.unwrap()
+			.join(path_clean::clean(path_buf_input.to_str().unwrap())),
+	};
 	let path = path_buf.to_str().unwrap();
 	env::set_current_dir(path)
 		.into_diagnostic()
 		.wrap_err_with(|| format!("Could not read a Mokk at {}", path))
 		.unwrap();
-	let port = matches.value_of("PORT").unwrap();
+	let port = matches
+		.get_one::<usize>("PORT")
+		.ok_or(miette!("❌ No port was given"))
+		.unwrap();
 	HttpServer::new(|| match Path::new("./output/index.html").is_file() {
 		true => match Path::new("./output/404.html").is_file() {
 			true => actix_web::App::new().service(
@@ -254,20 +278,24 @@ async fn host(matches: &clap::ArgMatches) {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
+fn build(matches: &clap::ArgMatches) -> AHashMap<String, Vec<dokkoo::Page>> {
 	let stdout = std::io::stdout();
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
 
-	let path_buf = std::fs::canonicalize(
-		matches
-			.value_of("PATH")
-			.ok_or(miette!("No path to a Mokk was given"))
-			.unwrap(),
-	)
-	.unwrap();
+	let path_buf_input = matches
+		.get_one::<PathBuf>("PATH")
+		.ok_or(miette!("❌ No path was given"))
+		.unwrap();
+	let path_buf = match std::fs::canonicalize(path_buf_input) {
+		Ok(p) => p,
+		Err(_) => std::env::current_dir()
+			.unwrap()
+			.join(path_clean::clean(path_buf_input.to_str().unwrap())),
+	};
+
 	let path = path_buf.to_str().unwrap();
-	let mut collections: HashMap<String, Vec<dokkoo::Page>> = HashMap::new(); // Collections store
+	let mut collections: AHashMap<String, Vec<dokkoo::Page>> = AHashMap::new(); // Collections store
 
 	// Sort files into vectors of path buffers; for when we compile root files last
 	let mut root_files: Vec<PathBuf> = vec![];
@@ -295,12 +323,7 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 
 	// Show how long it took to build
 	timer.stop();
-	writeln!(
-		buf_out,
-		"Built in {} seconds.",
-		(timer.elapsed_ms() as f32 / 1000.0)
-	)
-	.unwrap();
+	writeln!(buf_out, "Built in {:.2} seconds.", timer.elapsed_s()).unwrap();
 
 	collections
 }
@@ -314,12 +337,11 @@ fn build(matches: &clap::ArgMatches) -> HashMap<String, Vec<dokkoo::Page>> {
 /// * `path` - Path given to the build subcommand
 ///
 /// * `collections` - Collection store of this build
-#[inline(always)]
 fn build_loop(
 	file_list: Vec<PathBuf>,
 	path: &str,
-	mut collections: HashMap<String, Vec<dokkoo::Page>>,
-) -> HashMap<String, Vec<dokkoo::Page>> {
+	mut collections: AHashMap<String, Vec<dokkoo::Page>>,
+) -> AHashMap<String, Vec<dokkoo::Page>> {
 	for file in file_list {
 		let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
 		let file_root_str = file_root.to_str().unwrap();
@@ -349,7 +371,6 @@ fn build_loop(
 /// * `path` - The path to write the file to
 ///
 /// * `text_to_write` - The data to write to the filesystem
-#[inline(always)]
 fn write_file(path: &str, text_to_write: String) {
 	fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap(); // Create output path, write to file
 	let file = File::create(path).unwrap(); // Create file which we will write to
@@ -370,7 +391,7 @@ fn show(matches: &clap::ArgMatches) {
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
 
-	if matches.is_present("warranty") {
+	if matches.contains_id("warranty") {
 		// "dokkoo show -w" was run
 		writeln!(
 			buf_out,
@@ -409,7 +430,7 @@ fn show(matches: &clap::ArgMatches) {
   "
 		)
 		.unwrap();
-	} else if matches.is_present("conditions") {
+	} else if matches.contains_id("conditions") {
 		// "dokkoo show -c" was run
 		writeln!(
 			buf_out,

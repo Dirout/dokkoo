@@ -15,10 +15,15 @@
 	along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 */
 /*
-lib.rs - Handling Mokk Files (.mokkf)
-File:
-	Term for a document or page written in accordance to the Mokk specification
+lib.rs - Handling Mokk files (`.mokkf`)
+
+Mokk is a custom file format that is used by Dokkoo to generate static websites.
+
+A Mokk file represents a document or page written in accordance to [the Mokk specification](https://dirout.github.io/mokk).
 */
+#![warn(clippy::disallowed_types)]
+
+use ahash::AHashMap;
 use chrono::DateTime;
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use liquid::*;
@@ -27,10 +32,10 @@ use pulldown_cmark::{html, Options, Parser};
 use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
+use std::fmt;
 use std::fmt::Write;
 use std::fs;
 use std::path::Path;
-use std::{collections::HashMap, fmt};
 
 #[derive(
 	Eq,
@@ -51,7 +56,7 @@ use std::{collections::HashMap, fmt};
 	Shl,
 	Constructor,
 )]
-/// A File's date-time metadata
+/// A Mokk file's date-time metadata
 pub struct Date {
 	/// Year with four digits
 	pub year: String,
@@ -87,9 +92,9 @@ pub struct Date {
 	pub minute: String,
 	/// Second of the minute (00..59)
 	pub second: String,
-	/// A File's date-time metadata, formatted per the RFC 3339 standard
+	/// A Mokk file's date-time metadata, formatted per the RFC 3339 standard
 	pub rfc_3339: String,
-	/// A File's date-time metadata, formatted per the RFC 2822 standard
+	/// A Mokk file's date-time metadata, formatted per the RFC 2822 standard
 	pub rfc_2822: String,
 }
 
@@ -118,25 +123,25 @@ impl fmt::Display for Date {
 	Shl,
 	Constructor,
 )]
-/// Generated data regarding a Mokk File
+/// Generated data regarding a Mokk file
 pub struct Page {
-	/// A File's contextual data, represented as YAML at the head/front of the file
-	pub data: HashMap<String, serde_yaml::Value>,
-	/// A File's contents following the frontmatter
+	/// A Mokk file's contextual data, represented as YAML at the head/front of the file
+	pub data: AHashMap<String, serde_yaml::Value>,
+	/// A Mokk file's contents following the frontmatter
 	pub content: String,
-	/// Data representing the output path of a File.
-	/// This is defined in a File's frontmatter
+	/// Data representing the output path of a Mokk file.
+	/// This is defined in a Mokk file's frontmatter
 	pub permalink: String,
-	/// A File's date-time metadata, formatted per the RFC 3339 standard.
-	/// This is defined in a File's frontmatter
+	/// A Mokk file's date-time metadata, formatted per the RFC 3339 standard.
+	/// This is defined in a Mokk file's frontmatter
 	pub date: Date,
-	/// Path to the File, not including the File itself
+	/// Path to the Mokk file, not including the Mokk file itself
 	pub directory: String,
-	/// The File's base filename
+	/// The Mokk file's base filename
 	pub name: String,
 	/// The output path of a file; a processed `permalink` value
 	pub url: String,
-	/// Whether a File is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
+	/// Whether a Mokk file is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
 	pub markdown: bool,
 }
 
@@ -151,7 +156,7 @@ impl fmt::Display for Page {
 ///
 /// # Arguments
 ///
-/// * `permalink` - A string slice that represents the permalink value specified in the File
+/// * `permalink` - A string slice that represents the permalink value specified in the Mokk file
 ///
 /// # Shorthand
 ///
@@ -164,7 +169,6 @@ impl fmt::Display for Page {
 /// * `weekdate` → `/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html`
 ///
 /// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
-#[inline(always)]
 pub fn get_permalink(permalink: &str) -> String {
 	match permalink {
         "date" => {
@@ -189,12 +193,11 @@ pub fn get_permalink(permalink: &str) -> String {
     }
 }
 
-/// Returns a tuple with a File's frontmatter and contents, in that order
+/// Returns a tuple with a Mokk file's frontmatter and contents, in that order
 ///
 /// # Arguments
 ///
 /// * `page_text` - The `.mokkf` file's data as a `String`
-#[inline(always)]
 pub fn split_frontmatter(page_text: String) -> (String, String) {
 	let mut begin = false;
 	let mut end = false;
@@ -229,12 +232,11 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 /// * `page_path` - The `.mokkf` file's path as a `String`
 ///
 /// * `conditions` - Prints conditions information
-#[inline(always)]
-pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page>>) -> Page {
+pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Page>>) -> Page {
 	// Define variables which we'll use to create our Document, which we'll use to generate the Page context
 	let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
-	let frontmatter: HashMap<String, serde_yaml::Value> =
-		serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as HashMap (collection of key-value pairs)
+	let frontmatter: AHashMap<String, serde_yaml::Value> =
+		serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as AHashMap (collection of key-value pairs)
 	let permalink = frontmatter.get("permalink"); // Get the key-value pair of the 'permalink' key from the frontmatter
 	let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
 	let markdown = frontmatter.get("markdown"); // Get the key-value pair of the 'markdown' key from the frontmatter
@@ -254,7 +256,7 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 			let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 			let global_file = fs::read_to_string("./_global.yml");
 
-			let global: HashMap<String, serde_yaml::Value> = match global_file {
+			let global: AHashMap<String, serde_yaml::Value> = match global_file {
 				Ok(_) => {
 					serde_yaml::from_str(&global_file.unwrap()).unwrap()
 					// Defined as variable as it required a type annotation
@@ -361,10 +363,9 @@ pub fn get_page_object(page_path: String, collections: &HashMap<String, Vec<Page
 /// * `page` - The `.mokkf` file's context as a Page
 ///
 /// * `conditions` - Prints conditions information
-#[inline(always)]
-pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Object {
+pub fn get_contexts(page: &Page, collections: &AHashMap<String, Vec<Page>>) -> Object {
 	let global_file = fs::read_to_string("./_global.yml");
-	let global: HashMap<String, serde_yaml::Value> = match global_file {
+	let global: AHashMap<String, serde_yaml::Value> = match global_file {
 		Ok(_) => {
 			serde_yaml::from_str(&global_file.unwrap()).unwrap() // Defined as variable as it required a type annotation
 		}
@@ -379,8 +380,8 @@ pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Ob
 	let layout_name = page.data.get("layout");
 
 	// Import layout context if Page has a layout
-	let layout: HashMap<String, serde_yaml::Value> = match layout_name {
-		None => HashMap::new(),
+	let layout: AHashMap<String, serde_yaml::Value> = match layout_name {
+		None => AHashMap::new(),
 		Some(_) => serde_yaml::from_str(
 			&split_frontmatter(
 				fs::read_to_string(format!(
@@ -404,23 +405,22 @@ pub fn get_contexts(page: &Page, collections: &HashMap<String, Vec<Page>>) -> Ob
 	contexts
 }
 
-/// Returns a String with a &str's File rendered
+/// Returns a `String` with a `&str`'s Mokk file rendered
 ///
 /// # Arguments
 ///
-/// * `page` - A `.mokkf` file's context as a Page
+/// * `page` - A `.mokkf` file's context as a `Page`
 ///
 /// * `text_to_render` - The text to be rendered
 ///
-/// * `only_context` - Whether or not to only render the contexts of a File
+/// * `only_context` - Whether or not to only render the contexts of a Mokk file
 ///
 /// * `collections` - Collection store of this build
-#[inline(always)]
 pub fn render(
 	page: &Page,
 	text_to_render: &str,
 	only_context: bool,
-	collections: &HashMap<String, Vec<Page>>,
+	collections: &AHashMap<String, Vec<Page>>,
 ) -> String {
 	match only_context {
 		true => {
@@ -471,18 +471,17 @@ pub fn render(
 	}
 }
 
-/// Compiles a Mokk File; renders, makes note of the File (when, or if, the need arises)
+/// Compiles a Mokk Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
 ///
 /// # Arguments
 ///
-/// * `page` - The `.mokkf` file's context as a Page
+/// * `page` - The `.mokkf` file's context as a `Page`
 ///
 /// * `collections` - Collection store of this build
-#[inline(always)]
 pub fn compile(
 	mut page: Page,
-	mut collections: HashMap<String, Vec<Page>>,
-) -> (String, HashMap<String, Vec<Page>>) {
+	mut collections: AHashMap<String, Vec<Page>>,
+) -> (String, AHashMap<String, Vec<Page>>) {
 	let layout_name = &page.data.get("layout");
 	let collection_name = &page.data.get("collection");
 
@@ -525,16 +524,15 @@ pub fn compile(
 ///
 /// # Arguments
 ///
-/// * `page` - The `.mokkf` file's context as a Page
+/// * `page` - The `.mokkf` file's context as a `Page`
 ///
-/// * `layout` - The File's layout's context as a Page
+/// * `layout` - The Mokk file's layout's context as a `Page`
 ///
 /// * `collections` - Collection store of this build
-#[inline(always)]
 pub fn render_layouts(
 	sub: &Page,
 	layout: Page,
-	collections: &HashMap<String, Vec<Page>>,
+	collections: &AHashMap<String, Vec<Page>>,
 ) -> String {
 	// Take layout's text, render it with sub's context
 
@@ -608,7 +606,6 @@ pub fn create_liquid_parser() -> liquid::Parser {
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-#[inline(always)]
 pub fn render_markdown(text_to_render: String) -> String {
 	let mut markdown_options = Options::empty();
 	markdown_options.insert(Options::ENABLE_TABLES);
