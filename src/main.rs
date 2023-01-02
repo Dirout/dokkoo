@@ -88,7 +88,7 @@ fn main() {
 	writeln!(
 		buf_out,
 		"
-    Dokkoo  Copyright (C) 2020-2022  Emil Sayahi
+    Dokkoo  Copyright (C) 2020-2023  Emil Sayahi
     This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `dokkoo show -c' for details.
