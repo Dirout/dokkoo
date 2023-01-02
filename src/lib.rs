@@ -148,7 +148,7 @@ pub struct Page {
 /// Handle conversion of a Page object into a string of characters
 impl fmt::Display for Page {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "{:#?}", self)
+		write!(f, "{self:#?}")
 	}
 }
 
