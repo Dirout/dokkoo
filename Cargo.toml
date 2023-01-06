@@ -47,7 +47,7 @@ chrono = { version = "0.4.23", features = ["alloc", "std", "clock", "serde", "un
 clap = { version = "4.0.32", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.25"
-glob = "0.3.0"
+glob = "0.3.1"
 lazy_static = "1.4.0"
 liquid = "0.26.0"
 liquid-core = "0.26.0"
