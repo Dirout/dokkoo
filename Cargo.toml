@@ -62,7 +62,7 @@ relative-path = "1.7.3"
 serde = "1.0.152"
 serde_yaml = "0.9.16"
 ticky = "1.0.1"
-tokio = { version = "1.24.1", features = ["full"] }
+tokio = { version = "1.24.2", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
