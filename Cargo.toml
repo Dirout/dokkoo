@@ -39,9 +39,9 @@ doc = false
 
 [dependencies]
 actix-files = "0.6.2"
-actix-http = "3.2.2"
+actix-http = "3.3.0"
 actix-service = "2.0.2"
-actix-web = "4.2.1"
+actix-web = "4.3.0"
 ahash = { version = "0.8.2", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.23", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
 clap = { version = "4.1.1", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
@@ -60,9 +60,9 @@ pathdiff = "0.2.1"
 pulldown-cmark = { version = "0.9.2", default-features = false, features = ["simd"] }
 relative-path = "1.7.3"
 serde = "1.0.152"
-serde_yaml = "0.9.16"
+serde_yaml = "0.9.17"
 ticky = "1.0.1"
-tokio = { version = "1.24.1", features = ["full"] }
+tokio = { version = "1.24.2", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
