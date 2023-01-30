@@ -439,15 +439,14 @@ pub fn get_contexts(page: &Page, collections: &AHashMap<String, Vec<Page>>) -> O
 			serde_yaml::from_str(&g)
 				.into_diagnostic()
 				.wrap_err(format!(
-					"Unable to parse global file ({}) while rendering '{:#?}'.",
-					g, page
+					"Unable to parse global file ({g}) while rendering '{page:#?}'."
 				))
 				.unwrap() // Defined as variable as it required a type annotation
 		}
 		Err(_) => {
 			serde_yaml::from_str("locale: \"en_US\"")
 				.into_diagnostic()
-				.wrap_err(format!("Unable to initialise a blank global file while rendering '{:#?}'. If you're seeing this message, something is very wrong.", page))
+				.wrap_err(format!("Unable to initialise a blank global file while rendering '{page:#?}'. If you're seeing this message, something is very wrong."))
 				.unwrap() // Defined as variable as it required a type annotation
 		}
 	};
@@ -512,12 +511,12 @@ pub fn render(
 			let template = create_liquid_parser()
 				.parse(text_to_render)
 				.into_diagnostic()
-				.wrap_err(format!("Unable to parse text to render ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
+				.wrap_err(format!("Unable to parse text to render ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
 				.unwrap();
 			template
 				.render(&get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err(format!("Unable to render text ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
+				.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
 				.unwrap()
 		}
 		false => {
@@ -525,14 +524,13 @@ pub fn render(
 				.parse(text_to_render)
 				.into_diagnostic()
 				.wrap_err(format!(
-					"Unable to parse text to render ('{}') for {:#?}.",
-					text_to_render, page
+					"Unable to parse text to render ('{text_to_render}') for {page:#?}."
 				))
 				.unwrap();
 			let liquid_render = template
 				.render(&get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err(format!("Unable to render text ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
+				.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
 				.unwrap();
 			render_markdown(liquid_render)
 		}
