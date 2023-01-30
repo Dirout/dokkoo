@@ -720,8 +720,6 @@
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
 <a href="#722" id="722">722</a>
-<a href="#723" id="723">723</a>
-<a href="#724" id="724">724</a>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -1163,15 +1161,14 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			serde_yaml::from_str(<span class="kw-2">&amp;</span>g)
 				.into_diagnostic()
 				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse global file ({}) while rendering &#39;{:#?}&#39;.&quot;</span>,
-					g, page
-				))
+					<span class="string">&quot;Unable to parse global file ({g}) while rendering &#39;{page:#?}&#39;.&quot;
+				</span>))
 				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
 		</span>}
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
 			serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to initialise a blank global file while rendering &#39;{:#?}&#39;. If you&#39;re seeing this message, something is very wrong.&quot;</span>, page))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to initialise a blank global file while rendering &#39;{page:#?}&#39;. If you&#39;re seeing this message, something is very wrong.&quot;</span>))
 				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
 		</span>}
 	};
@@ -1236,12 +1233,12 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="kw">let </span>template = create_liquid_parser()
 				.parse(text_to_render)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse text to render (&#39;{}&#39;) for {:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>, text_to_render, page))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
 				.unwrap();
 			template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{}&#39;) for {:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>, text_to_render, page))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
 				.unwrap()
 		}
 		<span class="bool-val">false </span>=&gt; {
@@ -1249,14 +1246,13 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				.parse(text_to_render)
 				.into_diagnostic()
 				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse text to render (&#39;{}&#39;) for {:#?}.&quot;</span>,
-					text_to_render, page
-				))
+					<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+				</span>))
 				.unwrap();
 			<span class="kw">let </span>liquid_render = template
 				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{}&#39;) for {:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>, text_to_render, page))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
 				.unwrap();
 			render_markdown(liquid_render)
 		}
@@ -1447,4 +1443,4 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	rendered_markdown
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (1e225413a 2023-01-28)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
