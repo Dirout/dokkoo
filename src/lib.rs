@@ -27,11 +27,12 @@ use ahash::AHashMap;
 use chrono::DateTime;
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use liquid::*;
-use miette::{IntoDiagnostic, WrapErr};
+use miette::{miette, IntoDiagnostic, WrapErr};
 use pulldown_cmark::{html, Options, Parser};
 use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
+use std::ffi::OsString;
 use std::fmt;
 use std::fmt::Write;
 use std::fs;
@@ -211,10 +212,16 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 			end = true;
 		} else if begin && !end {
 			//frontmatter.push_str(&format!("{}\n", &line));
-			writeln!(frontmatter, "{}", &line).unwrap();
+			writeln!(frontmatter, "{}", &line)
+				.into_diagnostic()
+				.wrap_err(format!("Failed to write a line of frontmatter to memory ({}). Managed to write the following:\n{}", &line, &frontmatter))
+				.unwrap();
 		} else {
 			//contents.push_str(&format!("{}\n", &line));
-			writeln!(contents, "{}", &line).unwrap();
+			writeln!(contents, "{}", &line)
+				.into_diagnostic()
+				.wrap_err(format!("Failed to write a line of content to memory ({}). Managed to write the following:\n{}", &line, &contents))
+				.unwrap();
 		}
 	}
 
@@ -234,35 +241,79 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 /// * `conditions` - Prints conditions information
 pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Page>>) -> Page {
 	// Define variables which we'll use to create our Document, which we'll use to generate the Page context
-	let split_page = split_frontmatter(fs::read_to_string(&page_path).unwrap()); // See file::split_frontmatter
-	let frontmatter: AHashMap<String, serde_yaml::Value> =
-		serde_yaml::from_str(&split_page.0).unwrap(); // Parse frontmatter as AHashMap (collection of key-value pairs)
+	let split_page = split_frontmatter(
+		fs::read_to_string(&page_path)
+			.into_diagnostic()
+			.wrap_err(format!("Failed to read the file at '{}'.", &page_path))
+			.unwrap(),
+	); // See file::split_frontmatter
+	let frontmatter: AHashMap<String, serde_yaml::Value> = serde_yaml::from_str(&split_page.0)
+		.into_diagnostic()
+		.wrap_err(format!(
+			"Failed to parse frontmatter from '{}'.",
+			&page_path
+		))
+		.unwrap(); // Parse frontmatter as AHashMap (collection of key-value pairs)
 	let permalink = frontmatter.get("permalink"); // Get the key-value pair of the 'permalink' key from the frontmatter
 	let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
 	let markdown = frontmatter.get("markdown"); // Get the key-value pair of the 'markdown' key from the frontmatter
 
 	let permalink_string: String = match permalink {
-		Some(_) => permalink.unwrap().as_str().unwrap().to_string(),
+		Some(p) => p
+			.as_str()
+			.ok_or(miette!(
+				"Unable to read `permalink` value ({:?}) as string in frontmatter of file '{}'.",
+				p,
+				&page_path
+			))
+			.unwrap()
+			.to_string(),
 		None => String::new(),
 	};
 
 	let markdown_bool: bool = match markdown {
-		Some(_) => markdown.unwrap().as_bool().unwrap(),
+		Some(m) => m
+			.as_bool()
+			.ok_or(miette!(
+				"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'.",
+				m,
+				&page_path
+			))
+			.unwrap(),
 		None => true,
 	};
 
 	let date_object = match date {
-		Some(_) => {
-			let datetime = DateTime::parse_from_rfc3339(date.unwrap().as_str().unwrap()); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
+		Some(d) => {
+			let datetime = DateTime::parse_from_rfc3339(
+				d
+					.as_str()
+					.ok_or(miette!("Unable to read `date` value ({:?}) as a string in frontmatter of file '{}'.", d, &page_path))
+					.unwrap(),
+			).into_diagnostic()
+			.wrap_err(format!("Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file '{}'.", d, &page_path))
+			.unwrap(); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
 			let global_file = fs::read_to_string("./_global.yml");
 
 			let global: AHashMap<String, serde_yaml::Value> = match global_file {
-				Ok(_) => {
-					serde_yaml::from_str(&global_file.unwrap()).unwrap()
+				Ok(g) => {
+					serde_yaml::from_str(&g)
+						.into_diagnostic()
+						.wrap_err(format!(
+							"Unable to parse global file ({}) while rendering '{}'.",
+							g, &page_path
+						))
+						.unwrap()
 					// Defined as variable as it required a type annotation
 				}
 				Err(_) => {
-					serde_yaml::from_str("locale: \"en_US\"").unwrap()
+					serde_yaml::from_str("locale: \"en_US\"")
+						.into_diagnostic()
+						.wrap_err(format!(
+							"Unable to initialise a blank global file while rendering '{}'. If you're seeing this message, something is very wrong.",
+							&page_path
+						))
+						.unwrap()
 					// Defined as variable as it required a type annotation
 				}
 			};
@@ -270,32 +321,35 @@ pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Pag
 			let locale_key = global.get("locale");
 
 			let locale_value = match locale_key {
-				Some(_) => locale_key.unwrap().as_str().unwrap(),
+				Some(l) => l
+					.as_str()
+					.ok_or(miette!("Unable to read `locale` value ({:?}) from global file while rendering '{}'.", l, &page_path))
+					.unwrap(),
 				None => "en_US",
 			};
 
 			let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
 
 			Date {
-				year: format!("{}", datetime.unwrap().format_localized("%Y", locale)),
-				short_year: format!("{}", datetime.unwrap().format_localized("%y", locale)),
-				month: format!("{}", datetime.unwrap().format_localized("%m", locale)),
-				i_month: format!("{}", datetime.unwrap().format_localized("%-m", locale)),
-				short_month: format!("{}", datetime.unwrap().format_localized("%b", locale)),
-				long_month: format!("{}", datetime.unwrap().format_localized("%B", locale)),
-				day: format!("{}", datetime.unwrap().format_localized("%d", locale)),
-				i_day: format!("{}", datetime.unwrap().format_localized("%-d", locale)),
-				y_day: format!("{}", datetime.unwrap().format_localized("%j", locale)),
-				w_year: format!("{}", datetime.unwrap().format_localized("%G", locale)),
-				week: format!("{}", datetime.unwrap().format_localized("%U", locale)),
-				w_day: format!("{}", datetime.unwrap().format_localized("%u", locale)),
-				short_day: format!("{}", datetime.unwrap().format_localized("%a", locale)),
-				long_day: format!("{}", datetime.unwrap().format_localized("%A", locale)),
-				hour: format!("{}", datetime.unwrap().format_localized("%H", locale)),
-				minute: format!("{}", datetime.unwrap().format_localized("%M", locale)),
-				second: format!("{}", datetime.unwrap().format_localized("%S", locale)),
-				rfc_3339: datetime.unwrap().to_rfc3339(),
-				rfc_2822: datetime.unwrap().to_rfc2822(),
+				year: format!("{}", datetime.format_localized("%Y", locale)),
+				short_year: format!("{}", datetime.format_localized("%y", locale)),
+				month: format!("{}", datetime.format_localized("%m", locale)),
+				i_month: format!("{}", datetime.format_localized("%-m", locale)),
+				short_month: format!("{}", datetime.format_localized("%b", locale)),
+				long_month: format!("{}", datetime.format_localized("%B", locale)),
+				day: format!("{}", datetime.format_localized("%d", locale)),
+				i_day: format!("{}", datetime.format_localized("%-d", locale)),
+				y_day: format!("{}", datetime.format_localized("%j", locale)),
+				w_year: format!("{}", datetime.format_localized("%G", locale)),
+				week: format!("{}", datetime.format_localized("%U", locale)),
+				w_day: format!("{}", datetime.format_localized("%u", locale)),
+				short_day: format!("{}", datetime.format_localized("%a", locale)),
+				long_day: format!("{}", datetime.format_localized("%A", locale)),
+				hour: format!("{}", datetime.format_localized("%H", locale)),
+				minute: format!("{}", datetime.format_localized("%M", locale)),
+				second: format!("{}", datetime.format_localized("%S", locale)),
+				rfc_3339: datetime.to_rfc3339(),
+				rfc_2822: datetime.to_rfc2822(),
 			}
 		}
 		None => Date {
@@ -325,15 +379,34 @@ pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Pag
 
 	// Define our Page
 	let mut page = Page {
-		data: serde_yaml::from_str(&split_page.0).unwrap(),
+		data: serde_yaml::from_str(&split_page.0)
+			.into_diagnostic()
+			.wrap_err(format!(
+				"Unable to parse page frontmatter ({}) while rendering '{}'.",
+				&split_page.0, &page_path
+			))
+			.unwrap(),
 		content: split_page.1,
-		permalink: permalink_string,
+		permalink: permalink_string.clone(),
 		date: date_object,
-		directory: page_path_io.parent().unwrap().to_str().unwrap().to_owned(),
+		directory: page_path_io
+			.parent()
+			.unwrap_or(Path::new(""))
+			.to_str()
+			.ok_or(miette!(
+				"Unable to represent parent directory of page as a string while rendering '{}'.",
+				&page_path
+			))
+			.unwrap()
+			.to_owned(),
 		name: page_path_io
 			.file_stem()
-			.unwrap()
+			.unwrap_or(&OsString::new())
 			.to_str()
+			.ok_or(miette!(
+				"Unable to represent file stem of page as a string while rendering '{}'.",
+				&page_path
+			))
 			.unwrap()
 			.to_owned(),
 		url: String::new(),
@@ -341,15 +414,11 @@ pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Pag
 	};
 
 	match &page.permalink[..] {
+		// Don't render the URL if the permalink is empty
 		"" => {}
 		_ => {
 			// Render the URL once the Page metadata has been generated
-			page.url = render(
-				&page,
-				&get_permalink(permalink.unwrap().as_str().unwrap()),
-				true,
-				collections,
-			);
+			page.url = render(&page, &get_permalink(&permalink_string), true, collections);
 		}
 	}
 
@@ -366,11 +435,20 @@ pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Pag
 pub fn get_contexts(page: &Page, collections: &AHashMap<String, Vec<Page>>) -> Object {
 	let global_file = fs::read_to_string("./_global.yml");
 	let global: AHashMap<String, serde_yaml::Value> = match global_file {
-		Ok(_) => {
-			serde_yaml::from_str(&global_file.unwrap()).unwrap() // Defined as variable as it required a type annotation
+		Ok(g) => {
+			serde_yaml::from_str(&g)
+				.into_diagnostic()
+				.wrap_err(format!(
+					"Unable to parse global file ({}) while rendering '{:#?}'.",
+					g, page
+				))
+				.unwrap() // Defined as variable as it required a type annotation
 		}
 		Err(_) => {
-			serde_yaml::from_str("locale: \"en_US\"").unwrap() // Defined as variable as it required a type annotation
+			serde_yaml::from_str("locale: \"en_US\"")
+				.into_diagnostic()
+				.wrap_err(format!("Unable to initialise a blank global file while rendering '{:#?}'. If you're seeing this message, something is very wrong.", page))
+				.unwrap() // Defined as variable as it required a type annotation
 		}
 	};
 
@@ -382,16 +460,23 @@ pub fn get_contexts(page: &Page, collections: &AHashMap<String, Vec<Page>>) -> O
 	// Import layout context if Page has a layout
 	let layout: AHashMap<String, serde_yaml::Value> = match layout_name {
 		None => AHashMap::new(),
-		Some(_) => serde_yaml::from_str(
+		Some(l) => serde_yaml::from_str(
 			&split_frontmatter(
 				fs::read_to_string(format!(
 					"./layouts/{}.mokkf",
-					layout_name.unwrap().as_str().unwrap()
+					l
+						.as_str()
+						.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page))
+						.unwrap()
 				))
+				.into_diagnostic()
+				.wrap_err(format!("Unable to read layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
 				.unwrap(),
 			)
 			.0,
 		)
+		.into_diagnostic()
+		.wrap_err(format!("Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
 		.unwrap(),
 	};
 
@@ -427,51 +512,34 @@ pub fn render(
 			let template = create_liquid_parser()
 				.parse(text_to_render)
 				.into_diagnostic()
-				.wrap_err_with(|| {
-					format!(
-						"Could not parse the Mokk file at {}/{}.mokkf",
-						page.directory, page.name
-					)
-				})
+				.wrap_err(format!("Unable to parse text to render ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
 				.unwrap();
 			template
 				.render(&get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err_with(|| {
-					format!(
-						"Could not render the Mokk file at {}/{}.mokkf",
-						page.directory, page.name
-					)
-				})
+				.wrap_err(format!("Unable to render text ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
 				.unwrap()
 		}
 		false => {
 			let template = create_liquid_parser()
 				.parse(text_to_render)
 				.into_diagnostic()
-				.wrap_err_with(|| {
-					format!(
-						"Could not parse the Mokk file at {}/{}.mokkf",
-						page.directory, page.name
-					)
-				})
+				.wrap_err(format!(
+					"Unable to parse text to render ('{}') for {:#?}.",
+					text_to_render, page
+				))
 				.unwrap();
 			let liquid_render = template
 				.render(&get_contexts(page, collections))
 				.into_diagnostic()
-				.wrap_err_with(|| {
-					format!(
-						"Could not render the Mokk file at {}/{}.mokkf",
-						page.directory, page.name
-					)
-				})
+				.wrap_err(format!("Unable to render text ('{}') for {:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself.", text_to_render, page))
 				.unwrap();
 			render_markdown(liquid_render)
 		}
 	}
 }
 
-/// Compiles a Mokk Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
+/// Compiles a Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
 ///
 /// # Arguments
 ///
@@ -490,9 +558,9 @@ pub fn compile(
 	page.content = render(&page, &page.content, !page.markdown, &collections);
 	let compiled_page = match layout_name {
 		None => page.content.to_owned(),
-		Some(_) => {
+		Some(l) => {
 			let layout_object = get_page_object(
-				format!("./layouts/{}.mokkf", layout_name.unwrap().as_str().unwrap()),
+				format!("./layouts/{}.mokkf", l.as_str().ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page)).unwrap()),
 				&collections,
 			);
 			let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
@@ -504,11 +572,26 @@ pub fn compile(
 	// When within a collection, append embeddable page to list of collection's entries
 	match collection_name {
 		None => {}
-		Some(_) => {
-			let collection_name_str = collection_name.unwrap().as_str().unwrap();
+		Some(c) => {
+			let collection_name_str = c
+				.as_str()
+				.ok_or(miette!(
+					"Unable to represent collection name ({:?}) as a string while rendering '{:#?}'.",
+					c,
+					page
+				))
+				.unwrap();
 			match collections.contains_key(&collection_name_str.to_string()) {
 				true => {
-					(*collections.get_mut(collection_name_str).unwrap()).push(page);
+					(*collections
+						.get_mut(collection_name_str)
+						.ok_or(miette!(
+							"Unable to get collection ({}) while rendering '{:#?}'.",
+							collection_name_str,
+							page
+						))
+						.unwrap())
+					.push(page);
 				}
 				false => {
 					collections.insert(collection_name_str.to_owned(), vec![page]);
@@ -554,11 +637,14 @@ pub fn render_layouts(
 
 	let super_layout = layout.data.get("layout");
 	let rendered: String = match super_layout {
-		Some(_) => {
+		Some(l) => {
 			let super_layout_object = get_page_object(
 				format!(
 					"./layouts/{}.mokkf",
-					super_layout.unwrap().as_str().unwrap()
+					l
+						.as_str()
+						.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, merged_sub_page))
+						.unwrap()
 				),
 				collections,
 			);
@@ -576,12 +662,27 @@ pub fn create_liquid_parser() -> liquid::Parser {
 	let snippets = glob::glob("./snippets/**/*");
 	if let Ok(s) = snippets {
 		for snippet in s {
-			let unwrapped_snippet = snippet.unwrap();
+			let unwrapped_snippet = snippet
+				.into_diagnostic()
+				.wrap_err("Unable to interpret path to snippet file.")
+				.unwrap();
 			if unwrapped_snippet.is_file() {
-				let relative_path = RelativePath::from_path(&unwrapped_snippet).unwrap();
+				let relative_path = RelativePath::from_path(&unwrapped_snippet)
+					.into_diagnostic()
+					.wrap_err(format!(
+						"Unable to interpret path to snippet file ('{}') as a relative path.",
+						unwrapped_snippet.display()
+					))
+					.unwrap();
 				let snippet_name = relative_path.strip_prefix("snippets").unwrap().to_string();
 				let path = &unwrapped_snippet.as_path();
-				partial.add(snippet_name, &fs::read_to_string(path).unwrap());
+				partial.add(
+					snippet_name,
+					&fs::read_to_string(path)
+						.into_diagnostic()
+						.wrap_err(format!("Unable to read snippet file '{}'.", path.display()))
+						.unwrap(),
+				);
 			}
 		}
 	}
@@ -598,6 +699,8 @@ pub fn create_liquid_parser() -> liquid::Parser {
 		.filter(liquid_lib::extra::DateInTz)
 		.partials(partial_compiler)
 		.build()
+		.into_diagnostic()
+		.wrap_err("Unable to build a Liquid parser.")
 		.unwrap()
 }
 

@@ -32,7 +32,7 @@ use ahash::AHashMap;
 use clap::{arg, crate_version, value_parser, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
-use miette::{miette, IntoDiagnostic, WrapErr};
+use miette::{miette, IntoDiagnostic, RgbColors, WrapErr};
 use mimalloc::MiMalloc;
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::env;
@@ -73,6 +73,19 @@ fn main() {
 	let stdout = std::io::stdout();
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
+
+	miette::set_hook(Box::new(|_| {
+		Box::new(
+			miette::MietteHandlerOpts::new()
+				.terminal_links(true)
+				.unicode(true)
+				.with_cause_chain()
+				.rgb_colors(RgbColors::Preferred)
+				.footer(format!("Dokkoo {}", crate_version!()))
+				.build(),
+		)
+	}))
+	.unwrap();
 
 	std::panic::set_hook(Box::new(|e| {
 		println!(

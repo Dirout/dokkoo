@@ -24,10 +24,10 @@ jobs:
       - name: Prepare Dokkoo for upload
         run: |
           cd ./target/x86_64-pc-windows-gnu/release/
-          tar -czvf x86_64-dokkoo.win32.zip \
-          dokkoo.exe \
-          dokkoo.dll \
-          libdokkoo.a \
+          tar -czvf x86_64-dokkoo.win32.zip `
+          dokkoo.exe `
+          dokkoo.dll `
+          libdokkoo.a `
           libdokkoo.dll.a
       - name: Upload Dokkoo build artifacts to GitHub
         uses: actions/upload-artifact@v3

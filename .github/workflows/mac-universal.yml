@@ -57,8 +57,6 @@ jobs:
           target/aarch64-apple-darwin/release/libdokkoo.a \
           target/x86_64-apple-darwin/release/libdokkoo.a
           strip ./target/dokkoo
-          strip ./target/libdokkoo.dylib
-          strip ./target/libdokkoo.a
           chmod +x ./target/dokkoo
           cd ./target
           tar -cvf universal-dokkoo.osx.tar \
@@ -68,8 +66,6 @@ jobs:
 
           cd ./x86_64-apple-darwin/release/
           strip ./dokkoo
-          strip ./libdokkoo.dylib
-          strip ./libdokkoo.a
           chmod +x ./dokkoo
           tar -cvf x86_64-dokkoo.osx.tar \
           dokkoo \
@@ -78,8 +74,6 @@ jobs:
 
           cd ../../aarch64-apple-darwin/release/
           strip ./dokkoo
-          strip ./libdokkoo.dylib
-          strip ./libdokkoo.a
           chmod +x ./dokkoo
           tar -cvf aarch64-dokkoo.osx.tar \
           dokkoo \
