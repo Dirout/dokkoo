@@ -41,7 +41,7 @@ doc = false
 actix-files = "0.6.2"
 actix-http = "3.3.0"
 actix-service = "2.0.2"
-actix-web = "4.3.0"
+actix-web = "4.3.1"
 ahash = { version = "0.8.3", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.23", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
 clap = { version = "4.1.6", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
