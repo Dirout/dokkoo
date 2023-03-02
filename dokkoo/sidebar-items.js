@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"fn":["compile","create_liquid_parser","get_contexts","get_page_object","get_permalink","render","render_layouts","render_markdown","split_frontmatter"],"struct":["Date","Page","__FieldVisitor","__Visitor"]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"fn":["create_liquid_parser","get_global_context","get_permalink","render_markdown","split_frontmatter"],"struct":["Build","Date","Page","__FieldVisitor","__Visitor"]};

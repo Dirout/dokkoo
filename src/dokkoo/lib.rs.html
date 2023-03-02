@@ -703,23 +703,6 @@
 <a href="#703" id="703">703</a>
 <a href="#704" id="704">704</a>
 <a href="#705" id="705">705</a>
-<a href="#706" id="706">706</a>
-<a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
-<a href="#714" id="714">714</a>
-<a href="#715" id="715">715</a>
-<a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-<a href="#720" id="720">720</a>
-<a href="#721" id="721">721</a>
-<a href="#722" id="722">722</a>
 </pre><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -875,6 +858,400 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	}
 }
 
+<span class="kw">pub struct </span>Build {
+	<span class="kw">pub </span>collections: AHashMap&lt;String, Vec&lt;Page&gt;&gt;,
+	<span class="kw">pub </span>global_context: AHashMap&lt;String, serde_yaml::Value&gt;,
+	<span class="kw">pub </span>liquid_parser: liquid::Parser,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Build {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			collections: AHashMap::new(),
+			global_context: get_global_context(),
+			liquid_parser: create_liquid_parser(),
+		}
+	}
+}
+
+<span class="kw">impl </span>Build {
+	<span class="doccomment">/// Returns an object with a `Page`&#39;s context
+	///
+	/// # Arguments
+	///
+	/// * `page_path` - The `.mokkf` file&#39;s path as a `String`
+	</span><span class="kw">pub fn </span>get_page_object(<span class="kw-2">&amp;</span><span class="self">self</span>, page_path: String) -&gt; Page {
+		<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context
+		</span><span class="kw">let </span>split_page = split_frontmatter(
+			fs::read_to_string(<span class="kw-2">&amp;</span>page_path)
+				.into_diagnostic()
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Failed to read the file at &#39;{}&#39;.&quot;</span>, <span class="kw-2">&amp;</span>page_path))
+				.unwrap(),
+		); <span class="comment">// See file::split_frontmatter
+		</span><span class="kw">let </span>frontmatter: AHashMap&lt;String, serde_yaml::Value&gt; = serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
+			.into_diagnostic()
+			.wrap_err(<span class="macro">format!</span>(
+				<span class="string">&quot;Failed to parse frontmatter from &#39;{}&#39;.&quot;</span>,
+				<span class="kw-2">&amp;</span>page_path
+			))
+			.unwrap(); <span class="comment">// Parse frontmatter as AHashMap (collection of key-value pairs)
+
+		</span><span class="kw">let </span>permalink_string: String = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;permalink&quot;</span>) {
+			<span class="prelude-val">Some</span>(p) =&gt; p
+				.as_str()
+				.ok_or(<span class="macro">miette!</span>(
+					<span class="string">&quot;Unable to read `permalink` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					p,
+					<span class="kw-2">&amp;</span>page_path
+				))
+				.unwrap()
+				.to_string(),
+			<span class="prelude-val">None </span>=&gt; String::new(),
+		};
+
+		<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;markdown&quot;</span>) {
+			<span class="prelude-val">Some</span>(m) =&gt; m
+				.as_bool()
+				.ok_or(<span class="macro">miette!</span>(
+					<span class="string">&quot;Unable to read `markdown` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					m,
+					<span class="kw-2">&amp;</span>page_path
+				))
+				.unwrap(),
+			<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
+		};
+
+		<span class="kw">let </span>date_object = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;date&quot;</span>) {
+			<span class="prelude-val">Some</span>(d) =&gt; {
+				<span class="kw">let </span>datetime = DateTime::parse_from_rfc3339(
+					d
+						.as_str()
+						.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to read `date` value ({:?}) as a string in frontmatter of file &#39;{}&#39;.&quot;</span>, d, <span class="kw-2">&amp;</span>page_path))
+						.unwrap(),
+				).into_diagnostic()
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file &#39;{}&#39;.&quot;</span>, d, <span class="kw-2">&amp;</span>page_path))
+				.unwrap(); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
+
+				</span><span class="kw">let </span>locale_key = <span class="self">self</span>.global_context.get(<span class="string">&quot;locale&quot;</span>);
+
+				<span class="kw">let </span>locale_value = <span class="kw">match </span>locale_key {
+					<span class="prelude-val">Some</span>(l) =&gt; l
+						.as_str()
+						.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to read `locale` value ({:?}) from global file while rendering &#39;{}&#39;.&quot;</span>, l, <span class="kw-2">&amp;</span>page_path))
+						.unwrap(),
+					<span class="prelude-val">None </span>=&gt; <span class="string">&quot;en_US&quot;</span>,
+				};
+
+				<span class="kw">let </span>locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); <span class="comment">// Get locale from Global context
+
+				</span>Date {
+					year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%Y&quot;</span>, locale)),
+					short_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%y&quot;</span>, locale)),
+					month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%m&quot;</span>, locale)),
+					i_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-m&quot;</span>, locale)),
+					short_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%b&quot;</span>, locale)),
+					long_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%B&quot;</span>, locale)),
+					day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%d&quot;</span>, locale)),
+					i_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-d&quot;</span>, locale)),
+					y_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%j&quot;</span>, locale)),
+					w_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%G&quot;</span>, locale)),
+					week: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%U&quot;</span>, locale)),
+					w_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%u&quot;</span>, locale)),
+					short_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%a&quot;</span>, locale)),
+					long_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%A&quot;</span>, locale)),
+					hour: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%H&quot;</span>, locale)),
+					minute: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%M&quot;</span>, locale)),
+					second: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%S&quot;</span>, locale)),
+					rfc_3339: datetime.to_rfc3339(),
+					rfc_2822: datetime.to_rfc2822(),
+				}
+			}
+			<span class="prelude-val">None </span>=&gt; Date {
+				year: String::new(),
+				short_year: String::new(),
+				month: String::new(),
+				i_month: String::new(),
+				short_month: String::new(),
+				long_month: String::new(),
+				day: String::new(),
+				i_day: String::new(),
+				y_day: String::new(),
+				w_year: String::new(),
+				week: String::new(),
+				w_day: String::new(),
+				short_day: String::new(),
+				long_day: String::new(),
+				hour: String::new(),
+				minute: String::new(),
+				second: String::new(),
+				rfc_3339: String::new(),
+				rfc_2822: String::new(),
+			},
+		};
+
+		<span class="kw">let </span>page_path_io = Path::new(<span class="kw-2">&amp;</span>page_path[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
+
+		// Define our Page
+		</span><span class="kw">let </span><span class="kw-2">mut </span>page = Page {
+			data: serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
+				.into_diagnostic()
+				.wrap_err(<span class="macro">format!</span>(
+					<span class="string">&quot;Unable to parse page frontmatter ({}) while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>, <span class="kw-2">&amp;</span>page_path
+				))
+				.unwrap(),
+			content: split_page.<span class="number">1</span>,
+			permalink: permalink_string.clone(),
+			date: date_object,
+			directory: page_path_io
+				.parent()
+				.unwrap_or(Path::new(<span class="string">&quot;&quot;</span>))
+				.to_str()
+				.ok_or(<span class="macro">miette!</span>(
+					<span class="string">&quot;Unable to represent parent directory of page as a string while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="kw-2">&amp;</span>page_path
+				))
+				.unwrap()
+				.to_owned(),
+			name: page_path_io
+				.file_stem()
+				.unwrap_or(<span class="kw-2">&amp;</span>OsString::new())
+				.to_str()
+				.ok_or(<span class="macro">miette!</span>(
+					<span class="string">&quot;Unable to represent file stem of page as a string while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="kw-2">&amp;</span>page_path
+				))
+				.unwrap()
+				.to_owned(),
+			url: String::new(),
+			markdown: markdown_bool,
+		};
+
+		<span class="kw">match </span><span class="kw-2">&amp;</span>page.permalink[..] {
+			<span class="comment">// Don&#39;t render the URL if the permalink is empty
+			</span><span class="string">&quot;&quot; </span>=&gt; {}
+			<span class="kw">_ </span>=&gt; {
+				<span class="comment">// Render the URL once the Page metadata has been generated
+				</span>page.url = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>get_permalink(<span class="kw-2">&amp;</span>permalink_string), <span class="bool-val">true</span>);
+			}
+		}
+
+		page
+	}
+
+	<span class="doccomment">/// Returns a Liquid object with a `Page`&#39;s Liquid contexts
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	///
+	/// * `conditions` - Prints conditions information
+	</span><span class="kw">pub fn </span>get_contexts(<span class="kw-2">&amp;</span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page) -&gt; Object {
+		<span class="comment">/*
+		Layouts
+		*/
+		</span><span class="kw">let </span>layout_name = page.data.get(<span class="string">&quot;layout&quot;</span>);
+
+		<span class="comment">// Import layout context if Page has a layout
+		</span><span class="kw">let </span>layout: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>layout_name {
+			<span class="prelude-val">None </span>=&gt; AHashMap::new(),
+			<span class="prelude-val">Some</span>(l) =&gt; serde_yaml::from_str(
+				<span class="kw-2">&amp;</span>split_frontmatter(
+					fs::read_to_string(<span class="macro">format!</span>(
+						<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
+						l
+							.as_str()
+							.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page))
+							.unwrap()
+					))
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to read layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
+					.unwrap(),
+				)
+				.<span class="number">0</span>,
+			)
+			.into_diagnostic()
+			.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
+			.unwrap(),
+		};
+
+		<span class="kw">let </span>contexts = <span class="macro">object!</span>({
+			<span class="string">&quot;global&quot;</span>: <span class="self">self</span>.global_context,
+			<span class="string">&quot;page&quot;</span>: page,
+			<span class="string">&quot;layout&quot;</span>: layout,
+			<span class="string">&quot;collections&quot;</span>: <span class="self">self</span>.collections,
+		});
+
+		contexts
+	}
+
+	<span class="doccomment">/// Returns a `String` with a `&amp;str`&#39;s Mokk file rendered
+	///
+	/// # Arguments
+	///
+	/// * `page` - A `.mokkf` file&#39;s context as a `Page`
+	///
+	/// * `text_to_render` - The text to be rendered
+	///
+	/// * `only_context` - Whether or not to only render the contexts of a Mokk file
+	///
+	/// * `collections` - Collection store of this build
+	</span><span class="kw">pub fn </span>render(<span class="kw-2">&amp;</span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page, text_to_render: <span class="kw-2">&amp;</span>str, only_context: bool) -&gt; String {
+		<span class="kw">match </span>only_context {
+			<span class="bool-val">true </span>=&gt; {
+				<span class="kw">let </span>template = <span class="self">self</span>.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
+					.unwrap();
+				template
+					.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
+					.unwrap()
+			}
+			<span class="bool-val">false </span>=&gt; {
+				<span class="kw">let </span>template = <span class="self">self
+					</span>.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap();
+				<span class="kw">let </span>liquid_render = template
+					.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap();
+				<span class="kw">let </span>markdown_render = render_markdown(liquid_render);
+				<span class="kw">let </span>math_render = latex2mathml::replace(<span class="kw-2">&amp;</span>markdown_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to render math in text (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap();
+				math_render
+			}
+		}
+	}
+
+	<span class="doccomment">/// Compiles a Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	///
+	/// * `collections` - Collection store of this build
+	</span><span class="kw">pub fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>page: Page) -&gt; String {
+		<span class="kw">let </span>layout_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;layout&quot;</span>);
+		<span class="kw">let </span>collection_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;collection&quot;</span>);
+
+		<span class="comment">// If Page has a layout, render with layout(s)
+		// Otherwise, render with Page&#39;s contents
+		</span>page.content = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, !page.markdown);
+		<span class="kw">let </span>compiled_page = <span class="kw">match </span>layout_name {
+			<span class="prelude-val">None </span>=&gt; page.content.to_owned(),
+			<span class="prelude-val">Some</span>(l) =&gt; {
+				<span class="kw">let </span>layout_object = <span class="self">self</span>.get_page_object(
+					<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, l.as_str().ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page)).unwrap()),
+				);
+				<span class="kw">let </span>layouts = <span class="self">self</span>.render_layouts(<span class="kw-2">&amp;</span>page, layout_object); <span class="comment">// Embed page in layout
+				</span><span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">true</span>)
+				<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce
+			</span>}
+		};
+
+		<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries
+		</span><span class="kw">match </span>collection_name {
+			<span class="prelude-val">None </span>=&gt; {}
+			<span class="prelude-val">Some</span>(c) =&gt; {
+				<span class="kw">let </span>collection_name_str = c
+					.as_str()
+					.ok_or(<span class="macro">miette!</span>(
+						<span class="string">&quot;Unable to represent collection name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>,
+						c,
+						page
+					))
+					.unwrap();
+				<span class="kw">match </span><span class="self">self
+					</span>.collections
+					.contains_key(<span class="kw-2">&amp;</span>collection_name_str.to_string())
+				{
+					<span class="bool-val">true </span>=&gt; {
+						(<span class="kw-2">*</span><span class="self">self
+							</span>.collections
+							.get_mut(collection_name_str)
+							.ok_or(<span class="macro">miette!</span>(
+								<span class="string">&quot;Unable to get collection ({}) while rendering &#39;{:#?}&#39;.&quot;</span>,
+								collection_name_str,
+								page
+							))
+							.unwrap())
+						.push(page);
+					}
+					<span class="bool-val">false </span>=&gt; {
+						<span class="self">self</span>.collections
+							.insert(collection_name_str.to_owned(), <span class="macro">vec!</span>[page]);
+					}
+				}
+			}
+		}
+
+		compiled_page
+	}
+
+	<span class="doccomment">/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	///
+	/// * `layout` - The Mokk file&#39;s layout&#39;s context as a `Page`
+	///
+	/// * `collections` - Collection store of this build
+	</span><span class="kw">pub fn </span>render_layouts(<span class="kw-2">&amp;</span><span class="self">self</span>, sub: <span class="kw-2">&amp;</span>Page, layout: Page) -&gt; String {
+		<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
+
+		</span><span class="kw">let </span>merged_sub_page = Page {
+			data: sub
+				.clone()
+				.data
+				.into_iter()
+				.chain(layout.clone().data)
+				.collect(),
+			content: layout.clone().content,
+			date: sub.clone().date,
+			name: sub.clone().name,
+			directory: sub.clone().directory,
+			permalink: sub.clone().permalink,
+			url: sub.clone().url,
+			markdown: layout.markdown,
+		};
+
+		<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
+		<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
+			<span class="prelude-val">Some</span>(l) =&gt; {
+				<span class="kw">let </span>super_layout_object = <span class="self">self</span>.get_page_object(
+					<span class="macro">format!</span>(
+						<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
+						l
+							.as_str()
+							.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, merged_sub_page))
+							.unwrap()
+					),
+				);
+				<span class="self">self</span>.render_layouts(<span class="kw-2">&amp;</span>merged_sub_page, super_layout_object)
+			}
+			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markdown),
+		};
+
+		rendered
+	}
+}
+
 <span class="doccomment">/// Returns an expanded permalink value, for when shorthand is used
 ///
 /// # Arguments
@@ -954,428 +1331,6 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	(frontmatter, contents)
 }
 
-<span class="doccomment">/// Returns an object with a Page&#39;s context
-///
-/// # Arguments
-///
-/// * `page_path` - The `.mokkf` file&#39;s path as a `String`
-///
-/// * `conditions` - Prints conditions information
-</span><span class="kw">pub fn </span>get_page_object(page_path: String, collections: <span class="kw-2">&amp;</span>AHashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Page {
-	<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context
-	</span><span class="kw">let </span>split_page = split_frontmatter(
-		fs::read_to_string(<span class="kw-2">&amp;</span>page_path)
-			.into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Failed to read the file at &#39;{}&#39;.&quot;</span>, <span class="kw-2">&amp;</span>page_path))
-			.unwrap(),
-	); <span class="comment">// See file::split_frontmatter
-	</span><span class="kw">let </span>frontmatter: AHashMap&lt;String, serde_yaml::Value&gt; = serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
-		.into_diagnostic()
-		.wrap_err(<span class="macro">format!</span>(
-			<span class="string">&quot;Failed to parse frontmatter from &#39;{}&#39;.&quot;</span>,
-			<span class="kw-2">&amp;</span>page_path
-		))
-		.unwrap(); <span class="comment">// Parse frontmatter as AHashMap (collection of key-value pairs)
-	</span><span class="kw">let </span>permalink = frontmatter.get(<span class="string">&quot;permalink&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;permalink&#39; key from the frontmatter
-	</span><span class="kw">let </span>date = frontmatter.get(<span class="string">&quot;date&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;date&#39; key from the frontmatter
-	</span><span class="kw">let </span>markdown = frontmatter.get(<span class="string">&quot;markdown&quot;</span>); <span class="comment">// Get the key-value pair of the &#39;markdown&#39; key from the frontmatter
-
-	</span><span class="kw">let </span>permalink_string: String = <span class="kw">match </span>permalink {
-		<span class="prelude-val">Some</span>(p) =&gt; p
-			.as_str()
-			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to read `permalink` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
-				p,
-				<span class="kw-2">&amp;</span>page_path
-			))
-			.unwrap()
-			.to_string(),
-		<span class="prelude-val">None </span>=&gt; String::new(),
-	};
-
-	<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>markdown {
-		<span class="prelude-val">Some</span>(m) =&gt; m
-			.as_bool()
-			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to read `markdown` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
-				m,
-				<span class="kw-2">&amp;</span>page_path
-			))
-			.unwrap(),
-		<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
-	};
-
-	<span class="kw">let </span>date_object = <span class="kw">match </span>date {
-		<span class="prelude-val">Some</span>(d) =&gt; {
-			<span class="kw">let </span>datetime = DateTime::parse_from_rfc3339(
-				d
-					.as_str()
-					.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to read `date` value ({:?}) as a string in frontmatter of file &#39;{}&#39;.&quot;</span>, d, <span class="kw-2">&amp;</span>page_path))
-					.unwrap(),
-			).into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file &#39;{}&#39;.&quot;</span>, d, <span class="kw-2">&amp;</span>page_path))
-			.unwrap(); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
-			</span><span class="kw">let </span>global_file = fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>);
-
-			<span class="kw">let </span>global: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>global_file {
-				<span class="prelude-val">Ok</span>(g) =&gt; {
-					serde_yaml::from_str(<span class="kw-2">&amp;</span>g)
-						.into_diagnostic()
-						.wrap_err(<span class="macro">format!</span>(
-							<span class="string">&quot;Unable to parse global file ({}) while rendering &#39;{}&#39;.&quot;</span>,
-							g, <span class="kw-2">&amp;</span>page_path
-						))
-						.unwrap()
-					<span class="comment">// Defined as variable as it required a type annotation
-				</span>}
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-					serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>)
-						.into_diagnostic()
-						.wrap_err(<span class="macro">format!</span>(
-							<span class="string">&quot;Unable to initialise a blank global file while rendering &#39;{}&#39;. If you&#39;re seeing this message, something is very wrong.&quot;</span>,
-							<span class="kw-2">&amp;</span>page_path
-						))
-						.unwrap()
-					<span class="comment">// Defined as variable as it required a type annotation
-				</span>}
-			};
-
-			<span class="kw">let </span>locale_key = global.get(<span class="string">&quot;locale&quot;</span>);
-
-			<span class="kw">let </span>locale_value = <span class="kw">match </span>locale_key {
-				<span class="prelude-val">Some</span>(l) =&gt; l
-					.as_str()
-					.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to read `locale` value ({:?}) from global file while rendering &#39;{}&#39;.&quot;</span>, l, <span class="kw-2">&amp;</span>page_path))
-					.unwrap(),
-				<span class="prelude-val">None </span>=&gt; <span class="string">&quot;en_US&quot;</span>,
-			};
-
-			<span class="kw">let </span>locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); <span class="comment">// Get locale from Global context
-
-			</span>Date {
-				year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%Y&quot;</span>, locale)),
-				short_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%y&quot;</span>, locale)),
-				month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%m&quot;</span>, locale)),
-				i_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-m&quot;</span>, locale)),
-				short_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%b&quot;</span>, locale)),
-				long_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%B&quot;</span>, locale)),
-				day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%d&quot;</span>, locale)),
-				i_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-d&quot;</span>, locale)),
-				y_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%j&quot;</span>, locale)),
-				w_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%G&quot;</span>, locale)),
-				week: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%U&quot;</span>, locale)),
-				w_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%u&quot;</span>, locale)),
-				short_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%a&quot;</span>, locale)),
-				long_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%A&quot;</span>, locale)),
-				hour: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%H&quot;</span>, locale)),
-				minute: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%M&quot;</span>, locale)),
-				second: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%S&quot;</span>, locale)),
-				rfc_3339: datetime.to_rfc3339(),
-				rfc_2822: datetime.to_rfc2822(),
-			}
-		}
-		<span class="prelude-val">None </span>=&gt; Date {
-			year: String::new(),
-			short_year: String::new(),
-			month: String::new(),
-			i_month: String::new(),
-			short_month: String::new(),
-			long_month: String::new(),
-			day: String::new(),
-			i_day: String::new(),
-			y_day: String::new(),
-			w_year: String::new(),
-			week: String::new(),
-			w_day: String::new(),
-			short_day: String::new(),
-			long_day: String::new(),
-			hour: String::new(),
-			minute: String::new(),
-			second: String::new(),
-			rfc_3339: String::new(),
-			rfc_2822: String::new(),
-		},
-	};
-
-	<span class="kw">let </span>page_path_io = Path::new(<span class="kw-2">&amp;</span>page_path[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
-
-	// Define our Page
-	</span><span class="kw">let </span><span class="kw-2">mut </span>page = Page {
-		data: serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
-			.into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Unable to parse page frontmatter ({}) while rendering &#39;{}&#39;.&quot;</span>,
-				<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>, <span class="kw-2">&amp;</span>page_path
-			))
-			.unwrap(),
-		content: split_page.<span class="number">1</span>,
-		permalink: permalink_string.clone(),
-		date: date_object,
-		directory: page_path_io
-			.parent()
-			.unwrap_or(Path::new(<span class="string">&quot;&quot;</span>))
-			.to_str()
-			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to represent parent directory of page as a string while rendering &#39;{}&#39;.&quot;</span>,
-				<span class="kw-2">&amp;</span>page_path
-			))
-			.unwrap()
-			.to_owned(),
-		name: page_path_io
-			.file_stem()
-			.unwrap_or(<span class="kw-2">&amp;</span>OsString::new())
-			.to_str()
-			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to represent file stem of page as a string while rendering &#39;{}&#39;.&quot;</span>,
-				<span class="kw-2">&amp;</span>page_path
-			))
-			.unwrap()
-			.to_owned(),
-		url: String::new(),
-		markdown: markdown_bool,
-	};
-
-	<span class="kw">match </span><span class="kw-2">&amp;</span>page.permalink[..] {
-		<span class="comment">// Don&#39;t render the URL if the permalink is empty
-		</span><span class="string">&quot;&quot; </span>=&gt; {}
-		<span class="kw">_ </span>=&gt; {
-			<span class="comment">// Render the URL once the Page metadata has been generated
-			</span>page.url = render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>get_permalink(<span class="kw-2">&amp;</span>permalink_string), <span class="bool-val">true</span>, collections);
-		}
-	}
-
-	page
-}
-
-<span class="doccomment">/// Returns a Liquid object with a Page&#39;s Liquid contexts
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file&#39;s context as a Page
-///
-/// * `conditions` - Prints conditions information
-</span><span class="kw">pub fn </span>get_contexts(page: <span class="kw-2">&amp;</span>Page, collections: <span class="kw-2">&amp;</span>AHashMap&lt;String, Vec&lt;Page&gt;&gt;) -&gt; Object {
-	<span class="kw">let </span>global_file = fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>);
-	<span class="kw">let </span>global: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>global_file {
-		<span class="prelude-val">Ok</span>(g) =&gt; {
-			serde_yaml::from_str(<span class="kw-2">&amp;</span>g)
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse global file ({g}) while rendering &#39;{page:#?}&#39;.&quot;
-				</span>))
-				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
-		</span>}
-		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-			serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>)
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to initialise a blank global file while rendering &#39;{page:#?}&#39;. If you&#39;re seeing this message, something is very wrong.&quot;</span>))
-				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
-		</span>}
-	};
-
-	<span class="comment">/*
-	Layouts
-	*/
-	</span><span class="kw">let </span>layout_name = page.data.get(<span class="string">&quot;layout&quot;</span>);
-
-	<span class="comment">// Import layout context if Page has a layout
-	</span><span class="kw">let </span>layout: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>layout_name {
-		<span class="prelude-val">None </span>=&gt; AHashMap::new(),
-		<span class="prelude-val">Some</span>(l) =&gt; serde_yaml::from_str(
-			<span class="kw-2">&amp;</span>split_frontmatter(
-				fs::read_to_string(<span class="macro">format!</span>(
-					<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-					l
-						.as_str()
-						.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page))
-						.unwrap()
-				))
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to read layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
-				.unwrap(),
-			)
-			.<span class="number">0</span>,
-		)
-		.into_diagnostic()
-		.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
-		.unwrap(),
-	};
-
-	<span class="kw">let </span>contexts = <span class="macro">object!</span>({
-		<span class="string">&quot;global&quot;</span>: global,
-		<span class="string">&quot;page&quot;</span>: page,
-		<span class="string">&quot;layout&quot;</span>: layout,
-		<span class="string">&quot;collections&quot;</span>: collections,
-	});
-
-	contexts
-}
-
-<span class="doccomment">/// Returns a `String` with a `&amp;str`&#39;s Mokk file rendered
-///
-/// # Arguments
-///
-/// * `page` - A `.mokkf` file&#39;s context as a `Page`
-///
-/// * `text_to_render` - The text to be rendered
-///
-/// * `only_context` - Whether or not to only render the contexts of a Mokk file
-///
-/// * `collections` - Collection store of this build
-</span><span class="kw">pub fn </span>render(
-	page: <span class="kw-2">&amp;</span>Page,
-	text_to_render: <span class="kw-2">&amp;</span>str,
-	only_context: bool,
-	collections: <span class="kw-2">&amp;</span>AHashMap&lt;String, Vec&lt;Page&gt;&gt;,
-) -&gt; String {
-	<span class="kw">match </span>only_context {
-		<span class="bool-val">true </span>=&gt; {
-			<span class="kw">let </span>template = create_liquid_parser()
-				.parse(text_to_render)
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
-				.unwrap();
-			template
-				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
-				.unwrap()
-		}
-		<span class="bool-val">false </span>=&gt; {
-			<span class="kw">let </span>template = create_liquid_parser()
-				.parse(text_to_render)
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
-				</span>))
-				.unwrap();
-			<span class="kw">let </span>liquid_render = template
-				.render(<span class="kw-2">&amp;</span>get_contexts(page, collections))
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
-				.unwrap();
-			render_markdown(liquid_render)
-		}
-	}
-}
-
-<span class="doccomment">/// Compiles a Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file&#39;s context as a `Page`
-///
-/// * `collections` - Collection store of this build
-</span><span class="kw">pub fn </span>compile(
-	<span class="kw-2">mut </span>page: Page,
-	<span class="kw-2">mut </span>collections: AHashMap&lt;String, Vec&lt;Page&gt;&gt;,
-) -&gt; (String, AHashMap&lt;String, Vec&lt;Page&gt;&gt;) {
-	<span class="kw">let </span>layout_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">let </span>collection_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;collection&quot;</span>);
-
-	<span class="comment">// If Page has a layout, render with layout(s)
-	// Otherwise, render with Page&#39;s contents
-	</span>page.content = render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, !page.markdown, <span class="kw-2">&amp;</span>collections);
-	<span class="kw">let </span>compiled_page = <span class="kw">match </span>layout_name {
-		<span class="prelude-val">None </span>=&gt; page.content.to_owned(),
-		<span class="prelude-val">Some</span>(l) =&gt; {
-			<span class="kw">let </span>layout_object = get_page_object(
-				<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, l.as_str().ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page)).unwrap()),
-				<span class="kw-2">&amp;</span>collections,
-			);
-			<span class="kw">let </span>layouts = render_layouts(<span class="kw-2">&amp;</span>page, layout_object, <span class="kw-2">&amp;</span>collections); <span class="comment">// Embed page in layout
-			</span>render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span>collections)
-			<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce
-		</span>}
-	};
-
-	<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries
-	</span><span class="kw">match </span>collection_name {
-		<span class="prelude-val">None </span>=&gt; {}
-		<span class="prelude-val">Some</span>(c) =&gt; {
-			<span class="kw">let </span>collection_name_str = c
-				.as_str()
-				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to represent collection name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>,
-					c,
-					page
-				))
-				.unwrap();
-			<span class="kw">match </span>collections.contains_key(<span class="kw-2">&amp;</span>collection_name_str.to_string()) {
-				<span class="bool-val">true </span>=&gt; {
-					(<span class="kw-2">*</span>collections
-						.get_mut(collection_name_str)
-						.ok_or(<span class="macro">miette!</span>(
-							<span class="string">&quot;Unable to get collection ({}) while rendering &#39;{:#?}&#39;.&quot;</span>,
-							collection_name_str,
-							page
-						))
-						.unwrap())
-					.push(page);
-				}
-				<span class="bool-val">false </span>=&gt; {
-					collections.insert(collection_name_str.to_owned(), <span class="macro">vec!</span>[page]);
-				}
-			}
-		}
-	}
-
-	(compiled_page, collections)
-}
-
-<span class="doccomment">/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file&#39;s context as a `Page`
-///
-/// * `layout` - The Mokk file&#39;s layout&#39;s context as a `Page`
-///
-/// * `collections` - Collection store of this build
-</span><span class="kw">pub fn </span>render_layouts(
-	sub: <span class="kw-2">&amp;</span>Page,
-	layout: Page,
-	collections: <span class="kw-2">&amp;</span>AHashMap&lt;String, Vec&lt;Page&gt;&gt;,
-) -&gt; String {
-	<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
-
-	</span><span class="kw">let </span>merged_sub_page = Page {
-		data: sub
-			.clone()
-			.data
-			.into_iter()
-			.chain(layout.clone().data)
-			.collect(),
-		content: layout.clone().content,
-		date: sub.clone().date,
-		name: sub.clone().name,
-		directory: sub.clone().directory,
-		permalink: sub.clone().permalink,
-		url: sub.clone().url,
-		markdown: layout.markdown,
-	};
-
-	<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
-	<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
-		<span class="prelude-val">Some</span>(l) =&gt; {
-			<span class="kw">let </span>super_layout_object = get_page_object(
-				<span class="macro">format!</span>(
-					<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
-					l
-						.as_str()
-						.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, merged_sub_page))
-						.unwrap()
-				),
-				collections,
-			);
-			render_layouts(<span class="kw-2">&amp;</span>merged_sub_page, super_layout_object, collections)
-		}
-		<span class="prelude-val">None </span>=&gt; render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markdown, collections),
-	};
-
-	rendered
-}
-
 <span class="doccomment">/// Creates a Liquid parser
 </span><span class="kw">pub fn </span>create_liquid_parser() -&gt; liquid::Parser {
 	<span class="kw">let </span><span class="kw-2">mut </span>partial = liquid::partials::InMemorySource::new();
@@ -1430,17 +1385,28 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
 </span><span class="kw">pub fn </span>render_markdown(text_to_render: String) -&gt; String {
-	<span class="kw">let </span><span class="kw-2">mut </span>markdown_options = Options::empty();
-	markdown_options.insert(Options::ENABLE_TABLES);
-	markdown_options.insert(Options::ENABLE_FOOTNOTES);
-	markdown_options.insert(Options::ENABLE_STRIKETHROUGH);
-	markdown_options.insert(Options::ENABLE_TASKLISTS);
-	markdown_options.insert(Options::ENABLE_SMART_PUNCTUATION);
-	<span class="kw">let </span>markdown_parser = Parser::new_ext(<span class="kw-2">&amp;</span>text_to_render, markdown_options);
+	<span class="kw">let </span>markdown_parser = Parser::new_ext(<span class="kw-2">&amp;</span>text_to_render, Options::all());
 	<span class="kw">let </span><span class="kw-2">mut </span>rendered_markdown = String::new();
 	html::push_html(<span class="kw-2">&amp;mut </span>rendered_markdown, markdown_parser);
 
 	rendered_markdown
+}
+
+<span class="kw">pub fn </span>get_global_context() -&gt; AHashMap&lt;String, serde_yaml::Value&gt; {
+	<span class="kw">match </span>fs::read_to_string(<span class="string">&quot;./_global.yml&quot;</span>) {
+		<span class="prelude-val">Ok</span>(g) =&gt; {
+			serde_yaml::from_str(<span class="kw-2">&amp;</span>g)
+				.into_diagnostic()
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse global file ({g}).&quot;</span>))
+				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
+		</span>}
+		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+			serde_yaml::from_str(<span class="string">&quot;locale: \&quot;en_US\&quot;&quot;</span>)
+				.into_diagnostic()
+				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to initialise a blank global file. If you&#39;re seeing this message, something is very wrong.&quot;</span>))
+				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
+		</span>}
+	}
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (f77bfb733 2023-03-01)" data-search-js="search-2cde8914278f97ed.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
