@@ -176,7 +176,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 						&& path.extension().unwrap() == "mokkf"
 					{
 						let page = current_build.get_page_object(format!("{}", path.display()));
-						if page.url == "" {
+						if page.url.is_empty() {
 							continue;
 						}
 						let output_path = format!("{}/output/{}", path_str, page.url);

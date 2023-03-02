@@ -422,13 +422,13 @@ impl Build {
 					))
 					.unwrap();
 				let markdown_render = render_markdown(liquid_render);
-				let math_render = latex2mathml::replace(&markdown_render)
+				
+				latex2mathml::replace(&markdown_render)
 					.into_diagnostic()
 					.wrap_err(format!(
 						"Unable to render math in text ('{text_to_render}') for {page:#?}."
 					))
-					.unwrap();
-				math_render
+					.unwrap()
 			}
 		}
 	}
@@ -698,7 +698,7 @@ pub fn get_global_context() -> AHashMap<String, serde_yaml::Value> {
 		Err(_) => {
 			serde_yaml::from_str("locale: \"en_US\"")
 				.into_diagnostic()
-				.wrap_err(format!("Unable to initialise a blank global file. If you're seeing this message, something is very wrong."))
+				.wrap_err("Unable to initialise a blank global file. If you're seeing this message, something is very wrong.".to_string())
 				.unwrap() // Defined as variable as it required a type annotation
 		}
 	}
