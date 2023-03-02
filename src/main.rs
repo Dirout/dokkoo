@@ -25,10 +25,9 @@
 
 use actix_files::NamedFile;
 use actix_web::{
-	dev::{ServiceRequest, ServiceResponse},
+	dev::{Server, ServiceRequest, ServiceResponse},
 	HttpServer,
 };
-use ahash::AHashMap;
 use clap::{arg, crate_version, value_parser, ArgMatches, Command};
 use glob::glob;
 use lazy_static::lazy_static;
@@ -69,10 +68,22 @@ lazy_static! {
 }
 
 /// The main function of Dokkoo's CLI
-fn main() {
+#[tokio::main]
+async fn main() {
 	let stdout = std::io::stdout();
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
+
+	writeln!(
+		buf_out,
+		"
+    Dokkoo  Copyright (C) 2020-2023  Emil Sayahi
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `dokkoo show -c' for details.
+    "
+	)
+	.unwrap();
 
 	miette::set_hook(Box::new(|_| {
 		Box::new(
@@ -87,27 +98,16 @@ fn main() {
 	}))
 	.unwrap();
 
-	std::panic::set_hook(Box::new(|e| {
-		println!(
-			"{}\nDefined in: {}:{}:{}",
-			format!("{}", e.message().unwrap())
-				.replace("called `Result::unwrap()` on an `Err` value", "Error"),
-			e.location().unwrap().file(),
-			e.location().unwrap().line(),
-			e.location().unwrap().column()
-		);
-	}));
-
-	writeln!(
-		buf_out,
-		"
-    Dokkoo  Copyright (C) 2020-2023  Emil Sayahi
-    This program comes with ABSOLUTELY NO WARRANTY; for details type `dokkoo show -w'.
-    This is free software, and you are welcome to redistribute it
-    under certain conditions; type `dokkoo show -c' for details.
-    "
-	)
-	.unwrap();
+	// std::panic::set_hook(Box::new(|e| {
+	// 	println!(
+	// 		"{}\nDefined in: {}:{}:{}",
+	// 		format!("{}", e.message().unwrap())
+	// 			.replace("called `Result::unwrap()` on an `Err` value", "Error"),
+	// 		e.location().unwrap().file(),
+	// 		e.location().unwrap().line(),
+	// 		e.location().unwrap().column()
+	// 	);
+	// }));
 
 	match MATCHES.subcommand() {
 		Some(("show", show_matches)) => {
@@ -117,10 +117,9 @@ fn main() {
 			build(build_matches);
 		}
 		Some(("serve", serve_matches)) => {
-			let rt = tokio::runtime::Runtime::new().unwrap();
-			rt.block_on(
-				async move { futures::join!(host(serve_matches), serve_mokk(serve_matches)) },
-			);
+			let handle = tokio::runtime::Handle::current();
+			handle.spawn(serve_mokk(serve_matches));
+			handle.spawn(host(serve_matches).await);
 		}
 		None => writeln!(buf_out, "Dokkoo {}", crate_version!()).unwrap(),
 		_ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
@@ -144,12 +143,12 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 		.ok_or(miette!("❌ No port was given"))
 		.unwrap();
 	println!(
-		"\nServing on http://127.0.0.1:{} from {}/output\nChanges will be served … ",
+		"\nServing on http://localhost:{} from {}/output\nChanges will be served … ",
 		port,
 		path.to_str().unwrap()
 	);
 
-	let mut collections = build(matches);
+	let mut current_build = build(matches);
 
 	let (sender, receiver) = channel(); // Open a channel to receive notifications
 	let mut watcher = RecommendedWatcher::new(sender, Config::default()).unwrap(); // Create a watcher
@@ -173,15 +172,16 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 				let paths = &event.unwrap().paths;
 				for path in paths {
 					if path.try_exists().unwrap()
-						&& path.extension().is_some()
+						&& path.is_file() && path.extension().is_some()
 						&& path.extension().unwrap() == "mokkf"
 					{
-						let page =
-							dokkoo::get_page_object(format!("{}", path.display()), &collections);
+						let page = current_build.get_page_object(format!("{}", path.display()));
+						if page.url == "" {
+							continue;
+						}
 						let output_path = format!("{}/output/{}", path_str, page.url);
-						let compile_page = dokkoo::compile(page, collections);
-						collections = compile_page.1;
-						write_file(&output_path, compile_page.0); // Create output path, write to file
+						let compile_page = current_build.compile(page);
+						write_file(&output_path, compile_page); // Create output path, write to file
 					}
 				}
 			} // Compile file on receiving of notification
@@ -195,7 +195,7 @@ async fn serve_mokk(matches: &clap::ArgMatches) {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-async fn host(matches: &clap::ArgMatches) {
+async fn host(matches: &clap::ArgMatches) -> Server {
 	let path_buf_input = matches
 		.get_one::<PathBuf>("PATH")
 		.ok_or(miette!("❌ No path was given"))
@@ -282,8 +282,6 @@ async fn host(matches: &clap::ArgMatches) {
 	.bind(format!("127.0.0.1:{port}"))
 	.unwrap()
 	.run()
-	.await
-	.unwrap()
 }
 
 /// Outputs a Mokk
@@ -291,7 +289,7 @@ async fn host(matches: &clap::ArgMatches) {
 /// # Arguments
 ///
 /// * `PATH` - Path to a Mokk (required)
-fn build(matches: &clap::ArgMatches) -> AHashMap<String, Vec<dokkoo::Page>> {
+fn build(matches: &clap::ArgMatches) -> dokkoo::Build {
 	let stdout = std::io::stdout();
 	let lock = stdout.lock();
 	let mut buf_out = BufWriter::new(lock);
@@ -308,7 +306,6 @@ fn build(matches: &clap::ArgMatches) -> AHashMap<String, Vec<dokkoo::Page>> {
 	};
 
 	let path = path_buf.to_str().unwrap();
-	let mut collections: AHashMap<String, Vec<dokkoo::Page>> = AHashMap::new(); // Collections store
 
 	// Sort files into vectors of path buffers; for when we compile root files last
 	let mut root_files: Vec<PathBuf> = vec![];
@@ -330,32 +327,10 @@ fn build(matches: &clap::ArgMatches) -> AHashMap<String, Vec<dokkoo::Page>> {
 	}
 
 	files.append(&mut root_files); // Make root files the last ones to compile on the list
+	let mut current_build = dokkoo::Build::default();
 
 	let mut timer = Stopwatch::start_new(); // Start the stopwatch
-	collections = build_loop(files, path, collections);
-
-	// Show how long it took to build
-	timer.stop();
-	writeln!(buf_out, "Built in {:.2} seconds.", timer.elapsed_s()).unwrap();
-
-	collections
-}
-
-/// The primary logic loop of the build process
-///
-/// # Arguments
-///
-/// * `file_list` - List of files to build
-///
-/// * `path` - Path given to the build subcommand
-///
-/// * `collections` - Collection store of this build
-fn build_loop(
-	file_list: Vec<PathBuf>,
-	path: &str,
-	mut collections: AHashMap<String, Vec<dokkoo::Page>>,
-) -> AHashMap<String, Vec<dokkoo::Page>> {
-	for file in file_list {
+	for file in files {
 		let file_root = pathdiff::diff_paths(file.parent().unwrap(), path).unwrap();
 		let file_root_str = file_root.to_str().unwrap();
 		let file_root_str_length = file_root_str.len();
@@ -366,15 +341,19 @@ fn build_loop(
 			continue;
 		}
 
-		let page = dokkoo::get_page_object(format!("{}", file.display()), &collections);
+		let page = current_build.get_page_object(format!("{}", file.display()));
 		let output_path = format!("{}/output/{}", path, page.url);
 
-		let compile_page = dokkoo::compile(page, collections); // Compile the current Page
-		collections = compile_page.1; // Get updated collections store as result of compilation
+		let compile_page = current_build.compile(page); // Compile the current Page
 
-		write_file(&output_path, compile_page.0); // Create output path, write to file
+		write_file(&output_path, compile_page); // Create output path, write to file
 	}
-	collections
+
+	// Show how long it took to build
+	timer.stop();
+	writeln!(buf_out, "Built in {:.2} seconds.", timer.elapsed_s()).unwrap();
+
+	current_build
 }
 
 /// Write a file to the filesystem

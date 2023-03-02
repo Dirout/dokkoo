@@ -153,6 +153,400 @@ impl fmt::Display for Page {
 	}
 }
 
+pub struct Build {
+	pub collections: AHashMap<String, Vec<Page>>,
+	pub global_context: AHashMap<String, serde_yaml::Value>,
+	pub liquid_parser: liquid::Parser,
+}
+
+impl Default for Build {
+	fn default() -> Self {
+		Self {
+			collections: AHashMap::new(),
+			global_context: get_global_context(),
+			liquid_parser: create_liquid_parser(),
+		}
+	}
+}
+
+impl Build {
+	/// Returns an object with a `Page`'s context
+	///
+	/// # Arguments
+	///
+	/// * `page_path` - The `.mokkf` file's path as a `String`
+	pub fn get_page_object(&self, page_path: String) -> Page {
+		// Define variables which we'll use to create our Document, which we'll use to generate the Page context
+		let split_page = split_frontmatter(
+			fs::read_to_string(&page_path)
+				.into_diagnostic()
+				.wrap_err(format!("Failed to read the file at '{}'.", &page_path))
+				.unwrap(),
+		); // See file::split_frontmatter
+		let frontmatter: AHashMap<String, serde_yaml::Value> = serde_yaml::from_str(&split_page.0)
+			.into_diagnostic()
+			.wrap_err(format!(
+				"Failed to parse frontmatter from '{}'.",
+				&page_path
+			))
+			.unwrap(); // Parse frontmatter as AHashMap (collection of key-value pairs)
+
+		let permalink_string: String = match frontmatter.get("permalink") {
+			Some(p) => p
+				.as_str()
+				.ok_or(miette!(
+					"Unable to read `permalink` value ({:?}) as string in frontmatter of file '{}'.",
+					p,
+					&page_path
+				))
+				.unwrap()
+				.to_string(),
+			None => String::new(),
+		};
+
+		let markdown_bool: bool = match frontmatter.get("markdown") {
+			Some(m) => m
+				.as_bool()
+				.ok_or(miette!(
+					"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'.",
+					m,
+					&page_path
+				))
+				.unwrap(),
+			None => true,
+		};
+
+		let date_object = match frontmatter.get("date") {
+			Some(d) => {
+				let datetime = DateTime::parse_from_rfc3339(
+					d
+						.as_str()
+						.ok_or(miette!("Unable to read `date` value ({:?}) as a string in frontmatter of file '{}'.", d, &page_path))
+						.unwrap(),
+				).into_diagnostic()
+				.wrap_err(format!("Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file '{}'.", d, &page_path))
+				.unwrap(); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
+
+				let locale_key = self.global_context.get("locale");
+
+				let locale_value = match locale_key {
+					Some(l) => l
+						.as_str()
+						.ok_or(miette!("Unable to read `locale` value ({:?}) from global file while rendering '{}'.", l, &page_path))
+						.unwrap(),
+					None => "en_US",
+				};
+
+				let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
+
+				Date {
+					year: format!("{}", datetime.format_localized("%Y", locale)),
+					short_year: format!("{}", datetime.format_localized("%y", locale)),
+					month: format!("{}", datetime.format_localized("%m", locale)),
+					i_month: format!("{}", datetime.format_localized("%-m", locale)),
+					short_month: format!("{}", datetime.format_localized("%b", locale)),
+					long_month: format!("{}", datetime.format_localized("%B", locale)),
+					day: format!("{}", datetime.format_localized("%d", locale)),
+					i_day: format!("{}", datetime.format_localized("%-d", locale)),
+					y_day: format!("{}", datetime.format_localized("%j", locale)),
+					w_year: format!("{}", datetime.format_localized("%G", locale)),
+					week: format!("{}", datetime.format_localized("%U", locale)),
+					w_day: format!("{}", datetime.format_localized("%u", locale)),
+					short_day: format!("{}", datetime.format_localized("%a", locale)),
+					long_day: format!("{}", datetime.format_localized("%A", locale)),
+					hour: format!("{}", datetime.format_localized("%H", locale)),
+					minute: format!("{}", datetime.format_localized("%M", locale)),
+					second: format!("{}", datetime.format_localized("%S", locale)),
+					rfc_3339: datetime.to_rfc3339(),
+					rfc_2822: datetime.to_rfc2822(),
+				}
+			}
+			None => Date {
+				year: String::new(),
+				short_year: String::new(),
+				month: String::new(),
+				i_month: String::new(),
+				short_month: String::new(),
+				long_month: String::new(),
+				day: String::new(),
+				i_day: String::new(),
+				y_day: String::new(),
+				w_year: String::new(),
+				week: String::new(),
+				w_day: String::new(),
+				short_day: String::new(),
+				long_day: String::new(),
+				hour: String::new(),
+				minute: String::new(),
+				second: String::new(),
+				rfc_3339: String::new(),
+				rfc_2822: String::new(),
+			},
+		};
+
+		let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
+
+		// Define our Page
+		let mut page = Page {
+			data: serde_yaml::from_str(&split_page.0)
+				.into_diagnostic()
+				.wrap_err(format!(
+					"Unable to parse page frontmatter ({}) while rendering '{}'.",
+					&split_page.0, &page_path
+				))
+				.unwrap(),
+			content: split_page.1,
+			permalink: permalink_string.clone(),
+			date: date_object,
+			directory: page_path_io
+				.parent()
+				.unwrap_or(Path::new(""))
+				.to_str()
+				.ok_or(miette!(
+					"Unable to represent parent directory of page as a string while rendering '{}'.",
+					&page_path
+				))
+				.unwrap()
+				.to_owned(),
+			name: page_path_io
+				.file_stem()
+				.unwrap_or(&OsString::new())
+				.to_str()
+				.ok_or(miette!(
+					"Unable to represent file stem of page as a string while rendering '{}'.",
+					&page_path
+				))
+				.unwrap()
+				.to_owned(),
+			url: String::new(),
+			markdown: markdown_bool,
+		};
+
+		match &page.permalink[..] {
+			// Don't render the URL if the permalink is empty
+			"" => {}
+			_ => {
+				// Render the URL once the Page metadata has been generated
+				page.url = self.render(&page, &get_permalink(&permalink_string), true);
+			}
+		}
+
+		page
+	}
+
+	/// Returns a Liquid object with a `Page`'s Liquid contexts
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file's context as a `Page`
+	///
+	/// * `conditions` - Prints conditions information
+	pub fn get_contexts(&self, page: &Page) -> Object {
+		/*
+		Layouts
+		*/
+		let layout_name = page.data.get("layout");
+
+		// Import layout context if Page has a layout
+		let layout: AHashMap<String, serde_yaml::Value> = match layout_name {
+			None => AHashMap::new(),
+			Some(l) => serde_yaml::from_str(
+				&split_frontmatter(
+					fs::read_to_string(format!(
+						"./layouts/{}.mokkf",
+						l
+							.as_str()
+							.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page))
+							.unwrap()
+					))
+					.into_diagnostic()
+					.wrap_err(format!("Unable to read layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
+					.unwrap(),
+				)
+				.0,
+			)
+			.into_diagnostic()
+			.wrap_err(format!("Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
+			.unwrap(),
+		};
+
+		let contexts = object!({
+			"global": self.global_context,
+			"page": page,
+			"layout": layout,
+			"collections": self.collections,
+		});
+
+		contexts
+	}
+
+	/// Returns a `String` with a `&str`'s Mokk file rendered
+	///
+	/// # Arguments
+	///
+	/// * `page` - A `.mokkf` file's context as a `Page`
+	///
+	/// * `text_to_render` - The text to be rendered
+	///
+	/// * `only_context` - Whether or not to only render the contexts of a Mokk file
+	///
+	/// * `collections` - Collection store of this build
+	pub fn render(&self, page: &Page, text_to_render: &str, only_context: bool) -> String {
+		match only_context {
+			true => {
+				let template = self.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(format!("Unable to parse text to render ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
+					.unwrap();
+				template
+					.render(&self.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
+					.unwrap()
+			}
+			false => {
+				let template = self
+					.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(format!(
+						"Unable to parse text to render ('{text_to_render}') for {page:#?}."
+					))
+					.unwrap();
+				let liquid_render = template
+					.render(&self.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(format!(
+						"Unable to render text ('{text_to_render}') for {page:#?}."
+					))
+					.unwrap();
+				let markdown_render = render_markdown(liquid_render);
+				let math_render = latex2mathml::replace(&markdown_render)
+					.into_diagnostic()
+					.wrap_err(format!(
+						"Unable to render math in text ('{text_to_render}') for {page:#?}."
+					))
+					.unwrap();
+				math_render
+			}
+		}
+	}
+
+	/// Compiles a Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file's context as a `Page`
+	///
+	/// * `collections` - Collection store of this build
+	pub fn compile(&mut self, mut page: Page) -> String {
+		let layout_name = &page.data.get("layout");
+		let collection_name = &page.data.get("collection");
+
+		// If Page has a layout, render with layout(s)
+		// Otherwise, render with Page's contents
+		page.content = self.render(&page, &page.content, !page.markdown);
+		let compiled_page = match layout_name {
+			None => page.content.to_owned(),
+			Some(l) => {
+				let layout_object = self.get_page_object(
+					format!("./layouts/{}.mokkf", l.as_str().ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page)).unwrap()),
+				);
+				let layouts = self.render_layouts(&page, layout_object); // Embed page in layout
+				self.render(&page, &layouts, true)
+				// Final render, to capture whatever layouts & snippets introduce
+			}
+		};
+
+		// When within a collection, append embeddable page to list of collection's entries
+		match collection_name {
+			None => {}
+			Some(c) => {
+				let collection_name_str = c
+					.as_str()
+					.ok_or(miette!(
+						"Unable to represent collection name ({:?}) as a string while rendering '{:#?}'.",
+						c,
+						page
+					))
+					.unwrap();
+				match self
+					.collections
+					.contains_key(&collection_name_str.to_string())
+				{
+					true => {
+						(*self
+							.collections
+							.get_mut(collection_name_str)
+							.ok_or(miette!(
+								"Unable to get collection ({}) while rendering '{:#?}'.",
+								collection_name_str,
+								page
+							))
+							.unwrap())
+						.push(page);
+					}
+					false => {
+						self.collections
+							.insert(collection_name_str.to_owned(), vec![page]);
+					}
+				}
+			}
+		}
+
+		compiled_page
+	}
+
+	/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
+	///
+	/// # Arguments
+	///
+	/// * `page` - The `.mokkf` file's context as a `Page`
+	///
+	/// * `layout` - The Mokk file's layout's context as a `Page`
+	///
+	/// * `collections` - Collection store of this build
+	pub fn render_layouts(&self, sub: &Page, layout: Page) -> String {
+		// Take layout's text, render it with sub's context
+
+		let merged_sub_page = Page {
+			data: sub
+				.clone()
+				.data
+				.into_iter()
+				.chain(layout.clone().data)
+				.collect(),
+			content: layout.clone().content,
+			date: sub.clone().date,
+			name: sub.clone().name,
+			directory: sub.clone().directory,
+			permalink: sub.clone().permalink,
+			url: sub.clone().url,
+			markdown: layout.markdown,
+		};
+
+		let super_layout = layout.data.get("layout");
+		let rendered: String = match super_layout {
+			Some(l) => {
+				let super_layout_object = self.get_page_object(
+					format!(
+						"./layouts/{}.mokkf",
+						l
+							.as_str()
+							.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, merged_sub_page))
+							.unwrap()
+					),
+				);
+				self.render_layouts(&merged_sub_page, super_layout_object)
+			}
+			None => self.render(sub, &layout.content, !layout.markdown),
+		};
+
+		rendered
+	}
+}
+
 /// Returns an expanded permalink value, for when shorthand is used
 ///
 /// # Arguments
@@ -232,428 +626,6 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 	(frontmatter, contents)
 }
 
-/// Returns an object with a Page's context
-///
-/// # Arguments
-///
-/// * `page_path` - The `.mokkf` file's path as a `String`
-///
-/// * `conditions` - Prints conditions information
-pub fn get_page_object(page_path: String, collections: &AHashMap<String, Vec<Page>>) -> Page {
-	// Define variables which we'll use to create our Document, which we'll use to generate the Page context
-	let split_page = split_frontmatter(
-		fs::read_to_string(&page_path)
-			.into_diagnostic()
-			.wrap_err(format!("Failed to read the file at '{}'.", &page_path))
-			.unwrap(),
-	); // See file::split_frontmatter
-	let frontmatter: AHashMap<String, serde_yaml::Value> = serde_yaml::from_str(&split_page.0)
-		.into_diagnostic()
-		.wrap_err(format!(
-			"Failed to parse frontmatter from '{}'.",
-			&page_path
-		))
-		.unwrap(); // Parse frontmatter as AHashMap (collection of key-value pairs)
-	let permalink = frontmatter.get("permalink"); // Get the key-value pair of the 'permalink' key from the frontmatter
-	let date = frontmatter.get("date"); // Get the key-value pair of the 'date' key from the frontmatter
-	let markdown = frontmatter.get("markdown"); // Get the key-value pair of the 'markdown' key from the frontmatter
-
-	let permalink_string: String = match permalink {
-		Some(p) => p
-			.as_str()
-			.ok_or(miette!(
-				"Unable to read `permalink` value ({:?}) as string in frontmatter of file '{}'.",
-				p,
-				&page_path
-			))
-			.unwrap()
-			.to_string(),
-		None => String::new(),
-	};
-
-	let markdown_bool: bool = match markdown {
-		Some(m) => m
-			.as_bool()
-			.ok_or(miette!(
-				"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'.",
-				m,
-				&page_path
-			))
-			.unwrap(),
-		None => true,
-	};
-
-	let date_object = match date {
-		Some(d) => {
-			let datetime = DateTime::parse_from_rfc3339(
-				d
-					.as_str()
-					.ok_or(miette!("Unable to read `date` value ({:?}) as a string in frontmatter of file '{}'.", d, &page_path))
-					.unwrap(),
-			).into_diagnostic()
-			.wrap_err(format!("Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file '{}'.", d, &page_path))
-			.unwrap(); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
-			let global_file = fs::read_to_string("./_global.yml");
-
-			let global: AHashMap<String, serde_yaml::Value> = match global_file {
-				Ok(g) => {
-					serde_yaml::from_str(&g)
-						.into_diagnostic()
-						.wrap_err(format!(
-							"Unable to parse global file ({}) while rendering '{}'.",
-							g, &page_path
-						))
-						.unwrap()
-					// Defined as variable as it required a type annotation
-				}
-				Err(_) => {
-					serde_yaml::from_str("locale: \"en_US\"")
-						.into_diagnostic()
-						.wrap_err(format!(
-							"Unable to initialise a blank global file while rendering '{}'. If you're seeing this message, something is very wrong.",
-							&page_path
-						))
-						.unwrap()
-					// Defined as variable as it required a type annotation
-				}
-			};
-
-			let locale_key = global.get("locale");
-
-			let locale_value = match locale_key {
-				Some(l) => l
-					.as_str()
-					.ok_or(miette!("Unable to read `locale` value ({:?}) from global file while rendering '{}'.", l, &page_path))
-					.unwrap(),
-				None => "en_US",
-			};
-
-			let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
-
-			Date {
-				year: format!("{}", datetime.format_localized("%Y", locale)),
-				short_year: format!("{}", datetime.format_localized("%y", locale)),
-				month: format!("{}", datetime.format_localized("%m", locale)),
-				i_month: format!("{}", datetime.format_localized("%-m", locale)),
-				short_month: format!("{}", datetime.format_localized("%b", locale)),
-				long_month: format!("{}", datetime.format_localized("%B", locale)),
-				day: format!("{}", datetime.format_localized("%d", locale)),
-				i_day: format!("{}", datetime.format_localized("%-d", locale)),
-				y_day: format!("{}", datetime.format_localized("%j", locale)),
-				w_year: format!("{}", datetime.format_localized("%G", locale)),
-				week: format!("{}", datetime.format_localized("%U", locale)),
-				w_day: format!("{}", datetime.format_localized("%u", locale)),
-				short_day: format!("{}", datetime.format_localized("%a", locale)),
-				long_day: format!("{}", datetime.format_localized("%A", locale)),
-				hour: format!("{}", datetime.format_localized("%H", locale)),
-				minute: format!("{}", datetime.format_localized("%M", locale)),
-				second: format!("{}", datetime.format_localized("%S", locale)),
-				rfc_3339: datetime.to_rfc3339(),
-				rfc_2822: datetime.to_rfc2822(),
-			}
-		}
-		None => Date {
-			year: String::new(),
-			short_year: String::new(),
-			month: String::new(),
-			i_month: String::new(),
-			short_month: String::new(),
-			long_month: String::new(),
-			day: String::new(),
-			i_day: String::new(),
-			y_day: String::new(),
-			w_year: String::new(),
-			week: String::new(),
-			w_day: String::new(),
-			short_day: String::new(),
-			long_day: String::new(),
-			hour: String::new(),
-			minute: String::new(),
-			second: String::new(),
-			rfc_3339: String::new(),
-			rfc_2822: String::new(),
-		},
-	};
-
-	let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
-
-	// Define our Page
-	let mut page = Page {
-		data: serde_yaml::from_str(&split_page.0)
-			.into_diagnostic()
-			.wrap_err(format!(
-				"Unable to parse page frontmatter ({}) while rendering '{}'.",
-				&split_page.0, &page_path
-			))
-			.unwrap(),
-		content: split_page.1,
-		permalink: permalink_string.clone(),
-		date: date_object,
-		directory: page_path_io
-			.parent()
-			.unwrap_or(Path::new(""))
-			.to_str()
-			.ok_or(miette!(
-				"Unable to represent parent directory of page as a string while rendering '{}'.",
-				&page_path
-			))
-			.unwrap()
-			.to_owned(),
-		name: page_path_io
-			.file_stem()
-			.unwrap_or(&OsString::new())
-			.to_str()
-			.ok_or(miette!(
-				"Unable to represent file stem of page as a string while rendering '{}'.",
-				&page_path
-			))
-			.unwrap()
-			.to_owned(),
-		url: String::new(),
-		markdown: markdown_bool,
-	};
-
-	match &page.permalink[..] {
-		// Don't render the URL if the permalink is empty
-		"" => {}
-		_ => {
-			// Render the URL once the Page metadata has been generated
-			page.url = render(&page, &get_permalink(&permalink_string), true, collections);
-		}
-	}
-
-	page
-}
-
-/// Returns a Liquid object with a Page's Liquid contexts
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file's context as a Page
-///
-/// * `conditions` - Prints conditions information
-pub fn get_contexts(page: &Page, collections: &AHashMap<String, Vec<Page>>) -> Object {
-	let global_file = fs::read_to_string("./_global.yml");
-	let global: AHashMap<String, serde_yaml::Value> = match global_file {
-		Ok(g) => {
-			serde_yaml::from_str(&g)
-				.into_diagnostic()
-				.wrap_err(format!(
-					"Unable to parse global file ({g}) while rendering '{page:#?}'."
-				))
-				.unwrap() // Defined as variable as it required a type annotation
-		}
-		Err(_) => {
-			serde_yaml::from_str("locale: \"en_US\"")
-				.into_diagnostic()
-				.wrap_err(format!("Unable to initialise a blank global file while rendering '{page:#?}'. If you're seeing this message, something is very wrong."))
-				.unwrap() // Defined as variable as it required a type annotation
-		}
-	};
-
-	/*
-	Layouts
-	*/
-	let layout_name = page.data.get("layout");
-
-	// Import layout context if Page has a layout
-	let layout: AHashMap<String, serde_yaml::Value> = match layout_name {
-		None => AHashMap::new(),
-		Some(l) => serde_yaml::from_str(
-			&split_frontmatter(
-				fs::read_to_string(format!(
-					"./layouts/{}.mokkf",
-					l
-						.as_str()
-						.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page))
-						.unwrap()
-				))
-				.into_diagnostic()
-				.wrap_err(format!("Unable to read layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
-				.unwrap(),
-			)
-			.0,
-		)
-		.into_diagnostic()
-		.wrap_err(format!("Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file '{}'.", l, page.name))
-		.unwrap(),
-	};
-
-	let contexts = object!({
-		"global": global,
-		"page": page,
-		"layout": layout,
-		"collections": collections,
-	});
-
-	contexts
-}
-
-/// Returns a `String` with a `&str`'s Mokk file rendered
-///
-/// # Arguments
-///
-/// * `page` - A `.mokkf` file's context as a `Page`
-///
-/// * `text_to_render` - The text to be rendered
-///
-/// * `only_context` - Whether or not to only render the contexts of a Mokk file
-///
-/// * `collections` - Collection store of this build
-pub fn render(
-	page: &Page,
-	text_to_render: &str,
-	only_context: bool,
-	collections: &AHashMap<String, Vec<Page>>,
-) -> String {
-	match only_context {
-		true => {
-			let template = create_liquid_parser()
-				.parse(text_to_render)
-				.into_diagnostic()
-				.wrap_err(format!("Unable to parse text to render ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
-				.unwrap();
-			template
-				.render(&get_contexts(page, collections))
-				.into_diagnostic()
-				.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
-				.unwrap()
-		}
-		false => {
-			let template = create_liquid_parser()
-				.parse(text_to_render)
-				.into_diagnostic()
-				.wrap_err(format!(
-					"Unable to parse text to render ('{text_to_render}') for {page:#?}."
-				))
-				.unwrap();
-			let liquid_render = template
-				.render(&get_contexts(page, collections))
-				.into_diagnostic()
-				.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
-				.unwrap();
-			render_markdown(liquid_render)
-		}
-	}
-}
-
-/// Compiles a Mokk file; renders, makes note of the Mokk file (when, or if, the need arises)
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file's context as a `Page`
-///
-/// * `collections` - Collection store of this build
-pub fn compile(
-	mut page: Page,
-	mut collections: AHashMap<String, Vec<Page>>,
-) -> (String, AHashMap<String, Vec<Page>>) {
-	let layout_name = &page.data.get("layout");
-	let collection_name = &page.data.get("collection");
-
-	// If Page has a layout, render with layout(s)
-	// Otherwise, render with Page's contents
-	page.content = render(&page, &page.content, !page.markdown, &collections);
-	let compiled_page = match layout_name {
-		None => page.content.to_owned(),
-		Some(l) => {
-			let layout_object = get_page_object(
-				format!("./layouts/{}.mokkf", l.as_str().ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page)).unwrap()),
-				&collections,
-			);
-			let layouts = render_layouts(&page, layout_object, &collections); // Embed page in layout
-			render(&page, &layouts, true, &collections)
-			// Final render, to capture whatever layouts & snippets introduce
-		}
-	};
-
-	// When within a collection, append embeddable page to list of collection's entries
-	match collection_name {
-		None => {}
-		Some(c) => {
-			let collection_name_str = c
-				.as_str()
-				.ok_or(miette!(
-					"Unable to represent collection name ({:?}) as a string while rendering '{:#?}'.",
-					c,
-					page
-				))
-				.unwrap();
-			match collections.contains_key(&collection_name_str.to_string()) {
-				true => {
-					(*collections
-						.get_mut(collection_name_str)
-						.ok_or(miette!(
-							"Unable to get collection ({}) while rendering '{:#?}'.",
-							collection_name_str,
-							page
-						))
-						.unwrap())
-					.push(page);
-				}
-				false => {
-					collections.insert(collection_name_str.to_owned(), vec![page]);
-				}
-			}
-		}
-	}
-
-	(compiled_page, collections)
-}
-
-/// Render the layout(s) of a post recursively (should a layout have a layout of its own)
-///
-/// # Arguments
-///
-/// * `page` - The `.mokkf` file's context as a `Page`
-///
-/// * `layout` - The Mokk file's layout's context as a `Page`
-///
-/// * `collections` - Collection store of this build
-pub fn render_layouts(
-	sub: &Page,
-	layout: Page,
-	collections: &AHashMap<String, Vec<Page>>,
-) -> String {
-	// Take layout's text, render it with sub's context
-
-	let merged_sub_page = Page {
-		data: sub
-			.clone()
-			.data
-			.into_iter()
-			.chain(layout.clone().data)
-			.collect(),
-		content: layout.clone().content,
-		date: sub.clone().date,
-		name: sub.clone().name,
-		directory: sub.clone().directory,
-		permalink: sub.clone().permalink,
-		url: sub.clone().url,
-		markdown: layout.markdown,
-	};
-
-	let super_layout = layout.data.get("layout");
-	let rendered: String = match super_layout {
-		Some(l) => {
-			let super_layout_object = get_page_object(
-				format!(
-					"./layouts/{}.mokkf",
-					l
-						.as_str()
-						.ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, merged_sub_page))
-						.unwrap()
-				),
-				collections,
-			);
-			render_layouts(&merged_sub_page, super_layout_object, collections)
-		}
-		None => render(sub, &layout.content, !layout.markdown, collections),
-	};
-
-	rendered
-}
-
 /// Creates a Liquid parser
 pub fn create_liquid_parser() -> liquid::Parser {
 	let mut partial = liquid::partials::InMemorySource::new();
@@ -708,15 +680,26 @@ pub fn create_liquid_parser() -> liquid::Parser {
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
 pub fn render_markdown(text_to_render: String) -> String {
-	let mut markdown_options = Options::empty();
-	markdown_options.insert(Options::ENABLE_TABLES);
-	markdown_options.insert(Options::ENABLE_FOOTNOTES);
-	markdown_options.insert(Options::ENABLE_STRIKETHROUGH);
-	markdown_options.insert(Options::ENABLE_TASKLISTS);
-	markdown_options.insert(Options::ENABLE_SMART_PUNCTUATION);
-	let markdown_parser = Parser::new_ext(&text_to_render, markdown_options);
+	let markdown_parser = Parser::new_ext(&text_to_render, Options::all());
 	let mut rendered_markdown = String::new();
 	html::push_html(&mut rendered_markdown, markdown_parser);
 
 	rendered_markdown
+}
+
+pub fn get_global_context() -> AHashMap<String, serde_yaml::Value> {
+	match fs::read_to_string("./_global.yml") {
+		Ok(g) => {
+			serde_yaml::from_str(&g)
+				.into_diagnostic()
+				.wrap_err(format!("Unable to parse global file ({g})."))
+				.unwrap() // Defined as variable as it required a type annotation
+		}
+		Err(_) => {
+			serde_yaml::from_str("locale: \"en_US\"")
+				.into_diagnostic()
+				.wrap_err(format!("Unable to initialise a blank global file. If you're seeing this message, something is very wrong."))
+				.unwrap() // Defined as variable as it required a type annotation
+		}
+	}
 }
