@@ -422,7 +422,7 @@ impl Build {
 					))
 					.unwrap();
 				let markdown_render = render_markdown(liquid_render);
-				
+
 				latex2mathml::replace(&markdown_render)
 					.into_diagnostic()
 					.wrap_err(format!(
