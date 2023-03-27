@@ -63,7 +63,7 @@ relative-path = "1.8.0"
 serde = "1.0.158"
 serde_yaml = "0.9.19"
 ticky = { git = "https://github.com/Dirout/ticky.git" }
-tokio = { version = "1.26.0", features = ["full"] }
+tokio = { version = "1.27.0", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
