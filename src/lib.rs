@@ -381,7 +381,7 @@ impl Build {
 				))
 				.unwrap()
 				.to_owned(),
-			None => self.global_context.1.minify.clone(),
+			None => self.global_context.1.minify,
 		};
 
 		let locale: chrono::Locale = locale_string_to_locale(locale_value); // Get locale from Global context
