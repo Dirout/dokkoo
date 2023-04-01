@@ -24,8 +24,9 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 #![warn(clippy::disallowed_types)]
 
 use ahash::AHashMap;
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
+use html_minifier::HTMLMinifier;
 use liquid::*;
 use miette::{miette, IntoDiagnostic, WrapErr};
 use pulldown_cmark::{html, Options, Parser};
@@ -37,6 +38,7 @@ use std::fmt;
 use std::fmt::Write;
 use std::fs;
 use std::path::Path;
+use sys_locale::get_locale;
 
 #[derive(
 	Eq,
@@ -106,6 +108,90 @@ impl fmt::Display for Date {
 	}
 }
 
+impl Date {
+	/// Convert a `serde_yaml::Value` object into a `Date` object
+	///
+	/// # Arguments
+	///
+	/// * `value` - The `serde_yaml::Value` object to convert
+	///
+	/// * `locale` - A `chrono::Locale` object
+	pub fn value_to_date(value: Option<&serde_yaml::Value>, locale: chrono::Locale) -> Date {
+		match value {
+			Some(d) => {
+				let datetime = DateTime::parse_from_rfc3339(
+					d.as_str()
+						.ok_or(miette!(
+							"Unable to read `date` value ({:?}) as a string.",
+							d
+						))
+						.unwrap(),
+				)
+				.into_diagnostic()
+				.wrap_err(format!(
+					"Unable to parse `date` value ({:?}) as an RFC 3339 date-time.",
+					d
+				))
+				.unwrap(); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal metadata)
+
+				Date::chrono_to_date(datetime.into(), locale)
+			}
+			None => Date {
+				year: String::new(),
+				short_year: String::new(),
+				month: String::new(),
+				i_month: String::new(),
+				short_month: String::new(),
+				long_month: String::new(),
+				day: String::new(),
+				i_day: String::new(),
+				y_day: String::new(),
+				w_year: String::new(),
+				week: String::new(),
+				w_day: String::new(),
+				short_day: String::new(),
+				long_day: String::new(),
+				hour: String::new(),
+				minute: String::new(),
+				second: String::new(),
+				rfc_3339: String::new(),
+				rfc_2822: String::new(),
+			},
+		}
+	}
+
+	/// Convert a `chrono::DateTime` object into a `Date` object
+	///
+	/// # Arguments
+	///
+	/// * `datetime` - A `chrono::DateTime<chrono::Utc>` object
+	///
+	/// * `locale` - A `chrono::Locale` object
+	pub fn chrono_to_date(datetime: chrono::DateTime<Utc>, locale: chrono::Locale) -> Date {
+		Date {
+			year: format!("{}", datetime.format_localized("%Y", locale)),
+			short_year: format!("{}", datetime.format_localized("%y", locale)),
+			month: format!("{}", datetime.format_localized("%m", locale)),
+			i_month: format!("{}", datetime.format_localized("%-m", locale)),
+			short_month: format!("{}", datetime.format_localized("%b", locale)),
+			long_month: format!("{}", datetime.format_localized("%B", locale)),
+			day: format!("{}", datetime.format_localized("%d", locale)),
+			i_day: format!("{}", datetime.format_localized("%-d", locale)),
+			y_day: format!("{}", datetime.format_localized("%j", locale)),
+			w_year: format!("{}", datetime.format_localized("%G", locale)),
+			week: format!("{}", datetime.format_localized("%U", locale)),
+			w_day: format!("{}", datetime.format_localized("%u", locale)),
+			short_day: format!("{}", datetime.format_localized("%a", locale)),
+			long_day: format!("{}", datetime.format_localized("%A", locale)),
+			hour: format!("{}", datetime.format_localized("%H", locale)),
+			minute: format!("{}", datetime.format_localized("%M", locale)),
+			second: format!("{}", datetime.format_localized("%S", locale)),
+			rfc_3339: datetime.to_rfc3339(),
+			rfc_2822: datetime.to_rfc2822(),
+		}
+	}
+}
+
 #[derive(
 	Eq,
 	PartialEq,
@@ -142,8 +228,10 @@ pub struct Page {
 	pub name: String,
 	/// The output path of a file; a processed `permalink` value
 	pub url: String,
-	/// Whether a Mokk file is intended to be marked-up in Markdown (intended for when a different markup language [HTML, XML, et cetera], or none at all, is more appropriate)
-	pub markdown: bool,
+	/// Whether a Mokk file's contents are intended to be processed as Markdown & LaTeX Math or not
+	pub markup: bool,
+	/// Whether a Mokk file is intended to be minified
+	pub minify: bool,
 }
 
 /// Handle conversion of a Page object into a string of characters
@@ -153,12 +241,68 @@ impl fmt::Display for Page {
 	}
 }
 
+#[derive(
+	PartialEq,
+	Clone,
+	Debug,
+	Serialize,
+	Deserialize,
+	From,
+	Into,
+	Mul,
+	Div,
+	Rem,
+	Shr,
+	Shl,
+	Constructor,
+)]
+/// Build configuration data held in memory during the build process, from the global file
+pub struct Global {
+	/// The global locale, used to format dates
+	pub locale: String,
+	/// The `Date` object representing the date & time of the build
+	pub date: Date,
+	/// Whether the build's outputs are intended to be minified
+	pub minify: bool,
+}
+
+/// The initial state of a `Global` object
+impl Default for Global {
+	fn default() -> Self {
+		Self {
+			locale: default_locale_string(),
+			date: Date::default(),
+			minify: false,
+		}
+	}
+}
+
+/// Gets a string representing the system locale, if available. Otherwise, defaults to 'en_US'
+pub fn default_locale_string() -> String {
+	get_locale().unwrap_or("en_US".to_owned())
+}
+
+/// Gets the system locale, if available. Otherwise, defaults to `en_US`
+pub fn default_locale() -> chrono::Locale {
+	chrono::Locale::try_from(default_locale_string().as_str()).unwrap_or(chrono::Locale::en_US)
+}
+
+/// Gets a `chrono::Locale` object from a string
+pub fn locale_string_to_locale(locale: String) -> chrono::Locale {
+	chrono::Locale::try_from(locale.as_str()).unwrap_or(default_locale())
+}
+
+/// Data held in memory during the build process
 pub struct Build {
+	/// A collection of pages, grouped by their collection name
 	pub collections: AHashMap<String, Vec<Page>>,
-	pub global_context: AHashMap<String, serde_yaml::Value>,
+	/// The global context, defined in the Mokk's global file
+	pub global_context: (AHashMap<String, serde_yaml::Value>, Global),
+	/// The Liquid parser
 	pub liquid_parser: liquid::Parser,
 }
 
+/// The initial state of a `Build` object
 impl Default for Build {
 	fn default() -> Self {
 		Self {
@@ -204,11 +348,11 @@ impl Build {
 			None => String::new(),
 		};
 
-		let markdown_bool: bool = match frontmatter.get("markdown") {
+		let markup_bool: bool = match frontmatter.get("markup") {
 			Some(m) => m
 				.as_bool()
 				.ok_or(miette!(
-					"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'.",
+					"Unable to read `markup` value ({:?}) as string in frontmatter of file '{}'.",
 					m,
 					&page_path
 				))
@@ -216,78 +360,39 @@ impl Build {
 			None => true,
 		};
 
-		let date_object = match frontmatter.get("date") {
-			Some(d) => {
-				let datetime = DateTime::parse_from_rfc3339(
-					d
-						.as_str()
-						.ok_or(miette!("Unable to read `date` value ({:?}) as a string in frontmatter of file '{}'.", d, &page_path))
-						.unwrap(),
-				).into_diagnostic()
-				.wrap_err(format!("Unable to parse `date` value ({:?}) as an RFC 3339 date-time in frontmatter of file '{}'.", d, &page_path))
-				.unwrap(); // Turn the date-time into a DateTime object for easy manipulation (to generate temporal Page metadata)
-
-				let locale_key = self.global_context.get("locale");
-
-				let locale_value = match locale_key {
-					Some(l) => l
-						.as_str()
-						.ok_or(miette!("Unable to read `locale` value ({:?}) from global file while rendering '{}'.", l, &page_path))
-						.unwrap(),
-					None => "en_US",
-				};
-
-				let locale: chrono::Locale = chrono::Locale::try_from(locale_value).unwrap(); // Get locale from Global context
-
-				Date {
-					year: format!("{}", datetime.format_localized("%Y", locale)),
-					short_year: format!("{}", datetime.format_localized("%y", locale)),
-					month: format!("{}", datetime.format_localized("%m", locale)),
-					i_month: format!("{}", datetime.format_localized("%-m", locale)),
-					short_month: format!("{}", datetime.format_localized("%b", locale)),
-					long_month: format!("{}", datetime.format_localized("%B", locale)),
-					day: format!("{}", datetime.format_localized("%d", locale)),
-					i_day: format!("{}", datetime.format_localized("%-d", locale)),
-					y_day: format!("{}", datetime.format_localized("%j", locale)),
-					w_year: format!("{}", datetime.format_localized("%G", locale)),
-					week: format!("{}", datetime.format_localized("%U", locale)),
-					w_day: format!("{}", datetime.format_localized("%u", locale)),
-					short_day: format!("{}", datetime.format_localized("%a", locale)),
-					long_day: format!("{}", datetime.format_localized("%A", locale)),
-					hour: format!("{}", datetime.format_localized("%H", locale)),
-					minute: format!("{}", datetime.format_localized("%M", locale)),
-					second: format!("{}", datetime.format_localized("%S", locale)),
-					rfc_3339: datetime.to_rfc3339(),
-					rfc_2822: datetime.to_rfc2822(),
-				}
-			}
-			None => Date {
-				year: String::new(),
-				short_year: String::new(),
-				month: String::new(),
-				i_month: String::new(),
-				short_month: String::new(),
-				long_month: String::new(),
-				day: String::new(),
-				i_day: String::new(),
-				y_day: String::new(),
-				w_year: String::new(),
-				week: String::new(),
-				w_day: String::new(),
-				short_day: String::new(),
-				long_day: String::new(),
-				hour: String::new(),
-				minute: String::new(),
-				second: String::new(),
-				rfc_3339: String::new(),
-				rfc_2822: String::new(),
-			},
+		let locale_value = match frontmatter.get("locale") {
+			Some(pl) => pl
+				.as_str()
+				.ok_or(miette!(
+					"Unable to read `locale` value ({:?}) from page frontmatter.",
+					pl
+				))
+				.unwrap()
+				.to_owned(),
+			None => self.global_context.1.locale.clone(),
 		};
+
+		let minify_value = match frontmatter.get("minify") {
+			Some(m) => m
+				.as_bool()
+				.ok_or(miette!(
+					"Unable to read `minify` value ({:?}) from page frontmatter.",
+					m
+				))
+				.unwrap()
+				.to_owned(),
+			None => self.global_context.1.minify.clone(),
+		};
+
+		let locale: chrono::Locale = locale_string_to_locale(locale_value); // Get locale from Global context
+
+		let date_object = Date::value_to_date(frontmatter.get("date"), locale);
 
 		let page_path_io = Path::new(&page_path[..]); // Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
 
 		// Define our Page
 		let mut page = Page {
+			minify: minify_value,
 			data: serde_yaml::from_str(&split_page.0)
 				.into_diagnostic()
 				.wrap_err(format!(
@@ -319,7 +424,7 @@ impl Build {
 				.unwrap()
 				.to_owned(),
 			url: String::new(),
-			markdown: markdown_bool,
+			markup: markup_bool,
 		};
 
 		match &page.permalink[..] {
@@ -339,8 +444,6 @@ impl Build {
 	/// # Arguments
 	///
 	/// * `page` - The `.mokkf` file's context as a `Page`
-	///
-	/// * `conditions` - Prints conditions information
 	pub fn get_contexts(&self, page: &Page) -> Object {
 		/*
 		Layouts
@@ -371,7 +474,7 @@ impl Build {
 		};
 
 		let contexts = object!({
-			"global": self.global_context,
+			"global": self.global_context.0,
 			"page": page,
 			"layout": layout,
 			"collections": self.collections,
@@ -389,10 +492,8 @@ impl Build {
 	/// * `text_to_render` - The text to be rendered
 	///
 	/// * `only_context` - Whether or not to only render the contexts of a Mokk file
-	///
-	/// * `collections` - Collection store of this build
 	pub fn render(&self, page: &Page, text_to_render: &str, only_context: bool) -> String {
-		match only_context {
+		let rendered = match only_context {
 			true => {
 				let template = self.liquid_parser
 					.parse(text_to_render)
@@ -422,14 +523,27 @@ impl Build {
 					))
 					.unwrap();
 				let markdown_render = render_markdown(liquid_render);
-				
+
 				latex2mathml::replace(&markdown_render)
 					.into_diagnostic()
 					.wrap_err(format!(
-						"Unable to render math in text ('{text_to_render}') for {page:#?}."
+						"Unable to render math in document ('{markdown_render}') for {page:#?}."
 					))
 					.unwrap()
 			}
+		};
+
+		match &page.minify {
+			true => {
+				let mut html_minifier = HTMLMinifier::new();
+				html_minifier
+					.digest(&rendered)
+					.into_diagnostic()
+					.wrap_err(format!("Unable to minify HTML for {page:#?}."))
+					.unwrap();
+				String::from_utf8_lossy(html_minifier.get_html()).to_string()
+			}
+			false => rendered,
 		}
 	}
 
@@ -438,15 +552,13 @@ impl Build {
 	/// # Arguments
 	///
 	/// * `page` - The `.mokkf` file's context as a `Page`
-	///
-	/// * `collections` - Collection store of this build
 	pub fn compile(&mut self, mut page: Page) -> String {
 		let layout_name = &page.data.get("layout");
 		let collection_name = &page.data.get("collection");
 
 		// If Page has a layout, render with layout(s)
 		// Otherwise, render with Page's contents
-		page.content = self.render(&page, &page.content, !page.markdown);
+		page.content = self.render(&page, &page.content, !page.markup);
 		let compiled_page = match layout_name {
 			None => page.content.to_owned(),
 			Some(l) => {
@@ -505,8 +617,6 @@ impl Build {
 	/// * `page` - The `.mokkf` file's context as a `Page`
 	///
 	/// * `layout` - The Mokk file's layout's context as a `Page`
-	///
-	/// * `collections` - Collection store of this build
 	pub fn render_layouts(&self, sub: &Page, layout: Page) -> String {
 		// Take layout's text, render it with sub's context
 
@@ -523,7 +633,8 @@ impl Build {
 			directory: sub.clone().directory,
 			permalink: sub.clone().permalink,
 			url: sub.clone().url,
-			markdown: layout.markdown,
+			minify: sub.clone().minify,
+			markup: layout.markup,
 		};
 
 		let super_layout = layout.data.get("layout");
@@ -540,7 +651,7 @@ impl Build {
 				);
 				self.render_layouts(&merged_sub_page, super_layout_object)
 			}
-			None => self.render(sub, &layout.content, !layout.markdown),
+			None => self.render(sub, &layout.content, !layout.markup),
 		};
 
 		rendered
@@ -687,19 +798,71 @@ pub fn render_markdown(text_to_render: String) -> String {
 	rendered_markdown
 }
 
-pub fn get_global_context() -> AHashMap<String, serde_yaml::Value> {
-	match fs::read_to_string("./_global.yml") {
+/// Get the global context
+pub fn get_global_context() -> (AHashMap<String, serde_yaml::Value>, Global) {
+	let global_context: AHashMap<String, serde_yaml::Value> = match fs::read_to_string(
+		"./_global.yml",
+	) {
 		Ok(g) => {
 			serde_yaml::from_str(&g)
 				.into_diagnostic()
 				.wrap_err(format!("Unable to parse global file ({g})."))
 				.unwrap() // Defined as variable as it required a type annotation
 		}
-		Err(_) => {
-			serde_yaml::from_str("locale: \"en_US\"")
+		Err(e) => {
+			serde_yaml::from_str("empty: true")
 				.into_diagnostic()
-				.wrap_err("Unable to initialise a blank global file. If you're seeing this message, something is very wrong.".to_string())
+				.wrap_err(format!("Unable to initialise a blank global file. If you're seeing this message, something is very wrong. The global file cannot be read and a blank, default global file failed to initialise. An error occurred when attempting to read the global file: {e}"))
 				.unwrap() // Defined as variable as it required a type annotation
 		}
-	}
+	};
+
+	let locale_value = match global_context.get("locale") {
+		Some(l) => l
+			.as_str()
+			.ok_or(miette!(
+				"Unable to read `locale` value ({:?}) from global file.",
+				l
+			))
+			.unwrap()
+			.to_owned(),
+		None => get_locale().unwrap_or("en_US".to_owned()),
+	};
+
+	// let locale: chrono::Locale = chrono::Locale::try_from(locale_value.as_str()).unwrap(); // Get locale from Global context
+
+	let minify_value = match global_context.get("minify") {
+		Some(m) => m
+			.as_bool()
+			.ok_or(miette!(
+				"Unable to read `minify` value ({:?}) from global file.",
+				m
+			))
+			.unwrap(),
+		None => false,
+	};
+
+	let global = Global {
+		locale: locale_value.clone(),
+		date: Date::chrono_to_date(Utc::now(), locale_string_to_locale(locale_value)),
+		minify: minify_value,
+	};
+
+	let mut global_map: AHashMap<String, serde_yaml::Value> = serde_yaml::from_value(
+		serde_yaml::to_value(global.clone())
+			.into_diagnostic()
+			.wrap_err(miette!(
+				"Unable to represent global file data ({:#?}) as a collection of values.",
+				global
+			))
+			.unwrap(),
+	)
+	.into_diagnostic()
+	.wrap_err(miette!(
+		"Unable to represent global file data as a collection of values."
+	))
+	.unwrap();
+	global_map.extend(global_context);
+
+	(global_map, global)
 }

@@ -98,16 +98,16 @@ async fn main() {
 	}))
 	.unwrap();
 
-	// std::panic::set_hook(Box::new(|e| {
-	// 	println!(
-	// 		"{}\nDefined in: {}:{}:{}",
-	// 		format!("{}", e.message().unwrap())
-	// 			.replace("called `Result::unwrap()` on an `Err` value", "Error"),
-	// 		e.location().unwrap().file(),
-	// 		e.location().unwrap().line(),
-	// 		e.location().unwrap().column()
-	// 	);
-	// }));
+	std::panic::set_hook(Box::new(|e| {
+		println!(
+			"{}\nDefined in: {}:{}:{}",
+			format!("{}", e.message().unwrap())
+				.replace("called `Result::unwrap()` on an `Err` value", "Error"),
+			e.location().unwrap().file(),
+			e.location().unwrap().line(),
+			e.location().unwrap().column()
+		);
+	}));
 
 	match MATCHES.subcommand() {
 		Some(("show", show_matches)) => {
