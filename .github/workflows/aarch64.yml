@@ -7,6 +7,10 @@ jobs:
     name: GNU + Linux (ARM64)
     runs-on: ubuntu-latest
     steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update > /dev/null
+          sudo apt-get install -qq gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu build-essential > /dev/null
       - name: Checkout codebase
         uses: actions/checkout@v3
       - name: Setup Rust toolchain
