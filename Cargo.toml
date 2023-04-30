@@ -63,7 +63,7 @@ pulldown-cmark = { version = "0.9.2", default-features = false, features = ["sim
 relative-path = "1.8.0"
 serde = "1.0.160"
 serde_yaml = "0.9.21"
-sys-locale = "0.2.4"
+sys-locale = "0.3.0"
 ticky = { version = "1.0.2", features = ["stdtime"] }
 tokio = { version = "1.28.0", features = ["full"] }
 wild = "2.1.0"
