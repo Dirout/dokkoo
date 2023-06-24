@@ -62,7 +62,7 @@ pathdiff = "0.2.1"
 pulldown-cmark = { version = "0.9.3", default-features = false, features = ["simd"] }
 relative-path = "1.8.0"
 serde = "1.0.164"
-serde_yaml = "0.9.21"
+serde_yaml = "0.9.22"
 sys-locale = "0.2.4"
 ticky = { version = "1.0.2", features = ["stdtime"] }
 tokio = { version = "1.28.2", features = ["full"] }
