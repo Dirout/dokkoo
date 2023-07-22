@@ -25,11 +25,15 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 
 use ahash::AHashMap;
 use chrono::{DateTime, Utc};
+use comrak::plugins::syntect::SyntectAdapter;
+use comrak::{
+	markdown_to_html_with_plugins, ComrakExtensionOptions, ComrakOptions, ComrakParseOptions,
+	ComrakPlugins, ComrakRenderOptions, ListStyleType,
+};
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use html_minifier::HTMLMinifier;
 use liquid::*;
 use miette::{miette, IntoDiagnostic, WrapErr};
-use pulldown_cmark::{html, Options, Parser};
 use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -228,8 +232,10 @@ pub struct Page {
 	pub name: String,
 	/// The output path of a file; a processed `permalink` value
 	pub url: String,
-	/// Whether a Mokk file's contents are intended to be processed as Markdown & LaTeX Math or not
-	pub markup: bool,
+	/// Whether a Mokk file's contents are intended to be processed as Markdown or not
+	pub markdown: bool,
+	/// Whether a Mokk file's contents are intended to be processed as LaTeX Math or not
+	pub math: bool,
 	/// Whether a Mokk file is intended to be minified
 	pub minify: bool,
 }
@@ -348,11 +354,23 @@ impl Build {
 			None => String::new(),
 		};
 
-		let markup_bool: bool = match frontmatter.get("markup") {
+		let markdown_bool: bool = match frontmatter.get("markdown") {
 			Some(m) => m
 				.as_bool()
 				.ok_or(miette!(
-					"Unable to read `markup` value ({:?}) as string in frontmatter of file '{}'.",
+					"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'.",
+					m,
+					&page_path
+				))
+				.unwrap(),
+			None => true,
+		};
+
+		let math_bool: bool = match frontmatter.get("math") {
+			Some(m) => m
+				.as_bool()
+				.ok_or(miette!(
+					"Unable to read `math` value ({:?}) as string in frontmatter of file '{}'.",
 					m,
 					&page_path
 				))
@@ -424,7 +442,8 @@ impl Build {
 				.unwrap()
 				.to_owned(),
 			url: String::new(),
-			markup: markup_bool,
+			markdown: markdown_bool,
+			math: math_bool,
 		};
 
 		match &page.permalink[..] {
@@ -432,7 +451,7 @@ impl Build {
 			"" => {}
 			_ => {
 				// Render the URL once the Page metadata has been generated
-				page.url = self.render(&page, &get_permalink(&permalink_string), true);
+				page.url = self.render(&page, &get_permalink(&permalink_string), false, false);
 			}
 		}
 
@@ -491,46 +510,40 @@ impl Build {
 	///
 	/// * `text_to_render` - The text to be rendered
 	///
-	/// * `only_context` - Whether or not to only render the contexts of a Mokk file
-	pub fn render(&self, page: &Page, text_to_render: &str, only_context: bool) -> String {
-		let rendered = match only_context {
-			true => {
-				let template = self.liquid_parser
-					.parse(text_to_render)
-					.into_diagnostic()
-					.wrap_err(format!("Unable to parse text to render ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
-					.unwrap();
-				template
-					.render(&self.get_contexts(page))
-					.into_diagnostic()
-					.wrap_err(format!("Unable to render text ('{text_to_render}') for {page:#?}.\nNote: Only the page's contexts were attempting to be rendered, and not the page itself."))
-					.unwrap()
-			}
-			false => {
-				let template = self
-					.liquid_parser
-					.parse(text_to_render)
-					.into_diagnostic()
-					.wrap_err(format!(
-						"Unable to parse text to render ('{text_to_render}') for {page:#?}."
-					))
-					.unwrap();
-				let liquid_render = template
-					.render(&self.get_contexts(page))
-					.into_diagnostic()
-					.wrap_err(format!(
-						"Unable to render text ('{text_to_render}') for {page:#?}."
-					))
-					.unwrap();
-				let markdown_render = render_markdown(liquid_render);
+	/// * `markdown` - Whether or not to render Markdown
+	///
+	/// * `math` - Whether or not to render LaTeX Math
+	pub fn render(&self, page: &Page, text_to_render: &str, markdown: bool, math: bool) -> String {
+		let template = self
+			.liquid_parser
+			.parse(text_to_render)
+			.into_diagnostic()
+			.wrap_err(format!(
+				"Unable to parse text to render ('{text_to_render}') for {page:#?}."
+			))
+			.unwrap();
 
-				latex2mathml::replace(&markdown_render)
-					.into_diagnostic()
-					.wrap_err(format!(
-						"Unable to render math in document ('{markdown_render}') for {page:#?}."
-					))
-					.unwrap()
-			}
+		let mut rendered = template
+			.render(&self.get_contexts(page))
+			.into_diagnostic()
+			.wrap_err(format!(
+				"Unable to render text ('{text_to_render}') for {page:#?}."
+			))
+			.unwrap();
+
+		rendered = match markdown {
+			true => render_markdown(rendered, math),
+			false => rendered,
+		};
+
+		rendered = match math {
+			true => latex2mathml::replace(&rendered)
+				.into_diagnostic()
+				.wrap_err(format!(
+					"Unable to render math in document ('{rendered}') for {page:#?}."
+				))
+				.unwrap(),
+			false => rendered,
 		};
 
 		match &page.minify {
@@ -558,7 +571,7 @@ impl Build {
 
 		// If Page has a layout, render with layout(s)
 		// Otherwise, render with Page's contents
-		page.content = self.render(&page, &page.content, !page.markup);
+		page.content = self.render(&page, &page.content, page.markdown, page.math);
 		let compiled_page = match layout_name {
 			None => page.content.to_owned(),
 			Some(l) => {
@@ -566,7 +579,7 @@ impl Build {
 					format!("./layouts/{}.mokkf", l.as_str().ok_or(miette!("Unable to represent layout name ({:?}) as a string while rendering '{:#?}'.", l, page)).unwrap()),
 				);
 				let layouts = self.render_layouts(&page, layout_object); // Embed page in layout
-				self.render(&page, &layouts, true)
+				self.render(&page, &layouts, false, false)
 				// Final render, to capture whatever layouts & snippets introduce
 			}
 		};
@@ -634,7 +647,8 @@ impl Build {
 			permalink: sub.clone().permalink,
 			url: sub.clone().url,
 			minify: sub.clone().minify,
-			markup: layout.markup,
+			markdown: layout.markdown,
+			math: layout.math,
 		};
 
 		let super_layout = layout.data.get("layout");
@@ -651,7 +665,7 @@ impl Build {
 				);
 				self.render_layouts(&merged_sub_page, super_layout_object)
 			}
-			None => self.render(sub, &layout.content, !layout.markup),
+			None => self.render(sub, &layout.content, layout.markdown, layout.math),
 		};
 
 		rendered
@@ -790,12 +804,47 @@ pub fn create_liquid_parser() -> liquid::Parser {
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-pub fn render_markdown(text_to_render: String) -> String {
-	let markdown_parser = Parser::new_ext(&text_to_render, Options::all());
-	let mut rendered_markdown = String::new();
-	html::push_html(&mut rendered_markdown, markdown_parser);
+///
+/// * `math` - Whether or not Markdown is being rendered with LaTeX Math
+pub fn render_markdown(text_to_render: String, math: bool) -> String {
+	let extension_options = ComrakExtensionOptions {
+		strikethrough: true,
+		tagfilter: false,
+		table: true,
+		autolink: false,
+		tasklist: true,
+		superscript: !math,
+		header_ids: Some(String::from("h-")),
+		footnotes: true,
+		description_lists: true,
+		front_matter_delimiter: None,
+		shortcodes: true,
+	};
+	let parse_options = ComrakParseOptions {
+		smart: true,
+		default_info_string: None,
+		relaxed_tasklist_matching: true,
+	};
+	let render_options = ComrakRenderOptions {
+		hardbreaks: true,
+		github_pre_lang: true,
+		full_info_string: true,
+		width: 80,
+		unsafe_: true,
+		escape: false,
+		list_style: ListStyleType::Dash,
+		sourcepos: false,
+	};
+	let options = ComrakOptions {
+		extension: extension_options,
+		parse: parse_options,
+		render: render_options,
+	};
+	let mut plugins = ComrakPlugins::default();
+	let syntax_highlighting_adapter = SyntectAdapter::new("InspiredGitHub");
+	plugins.render.codefence_syntax_highlighter = Some(&syntax_highlighting_adapter);
 
-	rendered_markdown
+	markdown_to_html_with_plugins(&text_to_render, &options, &plugins)
 }
 
 /// Get the global context
