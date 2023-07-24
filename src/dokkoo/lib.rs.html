@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (0308df23e 2023-07-21)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../dokkoo/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (8771282d4 2023-07-23)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../dokkoo/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -866,55 +866,6 @@
 <a href="#866" id="866">866</a>
 <a href="#867" id="867">867</a>
 <a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
 	This file is part of Dokkoo.
 
@@ -942,15 +893,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 
 </span><span class="kw">use </span>ahash::AHashMap;
 <span class="kw">use </span>chrono::{DateTime, Utc};
-<span class="kw">use </span>comrak::plugins::syntect::SyntectAdapter;
-<span class="kw">use </span>comrak::{
-	markdown_to_html_with_plugins, ComrakExtensionOptions, ComrakOptions, ComrakParseOptions,
-	ComrakPlugins, ComrakRenderOptions, ListStyleType,
-};
 <span class="kw">use </span>derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 <span class="kw">use </span>html_minifier::HTMLMinifier;
 <span class="kw">use </span>liquid::<span class="kw-2">*</span>;
 <span class="kw">use </span>miette::{miette, IntoDiagnostic, WrapErr};
+<span class="kw">use </span>pulldown_cmark::{html, Options, Parser};
 <span class="kw">use </span>relative_path::RelativePath;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::convert::TryFrom;
@@ -1149,10 +1096,8 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	</span><span class="kw">pub </span>name: String,
 	<span class="doccomment">/// The output path of a file; a processed `permalink` value
 	</span><span class="kw">pub </span>url: String,
-	<span class="doccomment">/// Whether a Mokk file&#39;s contents are intended to be processed as Markdown or not
-	</span><span class="kw">pub </span>markdown: bool,
-	<span class="doccomment">/// Whether a Mokk file&#39;s contents are intended to be processed as LaTeX Math or not
-	</span><span class="kw">pub </span>math: bool,
+	<span class="doccomment">/// Whether a Mokk file&#39;s contents are intended to be processed as Markdown &amp; LaTeX Math or not
+	</span><span class="kw">pub </span>markup: bool,
 	<span class="doccomment">/// Whether a Mokk file is intended to be minified
 	</span><span class="kw">pub </span>minify: bool,
 }
@@ -1271,23 +1216,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">None </span>=&gt; String::new(),
 		};
 
-		<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;markdown&quot;</span>) {
+		<span class="kw">let </span>markup_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;markup&quot;</span>) {
 			<span class="prelude-val">Some</span>(m) =&gt; m
 				.as_bool()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `markdown` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
-					m,
-					<span class="kw-2">&amp;</span>page_path
-				))
-				.unwrap(),
-			<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
-		};
-
-		<span class="kw">let </span>math_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;math&quot;</span>) {
-			<span class="prelude-val">Some</span>(m) =&gt; m
-				.as_bool()
-				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `math` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					<span class="string">&quot;Unable to read `markup` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
 					m,
 					<span class="kw-2">&amp;</span>page_path
 				))
@@ -1359,8 +1292,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				.unwrap()
 				.to_owned(),
 			url: String::new(),
-			markdown: markdown_bool,
-			math: math_bool,
+			markup: markup_bool,
 		};
 
 		<span class="kw">match </span><span class="kw-2">&amp;</span>page.permalink[..] {
@@ -1368,7 +1300,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			</span><span class="string">&quot;&quot; </span>=&gt; {}
 			<span class="kw">_ </span>=&gt; {
 				<span class="comment">// Render the URL once the Page metadata has been generated
-				</span>page.url = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>get_permalink(<span class="kw-2">&amp;</span>permalink_string), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
+				</span>page.url = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>get_permalink(<span class="kw-2">&amp;</span>permalink_string), <span class="bool-val">true</span>);
 			}
 		}
 
@@ -1427,40 +1359,46 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	///
 	/// * `text_to_render` - The text to be rendered
 	///
-	/// * `markdown` - Whether or not to render Markdown
-	///
-	/// * `math` - Whether or not to render LaTeX Math
-	</span><span class="kw">pub fn </span>render(<span class="kw-2">&amp;</span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page, text_to_render: <span class="kw-2">&amp;</span>str, markdown: bool, math: bool) -&gt; String {
-		<span class="kw">let </span>template = <span class="self">self
-			</span>.liquid_parser
-			.parse(text_to_render)
-			.into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
-			</span>))
-			.unwrap();
+	/// * `only_context` - Whether or not to only render the contexts of a Mokk file
+	</span><span class="kw">pub fn </span>render(<span class="kw-2">&amp;</span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page, text_to_render: <span class="kw-2">&amp;</span>str, only_context: bool) -&gt; String {
+		<span class="kw">let </span>rendered = <span class="kw">match </span>only_context {
+			<span class="bool-val">true </span>=&gt; {
+				<span class="kw">let </span>template = <span class="self">self</span>.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
+					.unwrap();
+				template
+					.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.\nNote: Only the page&#39;s contexts were attempting to be rendered, and not the page itself.&quot;</span>))
+					.unwrap()
+			}
+			<span class="bool-val">false </span>=&gt; {
+				<span class="kw">let </span>template = <span class="self">self
+					</span>.liquid_parser
+					.parse(text_to_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap();
+				<span class="kw">let </span>liquid_render = template
+					.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap();
+				<span class="kw">let </span>markdown_render = render_markdown(liquid_render);
 
-		<span class="kw">let </span><span class="kw-2">mut </span>rendered = template
-			.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
-			.into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
-			</span>))
-			.unwrap();
-
-		rendered = <span class="kw">match </span>markdown {
-			<span class="bool-val">true </span>=&gt; render_markdown(rendered, math),
-			<span class="bool-val">false </span>=&gt; rendered,
-		};
-
-		rendered = <span class="kw">match </span>math {
-			<span class="bool-val">true </span>=&gt; latex2mathml::replace(<span class="kw-2">&amp;</span>rendered)
-				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to render math in document (&#39;{rendered}&#39;) for {page:#?}.&quot;
-				</span>))
-				.unwrap(),
-			<span class="bool-val">false </span>=&gt; rendered,
+				latex2mathml::replace(<span class="kw-2">&amp;</span>markdown_render)
+					.into_diagnostic()
+					.wrap_err(<span class="macro">format!</span>(
+						<span class="string">&quot;Unable to render math in document (&#39;{markdown_render}&#39;) for {page:#?}.&quot;
+					</span>))
+					.unwrap()
+			}
 		};
 
 		<span class="kw">match </span><span class="kw-2">&amp;</span>page.minify {
@@ -1488,7 +1426,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 
 		<span class="comment">// If Page has a layout, render with layout(s)
 		// Otherwise, render with Page&#39;s contents
-		</span>page.content = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, page.markdown, page.math);
+		</span>page.content = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, !page.markup);
 		<span class="kw">let </span>compiled_page = <span class="kw">match </span>layout_name {
 			<span class="prelude-val">None </span>=&gt; page.content.to_owned(),
 			<span class="prelude-val">Some</span>(l) =&gt; {
@@ -1496,7 +1434,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 					<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, l.as_str().ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page)).unwrap()),
 				);
 				<span class="kw">let </span>layouts = <span class="self">self</span>.render_layouts(<span class="kw-2">&amp;</span>page, layout_object); <span class="comment">// Embed page in layout
-				</span><span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
+				</span><span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">true</span>)
 				<span class="comment">// Final render, to capture whatever layouts &amp; snippets introduce
 			</span>}
 		};
@@ -1564,8 +1502,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			permalink: sub.clone().permalink,
 			url: sub.clone().url,
 			minify: sub.clone().minify,
-			markdown: layout.markdown,
-			math: layout.math,
+			markup: layout.markup,
 		};
 
 		<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
@@ -1582,7 +1519,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				);
 				<span class="self">self</span>.render_layouts(<span class="kw-2">&amp;</span>merged_sub_page, super_layout_object)
 			}
-			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.render(sub, <span class="kw-2">&amp;</span>layout.content, layout.markdown, layout.math),
+			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.render(sub, <span class="kw-2">&amp;</span>layout.content, !layout.markup),
 		};
 
 		rendered
@@ -1721,47 +1658,12 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 /// # Arguments
 ///
 /// * `text_to_render` - The Markdown text to render into HTML
-///
-/// * `math` - Whether or not Markdown is being rendered with LaTeX Math
-</span><span class="kw">pub fn </span>render_markdown(text_to_render: String, math: bool) -&gt; String {
-	<span class="kw">let </span>extension_options = ComrakExtensionOptions {
-		strikethrough: <span class="bool-val">true</span>,
-		tagfilter: <span class="bool-val">false</span>,
-		table: <span class="bool-val">true</span>,
-		autolink: <span class="bool-val">false</span>,
-		tasklist: <span class="bool-val">true</span>,
-		superscript: !math,
-		header_ids: <span class="prelude-val">Some</span>(String::from(<span class="string">&quot;h-&quot;</span>)),
-		footnotes: <span class="bool-val">true</span>,
-		description_lists: <span class="bool-val">true</span>,
-		front_matter_delimiter: <span class="prelude-val">None</span>,
-		shortcodes: <span class="bool-val">true</span>,
-	};
-	<span class="kw">let </span>parse_options = ComrakParseOptions {
-		smart: <span class="bool-val">true</span>,
-		default_info_string: <span class="prelude-val">None</span>,
-		relaxed_tasklist_matching: <span class="bool-val">true</span>,
-	};
-	<span class="kw">let </span>render_options = ComrakRenderOptions {
-		hardbreaks: <span class="bool-val">true</span>,
-		github_pre_lang: <span class="bool-val">true</span>,
-		full_info_string: <span class="bool-val">true</span>,
-		width: <span class="number">80</span>,
-		unsafe_: <span class="bool-val">true</span>,
-		escape: <span class="bool-val">false</span>,
-		list_style: ListStyleType::Dash,
-		sourcepos: <span class="bool-val">false</span>,
-	};
-	<span class="kw">let </span>options = ComrakOptions {
-		extension: extension_options,
-		parse: parse_options,
-		render: render_options,
-	};
-	<span class="kw">let </span><span class="kw-2">mut </span>plugins = ComrakPlugins::default();
-	<span class="kw">let </span>syntax_highlighting_adapter = SyntectAdapter::new(<span class="string">&quot;InspiredGitHub&quot;</span>);
-	plugins.render.codefence_syntax_highlighter = <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>syntax_highlighting_adapter);
+</span><span class="kw">pub fn </span>render_markdown(text_to_render: String) -&gt; String {
+	<span class="kw">let </span>markdown_parser = Parser::new_ext(<span class="kw-2">&amp;</span>text_to_render, Options::all());
+	<span class="kw">let </span><span class="kw-2">mut </span>rendered_markdown = String::new();
+	html::push_html(<span class="kw-2">&amp;mut </span>rendered_markdown, markdown_parser);
 
-	markdown_to_html_with_plugins(<span class="kw-2">&amp;</span>text_to_render, <span class="kw-2">&amp;</span>options, <span class="kw-2">&amp;</span>plugins)
+	rendered_markdown
 }
 
 <span class="doccomment">/// Get the global context
