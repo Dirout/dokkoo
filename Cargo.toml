@@ -65,7 +65,7 @@ serde = "1.0.183"
 serde_yaml = "0.9.25"
 sys-locale = "0.3.0"
 ticky = { version = "1.0.2", features = ["stdtime"] }
-tokio = { version = "1.31.0", features = ["full"] }
+tokio = { version = "1.32.0", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
