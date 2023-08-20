@@ -44,7 +44,7 @@ actix-service = "2.0.2"
 actix-web = "4.3.1"
 ahash = { version = "0.8.3", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.26", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "4.3.21", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "4.3.23", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.28"
@@ -60,12 +60,12 @@ mimalloc = { version = "0.1.37", default-features = false }
 notify = "6.0.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
-relative-path = "1.8.0"
+relative-path = "1.9.0"
 serde = "1.0.183"
 serde_yaml = "0.9.25"
 sys-locale = "0.3.0"
 ticky = { version = "1.0.2", features = ["stdtime"] }
-tokio = { version = "1.31.0", features = ["full"] }
+tokio = { version = "1.32.0", features = ["full"] }
 wild = "2.1.0"
 
 [profile.release]
