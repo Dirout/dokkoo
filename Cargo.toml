@@ -63,7 +63,7 @@ pathdiff = "0.2.1"
 relative-path = "1.9.0"
 serde = "1.0.188"
 serde_yaml = "0.9.25"
-sys-locale = "0.3.0"
+sys-locale = "0.3.1"
 ticky = { version = "1.0.2", features = ["stdtime"] }
 tokio = { version = "1.32.0", features = ["full"] }
 wild = "2.1.0"
