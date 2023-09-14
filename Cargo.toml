@@ -56,7 +56,7 @@ liquid = "0.26.4"
 liquid-core = "0.26.4"
 liquid-lib = { version = "0.26.4", features = ["all", "stdlib", "jekyll", "shopify", "extra"] }
 miette = { version = "5.10.0", features = ["fancy"] }
-mimalloc = { version = "0.1.38", default-features = false }
+mimalloc = { version = "0.1.39", default-features = false }
 notify = "6.1.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
