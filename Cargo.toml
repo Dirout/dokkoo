@@ -43,8 +43,8 @@ actix-http = "3.4.0"
 actix-service = "2.0.2"
 actix-web = "4.4.0"
 ahash = { version = "0.8.3", features = ["std", "serde", "runtime-rng"] }
-chrono = { version = "0.4.30", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "4.4.2", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+chrono = { version = "0.4.31", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
+clap = { version = "4.4.3", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.28"
@@ -56,7 +56,7 @@ liquid = "0.26.4"
 liquid-core = "0.26.4"
 liquid-lib = { version = "0.26.4", features = ["all", "stdlib", "jekyll", "shopify", "extra"] }
 miette = { version = "5.10.0", features = ["fancy"] }
-mimalloc = { version = "0.1.38", default-features = false }
+mimalloc = { version = "0.1.39", default-features = false }
 notify = "6.1.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
