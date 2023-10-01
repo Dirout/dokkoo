@@ -44,7 +44,7 @@ actix-service = "2.0.2"
 actix-web = "4.4.0"
 ahash = { version = "0.8.3", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.31", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "4.4.4", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "4.4.6", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.28"
@@ -66,7 +66,7 @@ serde_yaml = "0.9.25"
 sys-locale = "0.3.1"
 ticky = { version = "1.0.2", features = ["stdtime"] }
 tokio = { version = "1.32.0", features = ["full"] }
-wild = "2.1.0"
+wild = "2.2.0"
 
 [profile.release]
 codegen-units = 1
