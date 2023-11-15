@@ -26,10 +26,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 use ahash::AHashMap;
 use chrono::{DateTime, Utc};
 use comrak::plugins::syntect::SyntectAdapter;
-use comrak::{
-	markdown_to_html_with_plugins, ComrakExtensionOptions, ComrakOptions, ComrakParseOptions,
-	ComrakPlugins, ComrakRenderOptions, ListStyleType,
-};
+use comrak::{markdown_to_html_with_plugins, ComrakPlugins, ListStyleType};
 use derive_more::{Constructor, Div, Error, From, Into, Mul, Rem, Shl, Shr};
 use html_minifier::HTMLMinifier;
 use liquid::*;
@@ -807,39 +804,34 @@ pub fn create_liquid_parser() -> liquid::Parser {
 ///
 /// * `math` - Whether or not Markdown is being rendered with LaTeX Math
 pub fn render_markdown(text_to_render: String, math: bool) -> String {
-	let extension_options = ComrakExtensionOptions {
-		strikethrough: true,
-		tagfilter: false,
-		table: true,
-		autolink: false,
-		tasklist: true,
-		superscript: !math,
-		header_ids: Some(String::from("h-")),
-		footnotes: true,
-		description_lists: true,
-		front_matter_delimiter: None,
-		shortcodes: true,
-	};
-	let parse_options = ComrakParseOptions {
-		smart: true,
-		default_info_string: None,
-		relaxed_tasklist_matching: true,
-	};
-	let render_options = ComrakRenderOptions {
-		hardbreaks: true,
-		github_pre_lang: true,
-		full_info_string: true,
-		width: 80,
-		unsafe_: true,
-		escape: false,
-		list_style: ListStyleType::Dash,
-		sourcepos: false,
-	};
-	let options = ComrakOptions {
-		extension: extension_options,
-		parse: parse_options,
-		render: render_options,
-	};
+	let mut options = comrak::Options::default();
+
+	options.extension.strikethrough = true;
+	options.extension.tagfilter = false;
+	options.extension.table = true;
+	options.extension.autolink = false;
+	options.extension.tasklist = true;
+	options.extension.superscript = !math;
+	options.extension.header_ids = Some(String::from("h-"));
+	options.extension.footnotes = true;
+	options.extension.description_lists = true;
+	options.extension.front_matter_delimiter = None;
+	options.extension.shortcodes = true;
+
+	options.parse.smart = true;
+	options.parse.default_info_string = None;
+	options.parse.relaxed_tasklist_matching = true;
+	options.parse.relaxed_autolinks = true;
+
+	options.render.hardbreaks = true;
+	options.render.github_pre_lang = true;
+	options.render.full_info_string = true;
+	options.render.width = 80;
+	options.render.unsafe_ = true;
+	options.render.escape = false;
+	options.render.list_style = ListStyleType::Dash;
+	options.render.sourcepos = false;
+
 	let mut plugins = ComrakPlugins::default();
 	let syntax_highlighting_adapter = SyntectAdapter::new("InspiredGitHub");
 	plugins.render.codefence_syntax_highlighter = Some(&syntax_highlighting_adapter);

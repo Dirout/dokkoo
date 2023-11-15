@@ -45,7 +45,7 @@ actix-web = "4.4.0"
 ahash = { version = "0.8.6", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.31", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
 clap = { version = "4.4.8", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
-comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
+comrak = { version = "0.19.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.29"
 glob = "0.3.1"
