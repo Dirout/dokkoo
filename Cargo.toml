@@ -14,10 +14,10 @@
 #    along with Dokkoo.  If not, see <https://www.gnu.org/licenses/>.
 [package]
 name = "dokkoo"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Emil Sayahi <limesayahi@gmail.com>"]
 edition = "2021"
-categories = ["command-line-utilities", "parser-implementations", "text-processing"]
+categories = ["command-line-utilities", "text-processing", "web-programming"]
 exclude = ["/.github/**/*", "/branding/**/*", "/.gitignore", "/.whitesource", "renovate.json", "/azure-pipelines.yml", "/snapcraft.yaml", "/rust-toolchain"]
 license = "AGPL-3.0-or-later"
 description = "Mokk (Macro Output Key Kit) implementation written in Rust."
