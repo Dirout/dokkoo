@@ -38,6 +38,7 @@ jobs:
         run: |
           cd ./dokkoo
           rust2rpm .
+          mv ./dokkoo.spec ./rust-dokkoo.spec
           rpmlint ./rust-dokkoo.spec
           printf "Repository:\n" && tree -a ./
       - name: Commit changes to RPM package specification file, if any
