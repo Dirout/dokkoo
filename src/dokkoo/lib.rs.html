@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dokkoo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (f967532a4 2023-12-08)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -969,7 +969,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	Shl,
 	Constructor,
 )]
-</span><span class="doccomment">/// A Mokk file&#39;s date-time metadata
+</span><span class="doccomment">/// A Mokk file's date-time metadata
 </span><span class="kw">pub struct </span>Date {
 	<span class="doccomment">/// Year with four digits
 	</span><span class="kw">pub </span>year: String,
@@ -1005,16 +1005,16 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	</span><span class="kw">pub </span>minute: String,
 	<span class="doccomment">/// Second of the minute (00..59)
 	</span><span class="kw">pub </span>second: String,
-	<span class="doccomment">/// A Mokk file&#39;s date-time metadata, formatted per the RFC 3339 standard
+	<span class="doccomment">/// A Mokk file's date-time metadata, formatted per the RFC 3339 standard
 	</span><span class="kw">pub </span>rfc_3339: String,
-	<span class="doccomment">/// A Mokk file&#39;s date-time metadata, formatted per the RFC 2822 standard
+	<span class="doccomment">/// A Mokk file's date-time metadata, formatted per the RFC 2822 standard
 	</span><span class="kw">pub </span>rfc_2822: String,
 }
 
 <span class="doccomment">/// Handle conversion of a Date object into a string of characters
 </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Date {
 	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-		<span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.rfc_3339)
+		<span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.rfc_3339)
 	}
 }
 
@@ -1032,14 +1032,14 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				<span class="kw">let </span>datetime = DateTime::parse_from_rfc3339(
 					d.as_str()
 						.ok_or(<span class="macro">miette!</span>(
-							<span class="string">&quot;Unable to read `date` value ({:?}) as a string.&quot;</span>,
+							<span class="string">"Unable to read `date` value ({:?}) as a string."</span>,
 							d
 						))
 						.unwrap(),
 				)
 				.into_diagnostic()
 				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse `date` value ({:?}) as an RFC 3339 date-time.&quot;</span>,
+					<span class="string">"Unable to parse `date` value ({:?}) as an RFC 3339 date-time."</span>,
 					d
 				))
 				.unwrap(); <span class="comment">// Turn the date-time into a DateTime object for easy manipulation (to generate temporal metadata)
@@ -1079,23 +1079,23 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	/// * `locale` - A `chrono::Locale` object
 	</span><span class="kw">pub fn </span>chrono_to_date(datetime: chrono::DateTime&lt;Utc&gt;, locale: chrono::Locale) -&gt; Date {
 		Date {
-			year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%Y&quot;</span>, locale)),
-			short_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%y&quot;</span>, locale)),
-			month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%m&quot;</span>, locale)),
-			i_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-m&quot;</span>, locale)),
-			short_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%b&quot;</span>, locale)),
-			long_month: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%B&quot;</span>, locale)),
-			day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%d&quot;</span>, locale)),
-			i_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%-d&quot;</span>, locale)),
-			y_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%j&quot;</span>, locale)),
-			w_year: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%G&quot;</span>, locale)),
-			week: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%U&quot;</span>, locale)),
-			w_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%u&quot;</span>, locale)),
-			short_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%a&quot;</span>, locale)),
-			long_day: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%A&quot;</span>, locale)),
-			hour: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%H&quot;</span>, locale)),
-			minute: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%M&quot;</span>, locale)),
-			second: <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, datetime.format_localized(<span class="string">&quot;%S&quot;</span>, locale)),
+			year: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%Y"</span>, locale)),
+			short_year: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%y"</span>, locale)),
+			month: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%m"</span>, locale)),
+			i_month: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%-m"</span>, locale)),
+			short_month: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%b"</span>, locale)),
+			long_month: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%B"</span>, locale)),
+			day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%d"</span>, locale)),
+			i_day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%-d"</span>, locale)),
+			y_day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%j"</span>, locale)),
+			w_year: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%G"</span>, locale)),
+			week: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%U"</span>, locale)),
+			w_day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%u"</span>, locale)),
+			short_day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%a"</span>, locale)),
+			long_day: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%A"</span>, locale)),
+			hour: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%H"</span>, locale)),
+			minute: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%M"</span>, locale)),
+			second: <span class="macro">format!</span>(<span class="string">"{}"</span>, datetime.format_localized(<span class="string">"%S"</span>, locale)),
 			rfc_3339: datetime.to_rfc3339(),
 			rfc_2822: datetime.to_rfc2822(),
 		}
@@ -1122,25 +1122,25 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 )]
 </span><span class="doccomment">/// Generated data regarding a Mokk file
 </span><span class="kw">pub struct </span>Page {
-	<span class="doccomment">/// A Mokk file&#39;s contextual data, represented as YAML at the head/front of the file
+	<span class="doccomment">/// A Mokk file's contextual data, represented as YAML at the head/front of the file
 	</span><span class="kw">pub </span>data: AHashMap&lt;String, serde_yaml::Value&gt;,
-	<span class="doccomment">/// A Mokk file&#39;s contents following the frontmatter
+	<span class="doccomment">/// A Mokk file's contents following the frontmatter
 	</span><span class="kw">pub </span>content: String,
 	<span class="doccomment">/// Data representing the output path of a Mokk file.
-	/// This is defined in a Mokk file&#39;s frontmatter
+	/// This is defined in a Mokk file's frontmatter
 	</span><span class="kw">pub </span>permalink: String,
-	<span class="doccomment">/// A Mokk file&#39;s date-time metadata, formatted per the RFC 3339 standard.
-	/// This is defined in a Mokk file&#39;s frontmatter
+	<span class="doccomment">/// A Mokk file's date-time metadata, formatted per the RFC 3339 standard.
+	/// This is defined in a Mokk file's frontmatter
 	</span><span class="kw">pub </span>date: Date,
 	<span class="doccomment">/// Path to the Mokk file, not including the Mokk file itself
 	</span><span class="kw">pub </span>directory: String,
-	<span class="doccomment">/// The Mokk file&#39;s base filename
+	<span class="doccomment">/// The Mokk file's base filename
 	</span><span class="kw">pub </span>name: String,
 	<span class="doccomment">/// The output path of a file; a processed `permalink` value
 	</span><span class="kw">pub </span>url: String,
-	<span class="doccomment">/// Whether a Mokk file&#39;s contents are intended to be processed as Markdown or not
+	<span class="doccomment">/// Whether a Mokk file's contents are intended to be processed as Markdown or not
 	</span><span class="kw">pub </span>markdown: bool,
-	<span class="doccomment">/// Whether a Mokk file&#39;s contents are intended to be processed as LaTeX Math or not
+	<span class="doccomment">/// Whether a Mokk file's contents are intended to be processed as LaTeX Math or not
 	</span><span class="kw">pub </span>math: bool,
 	<span class="doccomment">/// Whether a Mokk file is intended to be minified
 	</span><span class="kw">pub </span>minify: bool,
@@ -1149,7 +1149,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 <span class="doccomment">/// Handle conversion of a Page object into a string of characters
 </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Page {
 	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-		<span class="macro">write!</span>(f, <span class="string">&quot;{self:#?}&quot;</span>)
+		<span class="macro">write!</span>(f, <span class="string">"{self:#?}"</span>)
 	}
 }
 
@@ -1174,7 +1174,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	</span><span class="kw">pub </span>locale: String,
 	<span class="doccomment">/// The `Date` object representing the date &amp; time of the build
 	</span><span class="kw">pub </span>date: Date,
-	<span class="doccomment">/// Whether the build&#39;s outputs are intended to be minified
+	<span class="doccomment">/// Whether the build's outputs are intended to be minified
 	</span><span class="kw">pub </span>minify: bool,
 }
 
@@ -1189,9 +1189,9 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	}
 }
 
-<span class="doccomment">/// Gets a string representing the system locale, if available. Otherwise, defaults to &#39;en_US&#39;
+<span class="doccomment">/// Gets a string representing the system locale, if available. Otherwise, defaults to 'en_US'
 </span><span class="kw">pub fn </span>default_locale_string() -&gt; String {
-	get_locale().unwrap_or(<span class="string">&quot;en_US&quot;</span>.to_owned())
+	get_locale().unwrap_or(<span class="string">"en_US"</span>.to_owned())
 }
 
 <span class="doccomment">/// Gets the system locale, if available. Otherwise, defaults to `en_US`
@@ -1208,7 +1208,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 </span><span class="kw">pub struct </span>Build {
 	<span class="doccomment">/// A collection of pages, grouped by their collection name
 	</span><span class="kw">pub </span>collections: AHashMap&lt;String, Vec&lt;Page&gt;&gt;,
-	<span class="doccomment">/// The global context, defined in the Mokk&#39;s global file
+	<span class="doccomment">/// The global context, defined in the Mokk's global file
 	</span><span class="kw">pub </span>global_context: (AHashMap&lt;String, serde_yaml::Value&gt;, Global),
 	<span class="doccomment">/// The Liquid parser
 	</span><span class="kw">pub </span>liquid_parser: liquid::Parser,
@@ -1226,32 +1226,32 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 }
 
 <span class="kw">impl </span>Build {
-	<span class="doccomment">/// Returns an object with a `Page`&#39;s context
+	<span class="doccomment">/// Returns an object with a `Page`'s context
 	///
 	/// # Arguments
 	///
-	/// * `page_path` - The `.mokkf` file&#39;s path as a `String`
+	/// * `page_path` - The `.mokkf` file's path as a `String`
 	</span><span class="kw">pub fn </span>get_page_object(<span class="kw-2">&amp;</span><span class="self">self</span>, page_path: String) -&gt; Page {
-		<span class="comment">// Define variables which we&#39;ll use to create our Document, which we&#39;ll use to generate the Page context
+		<span class="comment">// Define variables which we'll use to create our Document, which we'll use to generate the Page context
 		</span><span class="kw">let </span>split_page = split_frontmatter(
 			fs::read_to_string(<span class="kw-2">&amp;</span>page_path)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Failed to read the file at &#39;{}&#39;.&quot;</span>, <span class="kw-2">&amp;</span>page_path))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">"Failed to read the file at '{}'."</span>, <span class="kw-2">&amp;</span>page_path))
 				.unwrap(),
 		); <span class="comment">// See file::split_frontmatter
 		</span><span class="kw">let </span>frontmatter: AHashMap&lt;String, serde_yaml::Value&gt; = serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
 			.into_diagnostic()
 			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Failed to parse frontmatter from &#39;{}&#39;.&quot;</span>,
+				<span class="string">"Failed to parse frontmatter from '{}'."</span>,
 				<span class="kw-2">&amp;</span>page_path
 			))
 			.unwrap(); <span class="comment">// Parse frontmatter as AHashMap (collection of key-value pairs)
 
-		</span><span class="kw">let </span>permalink_string: String = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;permalink&quot;</span>) {
+		</span><span class="kw">let </span>permalink_string: String = <span class="kw">match </span>frontmatter.get(<span class="string">"permalink"</span>) {
 			<span class="prelude-val">Some</span>(p) =&gt; p
 				.as_str()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `permalink` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to read `permalink` value ({:?}) as string in frontmatter of file '{}'."</span>,
 					p,
 					<span class="kw-2">&amp;</span>page_path
 				))
@@ -1260,11 +1260,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">None </span>=&gt; String::new(),
 		};
 
-		<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;markdown&quot;</span>) {
+		<span class="kw">let </span>markdown_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">"markdown"</span>) {
 			<span class="prelude-val">Some</span>(m) =&gt; m
 				.as_bool()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `markdown` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to read `markdown` value ({:?}) as string in frontmatter of file '{}'."</span>,
 					m,
 					<span class="kw-2">&amp;</span>page_path
 				))
@@ -1272,11 +1272,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
 		};
 
-		<span class="kw">let </span>math_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;math&quot;</span>) {
+		<span class="kw">let </span>math_bool: bool = <span class="kw">match </span>frontmatter.get(<span class="string">"math"</span>) {
 			<span class="prelude-val">Some</span>(m) =&gt; m
 				.as_bool()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `math` value ({:?}) as string in frontmatter of file &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to read `math` value ({:?}) as string in frontmatter of file '{}'."</span>,
 					m,
 					<span class="kw-2">&amp;</span>page_path
 				))
@@ -1284,11 +1284,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
 		};
 
-		<span class="kw">let </span>locale_value = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;locale&quot;</span>) {
+		<span class="kw">let </span>locale_value = <span class="kw">match </span>frontmatter.get(<span class="string">"locale"</span>) {
 			<span class="prelude-val">Some</span>(pl) =&gt; pl
 				.as_str()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `locale` value ({:?}) from page frontmatter.&quot;</span>,
+					<span class="string">"Unable to read `locale` value ({:?}) from page frontmatter."</span>,
 					pl
 				))
 				.unwrap()
@@ -1296,11 +1296,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.global_context.<span class="number">1</span>.locale.clone(),
 		};
 
-		<span class="kw">let </span>minify_value = <span class="kw">match </span>frontmatter.get(<span class="string">&quot;minify&quot;</span>) {
+		<span class="kw">let </span>minify_value = <span class="kw">match </span>frontmatter.get(<span class="string">"minify"</span>) {
 			<span class="prelude-val">Some</span>(m) =&gt; m
 				.as_bool()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to read `minify` value ({:?}) from page frontmatter.&quot;</span>,
+					<span class="string">"Unable to read `minify` value ({:?}) from page frontmatter."</span>,
 					m
 				))
 				.unwrap()
@@ -1310,7 +1310,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 
 		<span class="kw">let </span>locale: chrono::Locale = locale_string_to_locale(locale_value); <span class="comment">// Get locale from Global context
 
-		</span><span class="kw">let </span>date_object = Date::value_to_date(frontmatter.get(<span class="string">&quot;date&quot;</span>), locale);
+		</span><span class="kw">let </span>date_object = Date::value_to_date(frontmatter.get(<span class="string">"date"</span>), locale);
 
 		<span class="kw">let </span>page_path_io = Path::new(<span class="kw-2">&amp;</span>page_path[..]); <span class="comment">// Turn the path into a Path object for easy manipulation (to get page.directory and page.name)
 
@@ -1320,7 +1320,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			data: serde_yaml::from_str(<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>)
 				.into_diagnostic()
 				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to parse page frontmatter ({}) while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to parse page frontmatter ({}) while rendering '{}'."</span>,
 					<span class="kw-2">&amp;</span>split_page.<span class="number">0</span>, <span class="kw-2">&amp;</span>page_path
 				))
 				.unwrap(),
@@ -1329,10 +1329,10 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			date: date_object,
 			directory: page_path_io
 				.parent()
-				.unwrap_or(Path::new(<span class="string">&quot;&quot;</span>))
+				.unwrap_or(Path::new(<span class="string">""</span>))
 				.to_str()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to represent parent directory of page as a string while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to represent parent directory of page as a string while rendering '{}'."</span>,
 					<span class="kw-2">&amp;</span>page_path
 				))
 				.unwrap()
@@ -1342,7 +1342,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				.unwrap_or(<span class="kw-2">&amp;</span>OsString::new())
 				.to_str()
 				.ok_or(<span class="macro">miette!</span>(
-					<span class="string">&quot;Unable to represent file stem of page as a string while rendering &#39;{}&#39;.&quot;</span>,
+					<span class="string">"Unable to represent file stem of page as a string while rendering '{}'."</span>,
 					<span class="kw-2">&amp;</span>page_path
 				))
 				.unwrap()
@@ -1353,8 +1353,8 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 		};
 
 		<span class="kw">match </span><span class="kw-2">&amp;</span>page.permalink[..] {
-			<span class="comment">// Don&#39;t render the URL if the permalink is empty
-			</span><span class="string">&quot;&quot; </span>=&gt; {}
+			<span class="comment">// Don't render the URL if the permalink is empty
+			</span><span class="string">"" </span>=&gt; {}
 			<span class="kw">_ </span>=&gt; {
 				<span class="comment">// Render the URL once the Page metadata has been generated
 				</span>page.url = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>get_permalink(<span class="kw-2">&amp;</span>permalink_string), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
@@ -1364,16 +1364,16 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 		page
 	}
 
-	<span class="doccomment">/// Returns a Liquid object with a `Page`&#39;s Liquid contexts
+	<span class="doccomment">/// Returns a Liquid object with a `Page`'s Liquid contexts
 	///
 	/// # Arguments
 	///
-	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	/// * `page` - The `.mokkf` file's context as a `Page`
 	</span><span class="kw">pub fn </span>get_contexts(<span class="kw-2">&amp;</span><span class="self">self</span>, page: <span class="kw-2">&amp;</span>Page) -&gt; Object {
 		<span class="comment">/*
 		Layouts
 		*/
-		</span><span class="kw">let </span>layout_name = page.data.get(<span class="string">&quot;layout&quot;</span>);
+		</span><span class="kw">let </span>layout_name = page.data.get(<span class="string">"layout"</span>);
 
 		<span class="comment">// Import layout context if Page has a layout
 		</span><span class="kw">let </span>layout: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>layout_name {
@@ -1381,38 +1381,38 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="prelude-val">Some</span>(l) =&gt; serde_yaml::from_str(
 				<span class="kw-2">&amp;</span>split_frontmatter(
 					fs::read_to_string(<span class="macro">format!</span>(
-						<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
+						<span class="string">"./layouts/{}.mokkf"</span>,
 						l
 							.as_str()
-							.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page))
+							.ok_or(<span class="macro">miette!</span>(<span class="string">"Unable to represent layout name ({:?}) as a string while rendering '{:#?}'."</span>, l, page))
 							.unwrap()
 					))
 					.into_diagnostic()
-					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to read layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
+					.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to read layout file ({:?}) mentioned in frontmatter of file '{}'."</span>, l, page.name))
 					.unwrap(),
 				)
 				.<span class="number">0</span>,
 			)
 			.into_diagnostic()
-			.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file &#39;{}&#39;.&quot;</span>, l, page.name))
+			.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to parse frontmatter of layout file ({:?}) mentioned in frontmatter of file '{}'."</span>, l, page.name))
 			.unwrap(),
 		};
 
 		<span class="kw">let </span>contexts = <span class="macro">object!</span>({
-			<span class="string">&quot;global&quot;</span>: <span class="self">self</span>.global_context.<span class="number">0</span>,
-			<span class="string">&quot;page&quot;</span>: page,
-			<span class="string">&quot;layout&quot;</span>: layout,
-			<span class="string">&quot;collections&quot;</span>: <span class="self">self</span>.collections,
+			<span class="string">"global"</span>: <span class="self">self</span>.global_context.<span class="number">0</span>,
+			<span class="string">"page"</span>: page,
+			<span class="string">"layout"</span>: layout,
+			<span class="string">"collections"</span>: <span class="self">self</span>.collections,
 		});
 
 		contexts
 	}
 
-	<span class="doccomment">/// Returns a `String` with a `&amp;str`&#39;s Mokk file rendered
+	<span class="doccomment">/// Returns a `String` with a `&amp;str`'s Mokk file rendered
 	///
 	/// # Arguments
 	///
-	/// * `page` - A `.mokkf` file&#39;s context as a `Page`
+	/// * `page` - A `.mokkf` file's context as a `Page`
 	///
 	/// * `text_to_render` - The text to be rendered
 	///
@@ -1425,7 +1425,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			.parse(text_to_render)
 			.into_diagnostic()
 			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Unable to parse text to render (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+				<span class="string">"Unable to parse text to render ('{text_to_render}') for {page:#?}."
 			</span>))
 			.unwrap();
 
@@ -1433,7 +1433,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			.render(<span class="kw-2">&amp;</span><span class="self">self</span>.get_contexts(page))
 			.into_diagnostic()
 			.wrap_err(<span class="macro">format!</span>(
-				<span class="string">&quot;Unable to render text (&#39;{text_to_render}&#39;) for {page:#?}.&quot;
+				<span class="string">"Unable to render text ('{text_to_render}') for {page:#?}."
 			</span>))
 			.unwrap();
 
@@ -1446,7 +1446,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			<span class="bool-val">true </span>=&gt; latex2mathml::replace(<span class="kw-2">&amp;</span>rendered)
 				.into_diagnostic()
 				.wrap_err(<span class="macro">format!</span>(
-					<span class="string">&quot;Unable to render math in document (&#39;{rendered}&#39;) for {page:#?}.&quot;
+					<span class="string">"Unable to render math in document ('{rendered}') for {page:#?}."
 				</span>))
 				.unwrap(),
 			<span class="bool-val">false </span>=&gt; rendered,
@@ -1458,7 +1458,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 				html_minifier
 					.digest(<span class="kw-2">&amp;</span>rendered)
 					.into_diagnostic()
-					.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to minify HTML for {page:#?}.&quot;</span>))
+					.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to minify HTML for {page:#?}."</span>))
 					.unwrap();
 				String::from_utf8_lossy(html_minifier.get_html()).to_string()
 			}
@@ -1470,19 +1470,19 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	///
 	/// # Arguments
 	///
-	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	/// * `page` - The `.mokkf` file's context as a `Page`
 	</span><span class="kw">pub fn </span>compile(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>page: Page) -&gt; String {
-		<span class="kw">let </span>layout_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;layout&quot;</span>);
-		<span class="kw">let </span>collection_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">&quot;collection&quot;</span>);
+		<span class="kw">let </span>layout_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">"layout"</span>);
+		<span class="kw">let </span>collection_name = <span class="kw-2">&amp;</span>page.data.get(<span class="string">"collection"</span>);
 
 		<span class="comment">// If Page has a layout, render with layout(s)
-		// Otherwise, render with Page&#39;s contents
+		// Otherwise, render with Page's contents
 		</span>page.content = <span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>page.content, page.markdown, page.math);
 		<span class="kw">let </span>compiled_page = <span class="kw">match </span>layout_name {
 			<span class="prelude-val">None </span>=&gt; page.content.to_owned(),
 			<span class="prelude-val">Some</span>(l) =&gt; {
 				<span class="kw">let </span>layout_object = <span class="self">self</span>.get_page_object(
-					<span class="macro">format!</span>(<span class="string">&quot;./layouts/{}.mokkf&quot;</span>, l.as_str().ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, page)).unwrap()),
+					<span class="macro">format!</span>(<span class="string">"./layouts/{}.mokkf"</span>, l.as_str().ok_or(<span class="macro">miette!</span>(<span class="string">"Unable to represent layout name ({:?}) as a string while rendering '{:#?}'."</span>, l, page)).unwrap()),
 				);
 				<span class="kw">let </span>layouts = <span class="self">self</span>.render_layouts(<span class="kw-2">&amp;</span>page, layout_object); <span class="comment">// Embed page in layout
 				</span><span class="self">self</span>.render(<span class="kw-2">&amp;</span>page, <span class="kw-2">&amp;</span>layouts, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
@@ -1490,14 +1490,14 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			</span>}
 		};
 
-		<span class="comment">// When within a collection, append embeddable page to list of collection&#39;s entries
+		<span class="comment">// When within a collection, append embeddable page to list of collection's entries
 		</span><span class="kw">match </span>collection_name {
 			<span class="prelude-val">None </span>=&gt; {}
 			<span class="prelude-val">Some</span>(c) =&gt; {
 				<span class="kw">let </span>collection_name_str = c
 					.as_str()
 					.ok_or(<span class="macro">miette!</span>(
-						<span class="string">&quot;Unable to represent collection name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>,
+						<span class="string">"Unable to represent collection name ({:?}) as a string while rendering '{:#?}'."</span>,
 						c,
 						page
 					))
@@ -1511,7 +1511,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 							</span>.collections
 							.get_mut(collection_name_str)
 							.ok_or(<span class="macro">miette!</span>(
-								<span class="string">&quot;Unable to get collection ({}) while rendering &#39;{:#?}&#39;.&quot;</span>,
+								<span class="string">"Unable to get collection ({}) while rendering '{:#?}'."</span>,
 								collection_name_str,
 								page
 							))
@@ -1533,11 +1533,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	///
 	/// # Arguments
 	///
-	/// * `page` - The `.mokkf` file&#39;s context as a `Page`
+	/// * `page` - The `.mokkf` file's context as a `Page`
 	///
-	/// * `layout` - The Mokk file&#39;s layout&#39;s context as a `Page`
+	/// * `layout` - The Mokk file's layout's context as a `Page`
 	</span><span class="kw">pub fn </span>render_layouts(<span class="kw-2">&amp;</span><span class="self">self</span>, sub: <span class="kw-2">&amp;</span>Page, layout: Page) -&gt; String {
-		<span class="comment">// Take layout&#39;s text, render it with sub&#39;s context
+		<span class="comment">// Take layout's text, render it with sub's context
 
 		</span><span class="kw">let </span>merged_sub_page = Page {
 			data: sub
@@ -1557,15 +1557,15 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 			math: layout.math,
 		};
 
-		<span class="kw">let </span>super_layout = layout.data.get(<span class="string">&quot;layout&quot;</span>);
+		<span class="kw">let </span>super_layout = layout.data.get(<span class="string">"layout"</span>);
 		<span class="kw">let </span>rendered: String = <span class="kw">match </span>super_layout {
 			<span class="prelude-val">Some</span>(l) =&gt; {
 				<span class="kw">let </span>super_layout_object = <span class="self">self</span>.get_page_object(
 					<span class="macro">format!</span>(
-						<span class="string">&quot;./layouts/{}.mokkf&quot;</span>,
+						<span class="string">"./layouts/{}.mokkf"</span>,
 						l
 							.as_str()
-							.ok_or(<span class="macro">miette!</span>(<span class="string">&quot;Unable to represent layout name ({:?}) as a string while rendering &#39;{:#?}&#39;.&quot;</span>, l, merged_sub_page))
+							.ok_or(<span class="macro">miette!</span>(<span class="string">"Unable to represent layout name ({:?}) as a string while rendering '{:#?}'."</span>, l, merged_sub_page))
 							.unwrap()
 					),
 				);
@@ -1597,21 +1597,21 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 /// * `none` → `/{{ page.data.collection }}/{{ page.data.title }}.html`
 </span><span class="kw">pub fn </span>get_permalink(permalink: <span class="kw-2">&amp;</span>str) -&gt; String {
 	<span class="kw">match </span>permalink {
-        <span class="string">&quot;date&quot; </span>=&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html&quot;</span>.to_owned()
+        <span class="string">"date" </span>=&gt; {
+            <span class="string">"/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}.html"</span>.to_owned()
         }
-        <span class="string">&quot;pretty&quot; </span>=&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html&quot;</span>.to_owned()
+        <span class="string">"pretty" </span>=&gt; {
+            <span class="string">"/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.month }}/{{ page.date.day }}/{{ page.data.title }}/index.html"</span>.to_owned()
         }
-        <span class="string">&quot;ordinal&quot; </span>=&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html&quot;
+        <span class="string">"ordinal" </span>=&gt; {
+            <span class="string">"/{{ page.data.collection }}/{{ page.date.year }}/{{ page.date.y_day }}/{{ page.data.title }}.html"
                 </span>.to_owned()
         }
-        <span class="string">&quot;weekdate&quot; </span>=&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html&quot;</span>.to_owned()
+        <span class="string">"weekdate" </span>=&gt; {
+            <span class="string">"/{{ page.data.collection }}/{{ page.date.year }}/W{{ page.date.week }}/{{ page.date.short_day }}/{{ page.data.title }}.html"</span>.to_owned()
         }
-        <span class="string">&quot;none&quot; </span>=&gt; {
-            <span class="string">&quot;/{{ page.data.collection }}/{{ page.data.title }}.html&quot;</span>.to_owned()
+        <span class="string">"none" </span>=&gt; {
+            <span class="string">"/{{ page.data.collection }}/{{ page.data.title }}.html"</span>.to_owned()
         }
         <span class="kw">_ </span>=&gt; {
             permalink.to_string()
@@ -1619,11 +1619,11 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
     }
 }
 
-<span class="doccomment">/// Returns a tuple with a Mokk file&#39;s frontmatter and contents, in that order
+<span class="doccomment">/// Returns a tuple with a Mokk file's frontmatter and contents, in that order
 ///
 /// # Arguments
 ///
-/// * `page_text` - The `.mokkf` file&#39;s data as a `String`
+/// * `page_text` - The `.mokkf` file's data as a `String`
 </span><span class="kw">pub fn </span>split_frontmatter(page_text: String) -&gt; (String, String) {
 	<span class="kw">let </span><span class="kw-2">mut </span>begin = <span class="bool-val">false</span>;
 	<span class="kw">let </span><span class="kw-2">mut </span>end = <span class="bool-val">false</span>;
@@ -1631,27 +1631,27 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	<span class="kw">let </span><span class="kw-2">mut </span>contents = String::new();
 
 	<span class="kw">for </span>line <span class="kw">in </span>page_text.lines() {
-		<span class="kw">if </span>!begin &amp;&amp; line == <span class="string">&quot;---&quot; </span>{
+		<span class="kw">if </span>!begin &amp;&amp; line == <span class="string">"---" </span>{
 			begin = <span class="bool-val">true</span>;
-		} <span class="kw">else if </span>begin &amp;&amp; line == <span class="string">&quot;---&quot; </span>&amp;&amp; !end {
+		} <span class="kw">else if </span>begin &amp;&amp; line == <span class="string">"---" </span>&amp;&amp; !end {
 			end = <span class="bool-val">true</span>;
 		} <span class="kw">else if </span>begin &amp;&amp; !end {
-			<span class="comment">//frontmatter.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));
-			</span><span class="macro">writeln!</span>(frontmatter, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>line)
+			<span class="comment">//frontmatter.push_str(&amp;format!("{}\n", &amp;line));
+			</span><span class="macro">writeln!</span>(frontmatter, <span class="string">"{}"</span>, <span class="kw-2">&amp;</span>line)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Failed to write a line of frontmatter to memory ({}). Managed to write the following:\n{}&quot;</span>, <span class="kw-2">&amp;</span>line, <span class="kw-2">&amp;</span>frontmatter))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">"Failed to write a line of frontmatter to memory ({}). Managed to write the following:\n{}"</span>, <span class="kw-2">&amp;</span>line, <span class="kw-2">&amp;</span>frontmatter))
 				.unwrap();
 		} <span class="kw">else </span>{
-			<span class="comment">//contents.push_str(&amp;format!(&quot;{}\n&quot;, &amp;line));
-			</span><span class="macro">writeln!</span>(contents, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>line)
+			<span class="comment">//contents.push_str(&amp;format!("{}\n", &amp;line));
+			</span><span class="macro">writeln!</span>(contents, <span class="string">"{}"</span>, <span class="kw-2">&amp;</span>line)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Failed to write a line of content to memory ({}). Managed to write the following:\n{}&quot;</span>, <span class="kw-2">&amp;</span>line, <span class="kw-2">&amp;</span>contents))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">"Failed to write a line of content to memory ({}). Managed to write the following:\n{}"</span>, <span class="kw-2">&amp;</span>line, <span class="kw-2">&amp;</span>contents))
 				.unwrap();
 		}
 	}
 
 	<span class="kw">if </span>frontmatter.trim().is_empty() {
-		frontmatter = <span class="string">&quot;empty: true&quot;</span>.to_owned();
+		frontmatter = <span class="string">"empty: true"</span>.to_owned();
 	}
 
 	(frontmatter, contents)
@@ -1660,28 +1660,28 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 <span class="doccomment">/// Creates a Liquid parser
 </span><span class="kw">pub fn </span>create_liquid_parser() -&gt; liquid::Parser {
 	<span class="kw">let </span><span class="kw-2">mut </span>partial = liquid::partials::InMemorySource::new();
-	<span class="kw">let </span>snippets = glob::glob(<span class="string">&quot;./snippets/**/*&quot;</span>);
+	<span class="kw">let </span>snippets = glob::glob(<span class="string">"./snippets/**/*"</span>);
 	<span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = snippets {
 		<span class="kw">for </span>snippet <span class="kw">in </span>s {
 			<span class="kw">let </span>unwrapped_snippet = snippet
 				.into_diagnostic()
-				.wrap_err(<span class="string">&quot;Unable to interpret path to snippet file.&quot;</span>)
+				.wrap_err(<span class="string">"Unable to interpret path to snippet file."</span>)
 				.unwrap();
 			<span class="kw">if </span>unwrapped_snippet.is_file() {
 				<span class="kw">let </span>relative_path = RelativePath::from_path(<span class="kw-2">&amp;</span>unwrapped_snippet)
 					.into_diagnostic()
 					.wrap_err(<span class="macro">format!</span>(
-						<span class="string">&quot;Unable to interpret path to snippet file (&#39;{}&#39;) as a relative path.&quot;</span>,
+						<span class="string">"Unable to interpret path to snippet file ('{}') as a relative path."</span>,
 						unwrapped_snippet.display()
 					))
 					.unwrap();
-				<span class="kw">let </span>snippet_name = relative_path.strip_prefix(<span class="string">&quot;snippets&quot;</span>).unwrap().to_string();
+				<span class="kw">let </span>snippet_name = relative_path.strip_prefix(<span class="string">"snippets"</span>).unwrap().to_string();
 				<span class="kw">let </span>path = <span class="kw-2">&amp;</span>unwrapped_snippet.as_path();
 				partial.add(
 					snippet_name,
 					<span class="kw-2">&amp;</span>fs::read_to_string(path)
 						.into_diagnostic()
-						.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to read snippet file &#39;{}&#39;.&quot;</span>, path.display()))
+						.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to read snippet file '{}'."</span>, path.display()))
 						.unwrap(),
 				);
 			}
@@ -1701,7 +1701,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 		.partials(partial_compiler)
 		.build()
 		.into_diagnostic()
-		.wrap_err(<span class="string">&quot;Unable to build a Liquid parser.&quot;</span>)
+		.wrap_err(<span class="string">"Unable to build a Liquid parser."</span>)
 		.unwrap()
 }
 
@@ -1721,7 +1721,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	options.extension.autolink = <span class="bool-val">false</span>;
 	options.extension.tasklist = <span class="bool-val">true</span>;
 	options.extension.superscript = !math;
-	options.extension.header_ids = <span class="prelude-val">Some</span>(String::from(<span class="string">&quot;h-&quot;</span>));
+	options.extension.header_ids = <span class="prelude-val">Some</span>(String::from(<span class="string">"h-"</span>));
 	options.extension.footnotes = <span class="bool-val">true</span>;
 	options.extension.description_lists = <span class="bool-val">true</span>;
 	options.extension.front_matter_delimiter = <span class="prelude-val">None</span>;
@@ -1742,7 +1742,7 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 	options.render.sourcepos = <span class="bool-val">false</span>;
 
 	<span class="kw">let </span><span class="kw-2">mut </span>plugins = ComrakPlugins::default();
-	<span class="kw">let </span>syntax_highlighting_adapter = SyntectAdapter::new(<span class="string">&quot;InspiredGitHub&quot;</span>);
+	<span class="kw">let </span>syntax_highlighting_adapter = SyntectAdapter::new(<span class="string">"InspiredGitHub"</span>);
 	plugins.render.codefence_syntax_highlighter = <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>syntax_highlighting_adapter);
 
 	markdown_to_html_with_plugins(<span class="kw-2">&amp;</span>text_to_render, <span class="kw-2">&amp;</span>options, <span class="kw-2">&amp;</span>plugins)
@@ -1751,41 +1751,41 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 <span class="doccomment">/// Get the global context
 </span><span class="kw">pub fn </span>get_global_context() -&gt; (AHashMap&lt;String, serde_yaml::Value&gt;, Global) {
 	<span class="kw">let </span>global_context: AHashMap&lt;String, serde_yaml::Value&gt; = <span class="kw">match </span>fs::read_to_string(
-		<span class="string">&quot;./_global.yml&quot;</span>,
+		<span class="string">"./_global.yml"</span>,
 	) {
 		<span class="prelude-val">Ok</span>(g) =&gt; {
 			serde_yaml::from_str(<span class="kw-2">&amp;</span>g)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to parse global file ({g}).&quot;</span>))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to parse global file ({g})."</span>))
 				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
 		</span>}
 		<span class="prelude-val">Err</span>(e) =&gt; {
-			serde_yaml::from_str(<span class="string">&quot;empty: true&quot;</span>)
+			serde_yaml::from_str(<span class="string">"empty: true"</span>)
 				.into_diagnostic()
-				.wrap_err(<span class="macro">format!</span>(<span class="string">&quot;Unable to initialise a blank global file. If you&#39;re seeing this message, something is very wrong. The global file cannot be read and a blank, default global file failed to initialise. An error occurred when attempting to read the global file: {e}&quot;</span>))
+				.wrap_err(<span class="macro">format!</span>(<span class="string">"Unable to initialise a blank global file. If you're seeing this message, something is very wrong. The global file cannot be read and a blank, default global file failed to initialise. An error occurred when attempting to read the global file: {e}"</span>))
 				.unwrap() <span class="comment">// Defined as variable as it required a type annotation
 		</span>}
 	};
 
-	<span class="kw">let </span>locale_value = <span class="kw">match </span>global_context.get(<span class="string">&quot;locale&quot;</span>) {
+	<span class="kw">let </span>locale_value = <span class="kw">match </span>global_context.get(<span class="string">"locale"</span>) {
 		<span class="prelude-val">Some</span>(l) =&gt; l
 			.as_str()
 			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to read `locale` value ({:?}) from global file.&quot;</span>,
+				<span class="string">"Unable to read `locale` value ({:?}) from global file."</span>,
 				l
 			))
 			.unwrap()
 			.to_owned(),
-		<span class="prelude-val">None </span>=&gt; get_locale().unwrap_or(<span class="string">&quot;en_US&quot;</span>.to_owned()),
+		<span class="prelude-val">None </span>=&gt; get_locale().unwrap_or(<span class="string">"en_US"</span>.to_owned()),
 	};
 
 	<span class="comment">// let locale: chrono::Locale = chrono::Locale::try_from(locale_value.as_str()).unwrap(); // Get locale from Global context
 
-	</span><span class="kw">let </span>minify_value = <span class="kw">match </span>global_context.get(<span class="string">&quot;minify&quot;</span>) {
+	</span><span class="kw">let </span>minify_value = <span class="kw">match </span>global_context.get(<span class="string">"minify"</span>) {
 		<span class="prelude-val">Some</span>(m) =&gt; m
 			.as_bool()
 			.ok_or(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to read `minify` value ({:?}) from global file.&quot;</span>,
+				<span class="string">"Unable to read `minify` value ({:?}) from global file."</span>,
 				m
 			))
 			.unwrap(),
@@ -1802,14 +1802,14 @@ A Mokk file represents a document or page written in accordance to [the Mokk spe
 		serde_yaml::to_value(global.clone())
 			.into_diagnostic()
 			.wrap_err(<span class="macro">miette!</span>(
-				<span class="string">&quot;Unable to represent global file data ({:#?}) as a collection of values.&quot;</span>,
+				<span class="string">"Unable to represent global file data ({:#?}) as a collection of values."</span>,
 				global
 			))
 			.unwrap(),
 	)
 	.into_diagnostic()
 	.wrap_err(<span class="macro">miette!</span>(
-		<span class="string">&quot;Unable to represent global file data as a collection of values.&quot;
+		<span class="string">"Unable to represent global file data as a collection of values."
 	</span>))
 	.unwrap();
 	global_map.extend(global_context);
