@@ -39,15 +39,15 @@ doc = false
 
 [dependencies]
 actix-files = "0.6.2"
-actix-http = "3.4.0"
+actix-http = "3.5.1"
 actix-service = "2.0.2"
-actix-web = "4.4.0"
-ahash = { version = "0.8.6", features = ["std", "serde", "runtime-rng"] }
+actix-web = "4.4.1"
+ahash = { version = "0.8.7", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.31", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "4.4.11", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "4.4.12", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 comrak = { version = "0.19.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
-futures = "0.3.29"
+futures = "0.3.30"
 glob = "0.3.1"
 html-minifier = "4.0.0"
 latex2mathml = "0.2.3"
@@ -60,7 +60,7 @@ mimalloc = { version = "0.1.39", default-features = false }
 notify = "6.1.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
-relative-path = "1.9.0"
+relative-path = "1.9.2"
 serde = "1.0.193"
 serde_yaml = "0.9.29"
 sys-locale = "0.3.1"
