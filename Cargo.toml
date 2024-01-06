@@ -61,7 +61,7 @@ notify = "6.1.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
 relative-path = "1.9.2"
-serde = "1.0.193"
+serde = "1.0.195"
 serde_yaml = "0.9.29"
 sys-locale = "0.3.1"
 ticky = { version = "1.0.2", features = ["stdtime"] }
