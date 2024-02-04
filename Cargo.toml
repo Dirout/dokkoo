@@ -39,7 +39,7 @@ doc = false
 
 [dependencies]
 actix-files = "0.6.5"
-actix-http = "3.5.1"
+actix-http = "3.6.0"
 actix-service = "2.0.2"
 actix-web = "4.4.1"
 ahash = { version = "0.8.7", features = ["std", "serde", "runtime-rng"] }
