@@ -59,7 +59,7 @@ jobs:
           cargo generate-rpm
           tree -a ./
       - name: Upload Dokkoo package to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: x86_64-dokkoo.rpm.gnu+linux
           path: "./dokkoo/target/generate-rpm/*.rpm"

@@ -80,19 +80,19 @@ jobs:
           libdokkoo.dylib \
           libdokkoo.a
       - name: Upload Dokkoo AMD64 build artifacts to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: x86_64-dokkoo.osx
           path: ./target/x86_64-apple-darwin/release/x86_64-dokkoo.osx.tar
           if-no-files-found: error
       - name: Upload Dokkoo ARM64 build artifacts to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: aarch64-dokkoo.osx
           path: ./target/aarch64-apple-darwin/release/aarch64-dokkoo.osx.tar
           if-no-files-found: error
       - name: Upload Dokkoo Universal build artifacts to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: universal-dokkoo.osx
           path: ./target/universal-dokkoo.osx.tar
