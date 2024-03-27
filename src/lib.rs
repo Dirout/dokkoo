@@ -742,7 +742,7 @@ pub fn split_frontmatter(page_text: String) -> (String, String) {
 	}
 
 	if frontmatter.trim().is_empty() {
-		frontmatter = "empty: true".to_owned();
+		"empty: true".clone_into(&mut frontmatter);
 	}
 
 	(frontmatter, contents)
