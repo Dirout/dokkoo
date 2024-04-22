@@ -34,7 +34,7 @@ jobs:
           libdokkoo.so \
           libdokkoo.a
       - name: Upload Dokkoo build artifacts to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: x86_64-dokkoo.gnu+linux
           path: ./target/x86_64-unknown-linux-gnu/release/x86_64-dokkoo.gnu+linux.tar
