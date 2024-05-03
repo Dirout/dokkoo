@@ -60,7 +60,7 @@ mimalloc = { version = "0.1.41", default-features = false }
 notify = "6.1.1"
 path-clean = "1.0.1"
 pathdiff = "0.2.1"
-relative-path = "1.9.2"
+relative-path = "1.9.3"
 serde = "1.0.199"
 serde_yaml = "0.9.34"
 sys-locale = "0.3.1"
