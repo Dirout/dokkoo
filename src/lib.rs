@@ -770,7 +770,7 @@ pub fn create_liquid_parser() -> liquid::Parser {
 				let path = &unwrapped_snippet.as_path();
 				partial.add(
 					snippet_name,
-					&fs::read_to_string(path)
+					fs::read_to_string(path)
 						.into_diagnostic()
 						.wrap_err(format!("Unable to read snippet file '{}'.", path.display()))
 						.unwrap(),
