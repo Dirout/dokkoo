@@ -41,10 +41,10 @@ doc = false
 actix-files = "0.6.5"
 actix-http = "3.7.0"
 actix-service = "2.0.2"
-actix-web = "4.6.0"
+actix-web = "4.7.0"
 ahash = { version = "0.8.11", features = ["std", "serde", "runtime-rng"] }
 chrono = { version = "0.4.38", features = ["alloc", "std", "clock", "serde", "unstable-locales"] }
-clap = { version = "4.5.4", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
+clap = { version = "4.5.6", features = ["cargo", "suggestions", "color", "wrap_help", "unicode"] }
 comrak = { version = "0.19.0", features = ["syntect", "shortcodes"] }
 derive_more = { version = "0.99.17", features = ["default", "convert_case", "generate-parsing-rs", "testing-helpers", "nightly", "peg", "rustc_version" ] }
 futures = "0.3.30"
@@ -52,9 +52,9 @@ glob = "0.3.1"
 html-minifier = "4.0.0"
 latex2mathml = "0.2.3"
 lazy_static = "1.4.0"
-liquid = "0.26.4"
-liquid-core = "0.26.4"
-liquid-lib = { version = "0.26.4", features = ["all", "stdlib", "jekyll", "shopify", "extra"] }
+liquid = "0.26.6"
+liquid-core = "0.26.6"
+liquid-lib = { version = "0.26.6", features = ["all", "stdlib", "jekyll", "shopify", "extra"] }
 miette = { version = "5.10.0", features = ["fancy"] }
 mimalloc = { version = "0.1.42", default-features = false }
 notify = "6.1.1"
