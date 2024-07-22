@@ -60,7 +60,7 @@ jobs:
           chmod 644 /root/.ssh/aur.pub
           ssh-keyscan -H aur.archlinux.org >> /root/.ssh/known_hosts
       - name: Upload Dokkoo Pacman package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: x86_64-dokkoo.pacman
           path: dokkoo-*-x86_64.tar.gz
